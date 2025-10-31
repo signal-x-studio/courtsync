@@ -31,6 +31,8 @@
 	// import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
 	
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
+	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
+	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;

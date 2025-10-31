@@ -12,12 +12,8 @@
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import type { SetScore } from '$lib/types';
 	
-	// TODO: Import Svelte components as they're migrated
-	// import ConflictDetailsPanel from '$lib/components/ConflictDetailsPanel.svelte';
-	// import PrioritySelector from '$lib/components/PrioritySelector.svelte';
-	// import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
-	// import Scorekeeper from '$lib/components/Scorekeeper.svelte';
-	// import LiveScoreIndicator from '$lib/components/LiveScoreIndicator.svelte';
+	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
+	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
@@ -515,9 +511,13 @@
 												{/if}
 											</button>
 											{#if priorityMenuOpen === match.MatchId}
-												<!-- TODO: PrioritySelector component -->
 												<div class="absolute left-full top-0 ml-2 z-50">
-													PrioritySelector - To be migrated
+													<PrioritySelector
+														matchId={match.MatchId}
+														currentPriority={matchPriority}
+														onPriorityChange={priority.setPriority}
+														onClose={() => priorityMenuOpen = null}
+													/>
 												</div>
 											{/if}
 										</div>
@@ -541,9 +541,13 @@
 												{teamCoverageStatus === 'not-covered' && '○'}
 											</button>
 											{#if coverageStatusMenuOpen === teamId}
-												<!-- TODO: CoverageStatusSelector component -->
 												<div class="absolute left-full top-0 ml-2 z-50">
-													CoverageStatusSelector - To be migrated
+													<CoverageStatusSelector
+														{teamId}
+														currentStatus={teamCoverageStatus}
+														onStatusChange={coverageStatus.setTeamStatus}
+														onClose={() => coverageStatusMenuOpen = null}
+													/>
 												</div>
 											{/if}
 										</div>
