@@ -22,7 +22,7 @@ This document outlines the step-by-step implementation plan for transforming the
 - **2.3 Route Optimization** - Not implemented (low priority, can be added later)
 - **2.2 Conflict Resolution** - "Next Conflict" navigation pending (minor enhancement)
 - **4.3 Team Coverage Statistics** - Coverage timeline/goals pending (minor enhancements)
-- **5.2 Match Claiming** - Transfer claim option and claim history pending (minor enhancements)
+- **5.2 Match Claiming** - Claim history/log pending (minor enhancement)
 - **5.5 Coach View** - Match notes/comments pending (minor enhancement)
 
 ### Key Achievements:
@@ -916,7 +916,7 @@ src/
   - [x] Export scores for backup
 - [x] Claim management
   - [x] Release claim button (for claimer)
-  - [ ] Transfer claim option
+  - [x] Transfer claim option
   - [x] Claim conflict handling (if multiple claim simultaneously)
   - [ ] Claim history/log
 
