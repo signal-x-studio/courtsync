@@ -13,6 +13,7 @@
 	import EventInput from '$lib/components/EventInput.svelte';
 	import MatchList from '$lib/components/MatchList.svelte';
 	import TimelineView from '$lib/components/TimelineView.svelte';
+	import CoveragePlanPanel from '$lib/components/CoveragePlanPanel.svelte';
 	// TODO: Import other components as they're migrated
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
@@ -430,8 +431,7 @@
 		{/if}
 
 		{#if showCoveragePlan}
-			<!-- TODO: CoveragePlanPanel component -->
-			<div class="text-[#9fa2ab]">CoveragePlanPanel component - To be migrated</div>
+			<CoveragePlanPanel {matches} onClose={() => showCoveragePlan = false} />
 		{/if}
 	</main>
 </div>
