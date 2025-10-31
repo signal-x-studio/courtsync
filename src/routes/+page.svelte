@@ -1,8 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { fetchCourtSchedule, fetchEventInfo } from '$lib/services/api';
-	import { filterClubMatches } from '$lib/utils/matchFilters';
-	import { formatMatchDate } from '$lib/utils/dateUtils';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
@@ -177,6 +173,34 @@
 	$: isSpectatorValue = $isSpectator;
 	$: isCoachValue = $isCoach;
 	$: userRoleValue = $userRole;
+	
+	// Reactive statement for coverage status updates
+	$: if (matches.length > 0 && selectedCountValue !== undefined) {
+		const teamMatches = new Map<string, { total: number; inPlan: number }>();
+		const currentPlan = get(coveragePlan);
+		
+		matches.forEach(match => {
+			const teamText = match.InvolvedTeam === 'first' 
+				? match.FirstTeamText 
+				: match.SecondTeamText;
+			const matchResult = teamText.match(/(\d+-\d+)/);
+			const teamId = matchResult ? matchResult[1] : '';
+			
+			if (!teamId) return;
+			
+			const stats = teamMatches.get(teamId) || { total: 0, inPlan: 0 };
+			stats.total++;
+			
+			if (currentPlan.has(match.MatchId)) {
+				stats.inPlan++;
+			}
+			teamMatches.set(teamId, stats);
+		});
+		
+		teamMatches.forEach((stats, teamId) => {
+			coverageStatus.updateFromPlan(teamId, stats.inPlan, stats.total);
+		});
+	}
 </script>
 
 <div class="min-h-screen" style="background-color: #18181b;">
