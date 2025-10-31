@@ -1,5 +1,5 @@
 import { a as store_get, b as attr_class, c as attr_style, u as unsubscribe_stores } from "../../chunks/index2.js";
-import { d as derived, w as writable } from "../../chunks/index.js";
+import { d as derived, w as writable, g as get } from "../../chunks/index.js";
 import { X as escape_html } from "../../chunks/context.js";
 function createCoveragePlan() {
   const { subscribe, set, update } = writable(/* @__PURE__ */ new Set());
@@ -110,48 +110,10 @@ function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
     let conflictCount, selectedCountValue, isMediaValue, isCoachValue, userRoleValue;
-    let eventId = "PTAwMDAwNDEzMTQ90";
-    let date = "2025-11-01";
-    let timeWindow = 300;
     let matches = [];
-    let loading = false;
-    let error = null;
     let viewMode = "list";
     let showConfig = false;
-    let clubId = 24426;
     let showCoveragePlan = false;
-    let eventInfo = null;
-    onMount(() => {
-      handleLoad(eventId, date, timeWindow);
-    });
-    async function handleLoad(newEventId, newDate, newTimeWindow) {
-      loading = true;
-      error = null;
-      eventId = newEventId;
-      date = newDate;
-      timeWindow = newTimeWindow;
-      try {
-        const eventInfoData = await fetchEventInfo(newEventId);
-        const club = eventInfoData.Clubs?.find((c) => c.Name === "630 Volleyball");
-        if (club) {
-          clubId = club.ClubId;
-        }
-        eventInfo = {
-          name: eventInfoData.Name || eventInfoData.EventName || eventInfoData.FullName || eventInfoData.Title || "Event",
-          startDate: eventInfoData.StartDate || eventInfoData.StartDateTime || eventInfoData.Start || eventInfoData.StartTime,
-          endDate: eventInfoData.EndDate || eventInfoData.EndDateTime || eventInfoData.End || eventInfoData.EndTime
-        };
-        const data = await fetchCourtSchedule(newEventId, newDate, newTimeWindow);
-        const filteredMatches = filterClubMatches(data.CourtSchedules);
-        matches = filteredMatches;
-      } catch (err) {
-        console.error("Error loading schedule:", err);
-        error = err instanceof Error ? err.message : "Failed to load schedule";
-        matches = [];
-      } finally {
-        loading = false;
-      }
-    }
     if (matches.length > 0) {
       const teamMatches = /* @__PURE__ */ new Map();
       matches.forEach((match) => {
@@ -226,47 +188,7 @@ function _page($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--></div> `);
-    if (eventInfo && (eventInfo.name || eventInfo.startDate)) {
-      $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="flex items-center gap-2 text-xs" style="color: #9fa2ab;">`);
-      if (eventInfo.name) {
-        $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="font-medium truncate max-w-[200px] sm:max-w-none">${escape_html(eventInfo.name)}</span>`);
-      } else {
-        $$renderer2.push("<!--[!-->");
-      }
-      $$renderer2.push(`<!--]--> `);
-      if ((eventInfo.startDate || eventInfo.endDate) && (() => {
-        try {
-          const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
-          const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
-          return startDate && endDate && Math.abs(startDate - endDate) > 864e5;
-        } catch {
-          return false;
-        }
-      })()) {
-        $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="hidden sm:inline">${escape_html((() => {
-          try {
-            const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
-            const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
-            if (startDate && endDate && Math.abs(startDate - endDate) > 864e5) {
-              return `${formatMatchDate(startDate)} - ${formatMatchDate(endDate)}`;
-            } else if (startDate) {
-              return formatMatchDate(startDate);
-            } else if (endDate) {
-              return formatMatchDate(endDate);
-            }
-            return null;
-          } catch {
-            return null;
-          }
-        })())}</span>`);
-      } else {
-        $$renderer2.push("<!--[!-->");
-      }
-      $$renderer2.push(`<!--]--></div>`);
-    } else {
+    {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--> `);
@@ -341,21 +263,15 @@ function _page($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--> <main class="container mx-auto px-3 sm:px-4 py-4 sm:py-6">`);
-    if (loading) {
-      $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-12"><div class="inline-block animate-pulse" style="color: #9fa2ab;">Loading matches...</div></div>`);
-    } else {
+    {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--> `);
-    if (error) {
-      $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="rounded-lg mb-6 px-4 py-3 border" style="background-color: rgba(127, 29, 29, 0.5); border-color: #991b1b; color: #fca5a5;"><div class="text-xs font-medium mb-1">Error</div> <div class="text-sm">${escape_html(error)}</div></div>`);
-    } else {
+    {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--> `);
-    if (!loading && matches.length === 0 && !error) {
+    if (matches.length === 0 && true) {
       $$renderer2.push("<!--[-->");
       $$renderer2.push(`<div class="text-center py-12" style="color: #9fa2ab;"><div class="text-sm">No matches found for 630 Volleyball</div> <div class="text-xs mt-2" style="color: #808593;">Click "Config" to change event parameters</div></div>`);
     } else {

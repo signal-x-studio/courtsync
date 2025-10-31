@@ -1,4 +1,9 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
+	import { fetchCourtSchedule, fetchEventInfo } from '$lib/services/api';
+	import { filterClubMatches } from '$lib/utils/matchFilters';
+	import { formatMatchDate } from '$lib/utils/dateUtils';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
