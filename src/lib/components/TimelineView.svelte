@@ -26,6 +26,8 @@
 	let priorityMenuOpen: number | null = null;
 	let coverageStatusMenuOpen: string | null = null;
 	let scorekeeperMatch: FilteredMatch | null = null;
+	let highlightGaps = false;
+	let showGapsOnly = false;
 	
 	// Create match claiming store
 	let matchClaiming: ReturnType<typeof createMatchClaiming>;
@@ -113,9 +115,9 @@
 		return `${match.FirstTeamText} vs ${match.SecondTeamText}`;
 	}
 	
-	// Calculate timeline bounds
-	$: earliestTime = filteredMatches.length > 0 ? Math.min(...filteredMatches.map((m) => m.ScheduledStartDateTime)) : 0;
-	$: latestTime = filteredMatches.length > 0 ? Math.max(...filteredMatches.map((m) => m.ScheduledEndDateTime)) : 0;
+	// Calculate timeline bounds (using gap-filtered matches)
+	$: earliestTime = gapFilteredMatches.length > 0 ? Math.min(...gapFilteredMatches.map((m) => m.ScheduledStartDateTime)) : 0;
+	$: latestTime = gapFilteredMatches.length > 0 ? Math.max(...gapFilteredMatches.map((m) => m.ScheduledEndDateTime)) : 0;
 	$: totalDuration = latestTime - earliestTime;
 	
 	function getPosition(startTime: number): number {
@@ -128,10 +130,39 @@
 		return ((endTime - startTime) / totalDuration) * 100;
 	}
 	
-	// Group matches by court
+	// Get matches with gaps for filtering
+	$: matchesWithGaps = (() => {
+		const matchSet = new Set<number>();
+		const allMatchesByCourt: Record<string, FilteredMatch[]> = {};
+		filteredMatches.forEach(match => {
+			if (!allMatchesByCourt[match.CourtName]) {
+				allMatchesByCourt[match.CourtName] = [];
+			}
+			allMatchesByCourt[match.CourtName].push(match);
+		});
+		
+		Object.values(allMatchesByCourt).forEach(courtMatches => {
+			const gaps = calculateGaps(courtMatches);
+			gaps.forEach(gap => {
+				matchSet.add(gap.before.MatchId);
+				matchSet.add(gap.after.MatchId);
+			});
+		});
+		return matchSet;
+	})();
+	
+	// Apply gap filter if enabled
+	$: gapFilteredMatches = (() => {
+		if (showGapsOnly) {
+			return filteredMatches.filter(m => matchesWithGaps.has(m.MatchId));
+		}
+		return filteredMatches;
+	})();
+	
+	// Group matches by court (using gap-filtered matches)
 	$: matchesByCourt = (() => {
 		const grouped: Record<string, FilteredMatch[]> = {};
-		filteredMatches.forEach(match => {
+		gapFilteredMatches.forEach(match => {
 			if (!grouped[match.CourtName]) {
 				grouped[match.CourtName] = [];
 			}
@@ -142,11 +173,11 @@
 	
 	$: courts = Object.keys(matchesByCourt).sort();
 	
-	// Get highlighted team matches
+	// Get highlighted team matches (using gap-filtered matches)
 	$: highlightedTeamMatches = (() => {
 		if (!highlightedTeam) return new Set<number>();
 		const matchSet = new Set<number>();
-		filteredMatches.forEach(match => {
+		gapFilteredMatches.forEach(match => {
 			const teamId = getTeamIdFromFilter(match);
 			if (teamId === highlightedTeam) {
 				matchSet.add(match.MatchId);
@@ -155,15 +186,66 @@
 		return matchSet;
 	})();
 	
-	// Get conflicting matches for selected conflict
+	// Get conflicting matches for selected conflict (using gap-filtered matches)
 	$: conflictingMatchesForSelected = (() => {
 		if (!selectedConflict) return [];
 		const conflictGroup = conflicts.get(selectedConflict.MatchId);
 		if (!conflictGroup) return [];
 		return conflictGroup.map(matchId => {
-			return filteredMatches.find(m => m.MatchId === matchId);
+			return gapFilteredMatches.find(m => m.MatchId === matchId);
 		}).filter(Boolean) as FilteredMatch[];
 	})();
+	
+	// Get all conflicts and track completion
+	$: allConflicts = (() => {
+		const conflictList: FilteredMatch[] = [];
+		const seen = new Set<number>();
+		
+		gapFilteredMatches.forEach(match => {
+			if (conflicts.has(match.MatchId) && !seen.has(match.MatchId)) {
+				conflictList.push(match);
+				seen.add(match.MatchId);
+				const conflictGroup = conflicts.get(match.MatchId);
+				if (conflictGroup) {
+					conflictGroup.forEach(id => seen.add(id));
+				}
+			}
+		});
+		
+		return conflictList.sort((a, b) => a.ScheduledStartDateTime - b.ScheduledStartDateTime);
+	})();
+	
+	// Track resolved conflicts (matches in plan)
+	$: resolvedConflicts = (() => {
+		const currentPlan = get(coveragePlan);
+		return allConflicts.filter(conflict => {
+			const conflictGroup = conflicts.get(conflict.MatchId);
+			if (!conflictGroup) return false;
+			// Conflict is resolved if at least one match from the conflict group is in the plan
+			return conflictGroup.some(matchId => currentPlan.has(matchId));
+		});
+	})();
+	
+	$: conflictProgress = {
+		total: allConflicts.length,
+		resolved: resolvedConflicts.length,
+		remaining: allConflicts.length - resolvedConflicts.length
+	};
+	
+	// Get current conflict index
+	$: currentConflictIndex = selectedConflict ? allConflicts.findIndex(c => c.MatchId === selectedConflict.MatchId) : -1;
+	
+	function handleNextConflict() {
+		if (currentConflictIndex >= 0 && currentConflictIndex < allConflicts.length - 1) {
+			selectedConflict = allConflicts[currentConflictIndex + 1];
+		}
+	}
+	
+	function handlePreviousConflict() {
+		if (currentConflictIndex > 0) {
+			selectedConflict = allConflicts[currentConflictIndex - 1];
+		}
+	}
 	
 	// Calculate time gaps between matches on each court
 	function calculateGaps(courtMatches: FilteredMatch[]) {
@@ -314,6 +396,26 @@
 				</div>
 			{/if}
 			
+			<!-- Gap Highlighting Controls -->
+			{#if $isMedia}
+				<div class="flex items-center gap-2">
+					<button
+						onclick={() => highlightGaps = !highlightGaps}
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {highlightGaps ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+						title="Highlight all time gaps"
+					>
+						{highlightGaps ? '✓' : ''} Highlight Gaps
+					</button>
+					<button
+						onclick={() => showGapsOnly = !showGapsOnly}
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {showGapsOnly ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+						title="Show only matches with gaps"
+					>
+						{showGapsOnly ? '✓' : ''} Gaps Only
+					</button>
+				</div>
+			{/if}
+			
 			<!-- Clear Filters -->
 			{#if $filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || $filters.timeRange.start || $filters.timeRange.end || ($filters.priority && $filters.priority !== 'all') || ($filters.coverageStatus && $filters.coverageStatus !== 'all')}
 				<button
@@ -329,9 +431,14 @@
 		<div class="flex items-center justify-between">
 			<div class="text-xs text-[#9fa2ab]">
 				Timeline: {formatMatchTime(earliestTime)} - {formatMatchTime(latestTime)}
-				{#if filteredMatches.length !== matches.length}
+				{#if gapFilteredMatches.length !== matches.length}
 					<span class="ml-2">
-						({filteredMatches.length} of {matches.length})
+						({gapFilteredMatches.length} of {matches.length})
+					</span>
+				{/if}
+				{#if conflictProgress.total > 0 && $isMedia}
+					<span class="ml-2 text-xs">
+						• Conflicts: {conflictProgress.resolved}/{conflictProgress.total} resolved
 					</span>
 				{/if}
 			</div>
@@ -378,12 +485,12 @@
 								
 								{#if gapWidth >= 1}
 									<div
-										class="absolute top-0 bottom-0 flex items-center justify-center"
+										class="absolute top-0 bottom-0 flex items-center justify-center transition-all {highlightGaps ? 'ring-2 ring-[#eab308] ring-offset-1 ring-offset-[#3b3c48]' : ''}"
 										style="left: {gapStart}%; width: {gapWidth}%; z-index: 0;"
 										title="{gap.gapMinutes} min gap between matches"
 									>
-										{#if gapWidth > 3}
-											<div class="text-[9px] font-medium px-1 py-0.5 rounded {isLargeGap ? 'bg-green-500/20 text-green-400' : isMediumGap ? 'bg-yellow-500/20 text-yellow-400' : 'bg-orange-500/20 text-orange-400'}">
+										{#if gapWidth > 3 || highlightGaps}
+											<div class="text-[9px] font-medium px-1 py-0.5 rounded {isLargeGap ? 'bg-green-500/20 text-green-400' : isMediumGap ? 'bg-yellow-500/20 text-yellow-400' : 'bg-orange-500/20 text-orange-400'} {highlightGaps ? 'ring-2 ring-[#eab308]' : ''}">
 												{gap.gapMinutes}m
 											</div>
 										{/if}
@@ -571,6 +678,11 @@
 				match={selectedConflict}
 				conflictingMatches={conflictingMatchesForSelected}
 				onClose={() => selectedConflict = null}
+				onNextConflict={handleNextConflict}
+				onPreviousConflict={handlePreviousConflict}
+				currentIndex={currentConflictIndex}
+				totalConflicts={allConflicts.length}
+				conflictProgress={conflictProgress}
 			/>
 		{/if}
 		

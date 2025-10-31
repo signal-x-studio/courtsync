@@ -6,6 +6,11 @@
 	export let match: FilteredMatch;
 	export let conflictingMatches: FilteredMatch[];
 	export let onClose: () => void;
+	export let onNextConflict: (() => void) | undefined = undefined;
+	export let onPreviousConflict: (() => void) | undefined = undefined;
+	export let currentIndex: number | undefined = undefined;
+	export let totalConflicts: number | undefined = undefined;
+	export let conflictProgress: { total: number; resolved: number; remaining: number } | undefined = undefined;
 	
 	// Get opponent
 	function getOpponent(m: FilteredMatch): string {
@@ -46,6 +51,45 @@
 			</button>
 		</div>
 
+		<!-- Conflict Navigation & Progress -->
+		{#if currentIndex !== undefined && totalConflicts !== undefined && totalConflicts > 1}
+			<div class="flex items-center justify-between mb-3 pb-3 border-b border-[#454654]">
+				<div class="flex items-center gap-2">
+					{#if onPreviousConflict}
+						<button
+							onclick={onPreviousConflict}
+							disabled={currentIndex === 0}
+							class="px-2 py-1 text-xs font-medium rounded transition-colors {currentIndex === 0 ? 'bg-[#454654] text-[#808593] cursor-not-allowed' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+							title="Previous conflict"
+						>
+							← Prev
+						</button>
+					{/if}
+					<span class="text-xs text-[#9fa2ab]">
+						Conflict {currentIndex + 1} of {totalConflicts}
+					</span>
+					{#if onNextConflict}
+						<button
+							onclick={onNextConflict}
+							disabled={currentIndex === totalConflicts - 1}
+							class="px-2 py-1 text-xs font-medium rounded transition-colors {currentIndex === totalConflicts - 1 ? 'bg-[#454654] text-[#808593] cursor-not-allowed' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+							title="Next conflict"
+						>
+							Next →
+						</button>
+					{/if}
+				</div>
+				{#if conflictProgress}
+					<div class="text-xs text-[#9fa2ab]">
+						{conflictProgress.resolved}/{conflictProgress.total} resolved
+						{#if conflictProgress.remaining === 0}
+							<span class="ml-2 text-green-400">✓ All resolved!</span>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		{/if}
+		
 		<!-- Current Match -->
 		<div class="mb-4 pb-4 border-b border-[#454654]">
 			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">

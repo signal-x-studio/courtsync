@@ -10,8 +10,7 @@
 	} from '$lib/services/api';
 	import { getTeamIdentifier } from '$lib/stores/filters';
 	
-	// TODO: Import TeamStatsView when migrated
-	// import TeamStatsView from '$lib/components/TeamStatsView.svelte';
+	import TeamStatsView from '$lib/components/TeamStatsView.svelte';
 	
 	export let match: FilteredMatch;
 	export let eventId: string;
@@ -335,8 +334,12 @@
 				</div>
 
 				{#if viewMode === 'stats' && teamId}
-					<!-- TODO: TeamStatsView component -->
-					<div class="text-[#9fa2ab]">TeamStatsView - To be migrated</div>
+					<TeamStatsView
+						{matches}
+						{eventId}
+						{teamId}
+						{teamName}
+					/>
 				{:else if viewMode === 'schedule'}
 					<!-- Full Schedule Timeline -->
 					<div>
