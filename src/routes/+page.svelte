@@ -425,11 +425,6 @@
 			{/if}
 		{/if}
 
-		{#if selectedTeam}
-			<!-- TODO: TeamDetailPanel component -->
-			<div class="text-[#9fa2ab]">TeamDetailPanel component - To be migrated</div>
-		{/if}
-
 		{#if showCoveragePlan}
 			<CoveragePlanPanel {matches} onClose={() => showCoveragePlan = false} />
 		{/if}
