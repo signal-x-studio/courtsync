@@ -23,7 +23,7 @@ This document outlines the step-by-step implementation plan for transforming the
 - **2.2 Conflict Resolution** - Completion state pending (minor enhancement)
 - **4.3 Team Coverage Statistics** - Coverage timeline/goals pending (minor enhancements)
 - **5.2 Match Claiming** - Claim history/log pending (minor enhancement)
-- **5.5 Coach View** - Match notes/comments pending (minor enhancement)
+- **5.5 Coach View** - Player availability tracking pending (future enhancement)
 
 ### Key Achievements:
 - All high-priority features implemented
@@ -1040,8 +1040,8 @@ src/
   - [x] Show team's work assignments
   - [x] Work schedule alongside playing schedule
   - [x] Work assignment reminders
-- [ ] Coaching tools
-  - [ ] Match notes/comments
+- [x] Coaching tools
+  - [x] Match notes/comments
   - [x] Roster view integration
   - [ ] Player availability tracking (future)
 
