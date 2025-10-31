@@ -39,3 +39,35 @@ export interface FilteredMatch extends Match {
   InvolvedTeam: 'first' | 'second' | 'work';
 }
 
+export type MatchClaimStatus = 'available' | 'claimed' | 'locked';
+
+export interface MatchClaim {
+  matchId: number;
+  claimedBy: string;
+  claimedAt: number;
+  expiresAt: number;
+  eventId: string;
+}
+
+export interface MatchScore {
+  matchId: number;
+  eventId: string;
+  sets: SetScore[];
+  status: 'not-started' | 'in-progress' | 'completed';
+  lastUpdated: number;
+  lastUpdatedBy: string;
+}
+
+export interface SetScore {
+  setNumber: number;
+  team1Score: number;
+  team2Score: number;
+  completedAt: number;
+}
+
+export interface ScoreHistoryEntry {
+  timestamp: number;
+  updatedBy: string;
+  sets: SetScore[];
+  status: 'not-started' | 'in-progress' | 'completed';
+}

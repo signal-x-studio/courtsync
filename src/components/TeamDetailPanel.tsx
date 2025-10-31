@@ -7,12 +7,15 @@ import {
   fetchDivisionPlays,
   fetchPoolSheet,
 } from '../services/api';
+import { TeamStatsView } from './TeamStats';
+import { useFilters } from '../hooks/useFilters';
 
 interface TeamDetailPanelProps {
   match: FilteredMatch;
   eventId: string;
   clubId: number;
   onClose: () => void;
+  matches?: FilteredMatch[]; // Optional: all matches for stats calculation
 }
 
 interface TeamInfo {
@@ -47,6 +50,7 @@ export const TeamDetailPanel = ({
   eventId,
   clubId,
   onClose,
+  matches = [],
 }: TeamDetailPanelProps) => {
   const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null);
   const [currentSchedule, setCurrentSchedule] = useState<ScheduleMatch[]>([]);
@@ -55,18 +59,12 @@ export const TeamDetailPanel = ({
   const [divisionPlays, setDivisionPlays] = useState<any[]>([]);
   const [selectedPlayId, setSelectedPlayId] = useState<number | null>(null);
   const [poolSheet, setPoolSheet] = useState<any | null>(null);
-  const [viewMode, setViewMode] = useState<'schedule' | 'poolsheet'>('schedule');
+  const [viewMode, setViewMode] = useState<'schedule' | 'poolsheet' | 'stats'>('schedule');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Reset selectedPlayId and poolSheet when view mode changes to poolsheet
-  useEffect(() => {
-    if (viewMode === 'poolsheet') {
-      setPoolSheet(null); // Clear previous pool sheet data
-      // selectedPlayId will be auto-set by the relevantPools useEffect
-    }
-  }, [viewMode]);
-
+  
+  const { getTeamIdentifier } = useFilters();
+  
   // Extract team name from match
   const getTeamName = (): string => {
     if (match.InvolvedTeam === 'first') {
@@ -76,6 +74,17 @@ export const TeamDetailPanel = ({
     }
     return '';
   };
+  
+  const teamId = getTeamIdentifier(match);
+  const teamName = getTeamName();
+
+  // Reset selectedPlayId and poolSheet when view mode changes to poolsheet
+  useEffect(() => {
+    if (viewMode === 'poolsheet') {
+      setPoolSheet(null); // Clear previous pool sheet data
+      // selectedPlayId will be auto-set by the relevantPools useEffect
+    }
+  }, [viewMode]);
 
   useEffect(() => {
     const loadTeamData = async () => {
@@ -438,9 +447,28 @@ export const TeamDetailPanel = ({
               >
                 Pool Sheet
               </button>
+              {matches.length > 0 && teamId && (
+                <button
+                  onClick={() => setViewMode('stats')}
+                  className={`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${
+                    viewMode === 'stats'
+                      ? 'bg-[#eab308] text-[#18181b]'
+                      : 'text-[#c0c2c8] hover:text-[#f8f8f9]'
+                  }`}
+                >
+                  Statistics
+                </button>
+              )}
             </div>
 
-            {viewMode === 'schedule' ? (
+            {viewMode === 'stats' && teamId ? (
+              <TeamStatsView
+                matches={matches}
+                eventId={eventId}
+                teamId={teamId}
+                teamName={teamName}
+              />
+            ) : viewMode === 'schedule' ? (
               /* Full Schedule Timeline */
               <div>
                 <h5 className="text-xs font-semibold text-[#9fa2ab] uppercase tracking-wider mb-2">

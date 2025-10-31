@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react';
 import { EventInput } from './components/EventInput';
 import { MatchList } from './components/MatchList';
 import { TimelineView } from './components/TimelineView';
+import { CoachView } from './components/CoachView';
 import { fetchCourtSchedule, fetchEventInfo } from './services/api';
 import { filterClubMatches } from './utils/matchFilters';
 import type { FilteredMatch } from './types';
+import { TeamDetailPanel } from './components/TeamDetailPanel';
+import { useCoveragePlan } from './hooks/useCoveragePlan';
+import { CoveragePlanPanel } from './components/CoveragePlanPanel';
+import { formatMatchDate } from './utils/dateUtils';
+import { useCoverageStatus } from './hooks/useCoverageStatus';
+import { useUserRole } from './hooks/useUserRole';
 
 function App() {
   const [eventId, setEventId] = useState('PTAwMDAwNDEzMTQ90');
@@ -16,6 +23,49 @@ function App() {
   const [viewMode, setViewMode] = useState<'list' | 'timeline'>('list');
   const [showConfig, setShowConfig] = useState(false);
   const [clubId, setClubId] = useState<number>(24426); // 630 Volleyball club ID
+  const [selectedTeam, setSelectedTeam] = useState<FilteredMatch | null>(null);
+  const [showCoveragePlan, setShowCoveragePlan] = useState(false);
+  const [eventInfo, setEventInfo] = useState<{ name?: string; startDate?: string; endDate?: string } | null>(null);
+  
+  // Coverage plan hook
+  const coveragePlan = useCoveragePlan();
+  
+  // Coverage status hook
+  const coverageStatus = useCoverageStatus();
+  
+  // User role hook
+  const userRole = useUserRole();
+
+  // Auto-update coverage status when plan changes
+  useEffect(() => {
+    if (matches.length === 0) return;
+    
+    // Group matches by team
+    const teamMatches = new Map<string, { total: number; inPlan: number }>();
+    
+    matches.forEach(match => {
+      const teamText = match.InvolvedTeam === 'first' 
+        ? match.FirstTeamText 
+        : match.SecondTeamText;
+      const matchResult = teamText.match(/(\d+-\d+)/);
+      const teamId = matchResult ? matchResult[1] : '';
+      
+      if (!teamId) return;
+      
+      const stats = teamMatches.get(teamId) || { total: 0, inPlan: 0 };
+      stats.total++;
+      if (coveragePlan.isSelected(match.MatchId)) {
+        stats.inPlan++;
+      }
+      teamMatches.set(teamId, stats);
+    });
+    
+    // Update coverage status for each team
+    teamMatches.forEach((stats, teamId) => {
+      coverageStatus.updateFromPlan(teamId, stats.inPlan, stats.total);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matches, coveragePlan.getSelectedCount(), coverageStatus.updateFromPlan]);
 
   // Auto-load on mount
   useEffect(() => {
@@ -35,12 +85,19 @@ function App() {
     setTimeWindow(newTimeWindow);
 
     try {
-      // Fetch event info to get club ID
-      const eventInfo = await fetchEventInfo(newEventId);
-      const club = eventInfo.Clubs?.find((c: any) => c.Name === '630 Volleyball');
+      // Fetch event info to get club ID and event details
+      const eventInfoData = await fetchEventInfo(newEventId);
+      const club = eventInfoData.Clubs?.find((c: any) => c.Name === '630 Volleyball');
       if (club) {
         setClubId(club.ClubId);
       }
+
+      // Store event info for display - try multiple possible field names
+      setEventInfo({
+        name: eventInfoData.Name || eventInfoData.EventName || eventInfoData.FullName || eventInfoData.Title || 'Event',
+        startDate: eventInfoData.StartDate || eventInfoData.StartDateTime || eventInfoData.Start || eventInfoData.StartTime,
+        endDate: eventInfoData.EndDate || eventInfoData.EndDateTime || eventInfoData.End || eventInfoData.EndTime,
+      });
 
       const data = await fetchCourtSchedule(newEventId, newDate, newTimeWindow);
       const filteredMatches = filterClubMatches(data.CourtSchedules);
@@ -131,12 +188,57 @@ function App() {
         <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
           {/* Mobile: Stack vertically */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-              <h1 className="text-base sm:text-lg font-semibold truncate" style={{ color: '#f8f8f9' }}>
-                630 Volleyball Coverage
-              </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold truncate" style={{ color: '#f8f8f9' }}>
+                  630 Volleyball Coverage
+                </h1>
+                {matches.length > 0 && (
+                  <span className="text-xs whitespace-nowrap hidden sm:inline" style={{ color: '#9fa2ab' }}>
+                    {matches.length} matches
+                    {conflictCount > 0 && (
+                      <span className="ml-2" style={{ color: '#ef4444' }}>• {conflictCount} conflicts</span>
+                    )}
+                  </span>
+                )}
+              </div>
+              
+              {/* Event Name and Date Range */}
+              {eventInfo && (eventInfo.name || eventInfo.startDate) && (
+                <div className="flex items-center gap-2 text-xs" style={{ color: '#9fa2ab' }}>
+                  {eventInfo.name && (
+                    <span className="font-medium truncate max-w-[200px] sm:max-w-none">
+                      {eventInfo.name}
+                    </span>
+                  )}
+                  {(eventInfo.startDate || eventInfo.endDate) && (
+                    <span className="hidden sm:inline">
+                      {(() => {
+                        try {
+                          const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
+                          const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
+                          
+                          if (startDate && endDate && Math.abs(startDate - endDate) > 86400000) {
+                            // More than 1 day difference
+                            return `${formatMatchDate(startDate)} - ${formatMatchDate(endDate)}`;
+                          } else if (startDate) {
+                            return formatMatchDate(startDate);
+                          } else if (endDate) {
+                            return formatMatchDate(endDate);
+                          }
+                          return null;
+                        } catch {
+                          return null;
+                        }
+                      })()}
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              {/* Mobile: Show match count below */}
               {matches.length > 0 && (
-                <span className="text-xs whitespace-nowrap" style={{ color: '#9fa2ab' }}>
+                <span className="text-xs sm:hidden" style={{ color: '#9fa2ab' }}>
                   {matches.length} matches
                   {conflictCount > 0 && (
                     <span className="ml-2" style={{ color: '#ef4444' }}>• {conflictCount} conflicts</span>
@@ -147,33 +249,65 @@ function App() {
             
             {/* Inline Utility Controls - Wrap on mobile */}
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              {/* User Role Selector */}
+              <div className="flex items-center gap-1">
+                <label className="text-xs hidden sm:inline" style={{ color: '#9fa2ab' }}>Role:</label>
+                <select
+                  value={userRole.role}
+                  onChange={(e) => userRole.setRole(e.target.value as any)}
+                  className="px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0"
+                  style={{ backgroundColor: '#454654', color: '#c0c2c8', border: '1px solid #525463' }}
+                  title="Select your role"
+                >
+                  <option value="media">Media</option>
+                  <option value="spectator">Spectator</option>
+                  <option value="coach">Coach</option>
+                </select>
+              </div>
+              
               {matches.length > 0 && (
                 <>
                   {/* View Mode Pills */}
-                  <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: '#454654' }}>
+                  {/* View Mode Toggle - Hide for Coach role */}
+                  {!userRole.isCoach && (
+                    <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: '#454654' }}>
+                      <button
+                        onClick={() => setViewMode('list')}
+                        className={`px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${
+                          viewMode === 'list'
+                            ? 'text-[#18181b]'
+                            : 'hover:text-[#f8f8f9]'
+                        }`}
+                        style={viewMode === 'list' ? { backgroundColor: '#eab308' } : { color: '#c0c2c8' }}
+                      >
+                        List
+                      </button>
+                      <button
+                        onClick={() => setViewMode('timeline')}
+                        className={`px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${
+                          viewMode === 'timeline'
+                            ? 'text-[#18181b]'
+                            : 'hover:text-[#f8f8f9]'
+                        }`}
+                        style={viewMode === 'timeline' ? { backgroundColor: '#eab308' } : { color: '#c0c2c8' }}
+                      >
+                        Timeline
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Coverage Plan Toggle - Only show for Media role */}
+                  {userRole.isMedia && coveragePlan.getSelectedCount() > 0 && (
                     <button
-                      onClick={() => setViewMode('list')}
-                      className={`px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${
-                        viewMode === 'list'
-                          ? 'text-[#18181b]'
-                          : 'hover:text-[#f8f8f9]'
+                      onClick={() => setShowCoveragePlan(!showCoveragePlan)}
+                      className={`px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 ${
+                        showCoveragePlan ? 'text-[#18181b]' : ''
                       }`}
-                      style={viewMode === 'list' ? { backgroundColor: '#eab308' } : { color: '#c0c2c8' }}
+                      style={showCoveragePlan ? { backgroundColor: '#eab308' } : { backgroundColor: '#454654', color: '#c0c2c8' }}
                     >
-                      List
+                      Plan ({coveragePlan.getSelectedCount()})
                     </button>
-                    <button
-                      onClick={() => setViewMode('timeline')}
-                      className={`px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${
-                        viewMode === 'timeline'
-                          ? 'text-[#18181b]'
-                          : 'hover:text-[#f8f8f9]'
-                      }`}
-                      style={viewMode === 'timeline' ? { backgroundColor: '#eab308' } : { color: '#c0c2c8' }}
-                    >
-                      Timeline
-                    </button>
-                  </div>
+                  )}
 
                   {/* Export Pills */}
                   <button
@@ -251,10 +385,45 @@ function App() {
           </div>
         )}
 
-        {viewMode === 'list' ? (
-          <MatchList matches={matches} eventId={eventId} clubId={clubId} />
+        {userRole.isCoach ? (
+          <CoachView
+            matches={matches}
+            eventId={eventId}
+            clubId={clubId}
+          />
+        ) : viewMode === 'list' ? (
+          <MatchList 
+            matches={matches} 
+            eventId={eventId} 
+            clubId={clubId}
+            coveragePlan={coveragePlan}
+            userRole={userRole}
+          />
         ) : (
-          <TimelineView matches={matches} />
+          <TimelineView 
+            matches={matches}
+            coveragePlan={coveragePlan}
+            userRole={userRole}
+            eventId={eventId}
+          />
+        )}
+
+        {selectedTeam && (
+          <TeamDetailPanel
+            match={selectedTeam}
+            eventId={eventId}
+            clubId={clubId}
+            matches={matches}
+            onClose={() => setSelectedTeam(null)}
+          />
+        )}
+
+        {showCoveragePlan && (
+          <CoveragePlanPanel
+            matches={matches}
+            coveragePlan={coveragePlan}
+            onClose={() => setShowCoveragePlan(false)}
+          />
         )}
       </main>
     </div>
