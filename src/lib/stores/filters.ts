@@ -104,3 +104,100 @@ function createFilters() {
 
 export const filters = createFilters();
 
+// Utility functions for filtering
+export function getTeamIdentifier(match: FilteredMatch): string {
+	const teamText = match.InvolvedTeam === 'first' ? match.FirstTeamText : match.SecondTeamText;
+	const matchResult = teamText.match(/(\d+-\d+)/);
+	return matchResult ? matchResult[1] : '';
+}
+
+export function getUniqueDivisions(matches: FilteredMatch[]): string[] {
+	const divSet = new Set(matches.map(m => m.Division.CodeAlias));
+	return Array.from(divSet).sort();
+}
+
+export function getUniqueTeams(matches: FilteredMatch[]): string[] {
+	const teamSet = new Set<string>();
+	matches.forEach(match => {
+		const teamId = getTeamIdentifier(match);
+		if (teamId) {
+			teamSet.add(teamId);
+		}
+	});
+	return Array.from(teamSet).sort();
+}
+
+export function applyFilters(matches: FilteredMatch[]): FilteredMatch[] {
+	let currentFilters: FilterState = DEFAULT_FILTERS;
+	filters.subscribe(f => {
+		currentFilters = f;
+	})();
+	
+	return matches.filter(match => {
+		// Division filter
+		if (currentFilters.division && match.Division.CodeAlias !== currentFilters.division) {
+			return false;
+		}
+
+		// Wave filter
+		if (currentFilters.wave !== 'all') {
+			const startTime = new Date(match.ScheduledStartDateTime).getTime();
+			const startDate = new Date(startTime);
+			const hours = startDate.getHours();
+			const minutes = startDate.getMinutes();
+			const totalMinutes = hours * 60 + minutes;
+			const afternoonStartMinutes = 14 * 60 + 30;
+			
+			if (currentFilters.wave === 'morning' && totalMinutes >= afternoonStartMinutes) {
+				return false;
+			}
+			if (currentFilters.wave === 'afternoon' && totalMinutes < afternoonStartMinutes) {
+				return false;
+			}
+		}
+
+		// Team filter
+		if (currentFilters.teams.length > 0) {
+			const teamId = getTeamIdentifier(match);
+			if (!teamId || !currentFilters.teams.includes(teamId)) {
+				return false;
+			}
+		}
+
+		// Time range filter
+		if (currentFilters.timeRange.start || currentFilters.timeRange.end) {
+			const startTime = new Date(match.ScheduledStartDateTime).getTime();
+			const startDate = new Date(startTime);
+			const hours = startDate.getHours();
+			const minutes = startDate.getMinutes();
+			const matchTimeMinutes = hours * 60 + minutes;
+
+			if (currentFilters.timeRange.start) {
+				const [startH, startM] = currentFilters.timeRange.start.split(':').map(Number);
+				const startFilterMinutes = startH * 60 + startM;
+				if (matchTimeMinutes < startFilterMinutes) {
+					return false;
+				}
+			}
+
+			if (currentFilters.timeRange.end) {
+				const [endH, endM] = currentFilters.timeRange.end.split(':').map(Number);
+				const endFilterMinutes = endH * 60 + endM;
+				if (matchTimeMinutes > endFilterMinutes) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	});
+}
+
+export function updateFilter(key: keyof FilterState, value: any) {
+	filters.updateFilter(key, value);
+}
+
+export function resetFilters() {
+	filters.resetFilters();
+}
+

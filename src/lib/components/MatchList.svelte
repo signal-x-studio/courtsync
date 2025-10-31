@@ -8,7 +8,7 @@
 	import { generateCoverageSuggestions } from '$lib/utils/coverageSuggestions';
 	import { exportScoresToJSON, importScoresFromJSON, generateScoreShareUrl, extractScoresFromUrl, hasShareableScoresInUrl } from '$lib/utils/scoreShare';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
-	import { filters, applyFilters, updateFilter, resetFilters, getUniqueDivisions, getFilteredDivisions, getUniqueTeams, getTeamIdentifier as getTeamIdFromFilter } from '$lib/stores/filters';
+	import { filters, applyFilters, updateFilter, resetFilters, getUniqueDivisions, getUniqueTeams, getTeamIdentifier as getTeamIdFromFilter } from '$lib/stores/filters';
 	import { priority } from '$lib/stores/priority';
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { followedTeams } from '$lib/stores/followedTeams';
@@ -52,10 +52,15 @@
 	let previousClaimedMatchIds = new Set<number>();
 	
 	// Create match claiming store
-	const matchClaiming = createMatchClaiming({ 
-		eventId, 
-		userId: $isSpectator ? 'spectator' : 'anonymous' 
-	});
+	let matchClaiming: ReturnType<typeof createMatchClaiming>;
+	
+	$: {
+		const isSpectatorValue = $isSpectator;
+		matchClaiming = createMatchClaiming({ 
+			eventId, 
+			userId: isSpectatorValue ? 'spectator' : 'anonymous' 
+		});
+	}
 	
 	// Create match notes store
 	const matchNotes = createMatchNotesStore(eventId);
@@ -66,7 +71,17 @@
 	// Get unique divisions and teams for filter dropdowns
 	$: divisions = (() => {
 		if ($filters.wave !== 'all') {
-			return getFilteredDivisions(matches, $filters.wave);
+			// Filter divisions by wave
+			const waveStart = $filters.wave === 'morning' ? '08:00' : '14:30';
+			const waveEnd = $filters.wave === 'morning' ? '14:30' : '23:59';
+			return getUniqueDivisions(matches).filter(div => {
+				// Check if any match in this division falls within the wave
+				return matches.some(m => {
+					const matchTime = formatMatchTime(m.ScheduledStartDateTime);
+					const timeOnly = matchTime.split(' ')[1] || matchTime;
+					return timeOnly >= waveStart && timeOnly < waveEnd && m.Division.Name === div;
+				});
+			});
 		}
 		return getUniqueDivisions(matches);
 	})();
