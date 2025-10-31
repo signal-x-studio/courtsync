@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import type { FilteredMatch } from '../types';
 import { formatMatchTime, formatMatchDate } from '../utils/dateUtils';
 import { detectConflicts } from '../utils/matchFilters';
@@ -33,6 +33,8 @@ export const CoveragePlanPanel = ({
   const [activeTab, setActiveTab] = useState<'plan' | 'analytics' | 'stats' | 'coordination'>('plan');
   const [coverageStatusFilter, setCoverageStatusFilter] = useState<'all' | 'not-covered' | 'planned' | 'covered'>('all');
   const [coverageStatusMenuOpen, setCoverageStatusMenuOpen] = useState<string | null>(null);
+  const [currentConflictIndex, setCurrentConflictIndex] = useState<number>(0);
+  const conflictRefs = useRef<(HTMLDivElement | null)[]>([]);
   
   // Team coordination hooks
   const teamCoordination = useTeamCoordination();
@@ -152,6 +154,40 @@ export const CoveragePlanPanel = ({
     return conflictIds
       .map(id => selectedMatchesList.find(m => m.MatchId === id))
       .filter(Boolean) as FilteredMatch[];
+  };
+
+  // Scroll to conflict when index changes
+  useEffect(() => {
+    if (conflictGroups.length > 0 && conflictRefs.current[currentConflictIndex]) {
+      conflictRefs.current[currentConflictIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [currentConflictIndex, conflictGroups.length]);
+
+  // Reset conflict index when conflict groups change
+  useEffect(() => {
+    if (conflictGroups.length > 0) {
+      // Reset to first conflict if current index is out of bounds
+      if (currentConflictIndex >= conflictGroups.length) {
+        setCurrentConflictIndex(0);
+      }
+    } else {
+      setCurrentConflictIndex(0);
+    }
+  }, [conflictGroups.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleNextConflict = () => {
+    if (conflictGroups.length > 0) {
+      setCurrentConflictIndex((prev) => (prev + 1) % conflictGroups.length);
+    }
+  };
+
+  const handlePreviousConflict = () => {
+    if (conflictGroups.length > 0) {
+      setCurrentConflictIndex((prev) => (prev - 1 + conflictGroups.length) % conflictGroups.length);
+    }
   };
 
   // Extract team identifier (using useFilters)
@@ -465,28 +501,70 @@ export const CoveragePlanPanel = ({
                       </h4>
                       <p className="text-xs text-[#9fa2ab] mt-0.5">
                         {conflictGroups.length} conflict group{conflictGroups.length !== 1 ? 's' : ''} in your plan
+                        {conflictGroups.length > 0 && (
+                          <span className="ml-2 text-[#eab308]">
+                            • Conflict {currentConflictIndex + 1} of {conflictGroups.length}
+                          </span>
+                        )}
                       </p>
                     </div>
-                    <button
-                      onClick={() => {
-                        // Remove all conflicting matches except the first one in each group
-                        conflictGroups.forEach(group => {
-                          group.matches.slice(1).forEach(match => {
-                            coveragePlan.deselectMatch(match.MatchId);
+                    <div className="flex items-center gap-2">
+                      {conflictGroups.length > 1 && (
+                        <>
+                          <button
+                            onClick={handlePreviousConflict}
+                            className="px-2 py-1 text-xs font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+                            title="Previous conflict"
+                          >
+                            ← Prev
+                          </button>
+                          <button
+                            onClick={handleNextConflict}
+                            className="px-2 py-1 text-xs font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+                            title="Next conflict"
+                          >
+                            Next →
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => {
+                          // Remove all conflicting matches except the first one in each group
+                          conflictGroups.forEach(group => {
+                            group.matches.slice(1).forEach(match => {
+                              coveragePlan.deselectMatch(match.MatchId);
+                            });
                           });
-                        });
-                      }}
-                      className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors"
-                    >
-                      Auto-Resolve
-                    </button>
+                        }}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors"
+                      >
+                        Auto-Resolve
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="space-y-3">
                     {conflictGroups.map((group, groupIndex) => (
-                      <div key={groupIndex} className="border border-red-800/30 rounded bg-[#3b3c48]/50 p-3">
-                        <div className="text-xs font-medium text-red-400 mb-2">
-                          Conflict Group {groupIndex + 1}: {group.conflictCount} overlapping match{group.conflictCount !== 1 ? 'es' : ''}
+                      <div 
+                        key={groupIndex} 
+                        ref={(el) => {
+                          conflictRefs.current[groupIndex] = el;
+                        }}
+                        className={`border rounded p-3 transition-all ${
+                          groupIndex === currentConflictIndex 
+                            ? 'border-[#eab308] bg-[#eab308]/5' 
+                            : 'border-red-800/30 bg-[#3b3c48]/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-xs font-medium text-red-400">
+                            Conflict Group {groupIndex + 1}: {group.conflictCount} overlapping match{group.conflictCount !== 1 ? 'es' : ''}
+                          </div>
+                          {groupIndex === currentConflictIndex && (
+                            <div className="text-[10px] font-semibold text-[#eab308] px-1.5 py-0.5 rounded bg-[#eab308]/20">
+                              ACTIVE
+                            </div>
+                          )}
                         </div>
                         <div className="space-y-2">
                           {group.matches.map((match, matchIndex) => {
