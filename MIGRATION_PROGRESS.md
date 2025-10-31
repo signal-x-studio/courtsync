@@ -31,10 +31,15 @@ All React hooks converted to Svelte stores:
 - ✅ Migrated `PrioritySelector.tsx` → `src/lib/components/PrioritySelector.svelte`
 - ✅ Migrated `CoverageStatusSelector.tsx` → `src/lib/components/CoverageStatusSelector.svelte`
 - ✅ Migrated `ConflictDetailsPanel.tsx` → `src/lib/components/ConflictDetailsPanel.svelte`
-- ✅ Migrated `CoveragePlanPanel.tsx` → `src/lib/components/CoveragePlanPanel.svelte` (plan tab complete, other tabs pending)
+- ✅ Migrated `CoveragePlanPanel.tsx` → `src/lib/components/CoveragePlanPanel.svelte` (all tabs complete)
 - ✅ Migrated `CoachView.tsx` → `src/lib/components/CoachView.svelte` (core functionality working)
 - ✅ Migrated `TeamMatchView.tsx` → `src/lib/components/TeamMatchView.svelte`
 - ✅ Migrated `WorkAssignmentView.tsx` → `src/lib/components/WorkAssignmentView.svelte`
+- ✅ Migrated `CoverageAnalytics.tsx` → `src/lib/components/CoverageAnalytics.svelte`
+- ✅ Migrated `CoverageStats.tsx` → `src/lib/components/CoverageStats.svelte`
+- ✅ Migrated `TeamMemberSelector.tsx` → `src/lib/components/TeamMemberSelector.svelte`
+- ✅ Migrated `TeamCoverageView.tsx` → `src/lib/components/TeamCoverageView.svelte`
+- ✅ Migrated `CoverageHandoffDialog.tsx` → `src/lib/components/CoverageHandoffDialog.svelte`
 
 ## Current Status
 
@@ -42,14 +47,17 @@ All React hooks converted to Svelte stores:
 - **Stores**: ✅ All migrated and working
 - **Main Page**: ✅ Migrated and functional
 - **EventInput**: ✅ Migrated and functional
-- **Remaining Components**: ~22 components to migrate
+- **Remaining Components**: ~8 components to migrate (spectator/scorekeeping components)
 
 ## Next Steps
 
-### Continue Phase 3: Core UI Components
-1. Migrate `MatchList.tsx` → `MatchList.svelte`
-2. Migrate `TimelineView.tsx` → `TimelineView.svelte`
-3. Migrate `CoachView.tsx` → `CoachView.svelte`
+### Continue Phase 3: Remaining Components
+1. Migrate `Scorekeeper.tsx` → `Scorekeeper.svelte`
+2. Migrate `LiveMatchDashboard.tsx` → `LiveMatchDashboard.svelte`
+3. Migrate `MatchClaimButton.tsx` → `MatchClaimButton.svelte`
+4. Migrate `LiveScoreIndicator.tsx` → `LiveScoreIndicator.svelte`
+5. Migrate `MyTeamsSelector.tsx` → `MyTeamsSelector.svelte`
+6. Migrate `ClaimHistoryPanel.tsx` → `ClaimHistoryPanel.svelte`
 
 ### Phase 4: Panels & Modals
 - Migrate all panel components
