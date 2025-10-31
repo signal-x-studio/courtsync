@@ -20,7 +20,6 @@ This document outlines the step-by-step implementation plan for transforming the
 
 ### Remaining Items:
 - **2.3 Route Optimization** - Not implemented (low priority, can be added later)
-- **2.4 Export/Share** - ICS Calendar export pending (minor enhancement)
 - **2.2 Conflict Resolution** - "Next Conflict" navigation pending (minor enhancement)
 - **4.3 Team Coverage Statistics** - Coverage timeline/goals pending (minor enhancements)
 - **5.2 Match Claiming** - Transfer claim option and claim history pending (minor enhancements)
@@ -276,10 +275,10 @@ This document outlines the step-by-step implementation plan for transforming the
 - [x] Export to JSON
   - [x] Full match data as JSON
   - [x] Include plan metadata
-- [ ] Export to Calendar (ICS format)
-  - [ ] Generate ICS file
-  - [ ] Include match times, locations, descriptions
-  - [ ] Add travel time as buffer
+- [x] Export to Calendar (ICS format)
+  - [x] Generate ICS file
+  - [x] Include match times, locations, descriptions
+  - [x] Add travel time as buffer
 - [x] Print-friendly view
   - [x] Create print layout
   - [x] Hide non-essential UI
