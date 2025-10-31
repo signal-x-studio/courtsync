@@ -22,14 +22,31 @@ All React hooks converted to Svelte stores:
 - ✅ `matchClaiming` store (factory function)
 - ✅ `teamCoordination` store
 
+### Phase 3: Component Migration - Core UI (In Progress) 🔄
+- ✅ Migrated `App.tsx` → `src/routes/+page.svelte`
+- ✅ Migrated `EventInput.tsx` → `src/lib/components/EventInput.svelte`
+- ⏳ `MatchList.tsx` → `src/lib/components/MatchList.svelte` (TODO)
+- ⏳ `TimelineView.tsx` → `src/lib/components/TimelineView.svelte` (TODO)
+- ⏳ `CoachView.tsx` → `src/lib/components/CoachView.svelte` (TODO)
+
+## Current Status
+
+- **Build Status**: ✅ Successful
+- **Stores**: ✅ All migrated and working
+- **Main Page**: ✅ Migrated and functional
+- **EventInput**: ✅ Migrated and functional
+- **Remaining Components**: ~22 components to migrate
+
 ## Next Steps
 
-### Phase 3: Component Migration - Core UI
-- Migrate `App.tsx` → `src/routes/+page.svelte`
-- Migrate `EventInput.tsx` → `src/lib/components/EventInput.svelte`
-- Migrate `MatchList.tsx` → `src/lib/components/MatchList.svelte`
-- Migrate `TimelineView.tsx` → `src/lib/components/TimelineView.svelte`
-- Migrate `CoachView.tsx` → `src/lib/components/CoachView.svelte`
+### Continue Phase 3: Core UI Components
+1. Migrate `MatchList.tsx` → `MatchList.svelte`
+2. Migrate `TimelineView.tsx` → `TimelineView.svelte`
+3. Migrate `CoachView.tsx` → `CoachView.svelte`
+
+### Phase 4: Panels & Modals
+- Migrate all panel components
+- Migrate selectors and controls
 
 ## Notes
 
@@ -37,4 +54,6 @@ All React hooks converted to Svelte stores:
 - Stores use factory functions where eventId/userId is needed
 - All localStorage persistence maintained
 - Cross-tab sync via BroadcastChannel preserved
+- Build successful and ready for component migration
+
 

@@ -11,6 +11,7 @@
 	import type { FilteredMatch } from '$lib/types';
 	
 	import EventInput from '$lib/components/EventInput.svelte';
+	import MatchList from '$lib/components/MatchList.svelte';
 	// TODO: Import other components as they're migrated
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
@@ -416,8 +417,7 @@
 				<!-- TODO: CoachView component -->
 				<div class="text-[#9fa2ab]">CoachView component - To be migrated</div>
 			{:else if viewMode === 'list'}
-				<!-- TODO: MatchList component -->
-				<div class="text-[#9fa2ab]">MatchList component - To be migrated</div>
+				<MatchList {matches} {eventId} {clubId} />
 			{:else}
 				<!-- TODO: TimelineView component -->
 				<div class="text-[#9fa2ab]">TimelineView component - To be migrated</div>
