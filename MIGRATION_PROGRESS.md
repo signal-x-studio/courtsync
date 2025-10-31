@@ -25,8 +25,8 @@ All React hooks converted to Svelte stores:
 ### Phase 3: Component Migration - Core UI (In Progress) 🔄
 - ✅ Migrated `App.tsx` → `src/routes/+page.svelte`
 - ✅ Migrated `EventInput.tsx` → `src/lib/components/EventInput.svelte`
-- ⏳ `MatchList.tsx` → `src/lib/components/MatchList.svelte` (TODO)
-- ⏳ `TimelineView.tsx` → `src/lib/components/TimelineView.svelte` (TODO)
+- ✅ Migrated `MatchList.tsx` → `src/lib/components/MatchList.svelte` (partial, core functionality working)
+- ✅ Migrated `TimelineView.tsx` → `src/lib/components/TimelineView.svelte` (partial, core functionality working)
 - ⏳ `CoachView.tsx` → `src/lib/components/CoachView.svelte` (TODO)
 
 ## Current Status

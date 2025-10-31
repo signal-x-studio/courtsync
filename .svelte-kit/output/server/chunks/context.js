@@ -25,6 +25,15 @@ function deferred() {
   });
   return { promise, resolve, reject };
 }
+function fallback(value, fallback2, lazy = false) {
+  return value === void 0 ? lazy ? (
+    /** @type {() => V} */
+    fallback2()
+  ) : (
+    /** @type {V} */
+    fallback2
+  ) : value;
+}
 function equals(value) {
   return value === this.v;
 }
@@ -1810,7 +1819,7 @@ function get_parent_context(ssr_context2) {
   return null;
 }
 export {
-  push as $,
+  set_ssr_context as $,
   svelte_boundary_reset_onerror as A,
   Batch as B,
   COMMENT_NODE as C,
@@ -1836,16 +1845,17 @@ export {
   getContext as W,
   escape_html as X,
   ssr_context as Y,
-  STALE_REACTION as Z,
-  set_ssr_context as _,
+  fallback as Z,
+  STALE_REACTION as _,
   HYDRATION_END as a,
-  pop as a0,
-  subscribe_to_store as a1,
-  ELEMENT_PRESERVE_ATTRIBUTE_CASE as a2,
-  ELEMENT_IS_INPUT as a3,
-  ELEMENT_IS_NAMESPACED as a4,
-  safe_not_equal as a5,
-  run_all as a6,
+  push as a0,
+  pop as a1,
+  subscribe_to_store as a2,
+  ELEMENT_PRESERVE_ATTRIBUTE_CASE as a3,
+  ELEMENT_IS_INPUT as a4,
+  ELEMENT_IS_NAMESPACED as a5,
+  safe_not_equal as a6,
+  run_all as a7,
   HYDRATION_START as b,
   HYDRATION_START_ELSE as c,
   get as d,

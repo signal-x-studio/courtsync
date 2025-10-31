@@ -1,6 +1,6 @@
-import { a as store_get, b as attr_class, c as attr, d as stringify, e as ensure_array_like, u as unsubscribe_stores, f as bind_props, g as attr_style } from "../../chunks/index2.js";
+import { b as bind_props, a as store_get, c as attr_class, d as attr, e as stringify, f as ensure_array_like, u as unsubscribe_stores, g as attr_style } from "../../chunks/index2.js";
 import { d as derived, w as writable, g as get } from "../../chunks/index.js";
-import { Y as ssr_context, X as escape_html } from "../../chunks/context.js";
+import { Y as ssr_context, X as escape_html, Z as fallback } from "../../chunks/context.js";
 import { format } from "date-fns";
 function onDestroy(fn) {
   /** @type {SSRContext} */
@@ -28,6 +28,9 @@ const detectConflicts = (matches) => {
 };
 const formatMatchTime = (timestamp) => {
   return format(new Date(timestamp), "h:mm a");
+};
+const formatMatchDate = (timestamp) => {
+  return format(new Date(timestamp), "MMM d, yyyy");
 };
 function createCoveragePlan() {
   const { subscribe, set, update } = writable(/* @__PURE__ */ new Set());
@@ -762,6 +765,98 @@ function createMatchNotes(eventId) {
 function createMatchNotesStore(eventId) {
   return createMatchNotes(eventId);
 }
+function TeamDetailPanel($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let allMatches, teamPools, relevantPools, matchesByDate;
+    let match = $$props["match"];
+    let eventId = $$props["eventId"];
+    let clubId = $$props["clubId"];
+    let onClose = $$props["onClose"];
+    let matches = fallback($$props["matches"], () => [], true);
+    let currentSchedule = [];
+    let workSchedule = [];
+    let futureSchedule = [];
+    let divisionPlays = [];
+    let selectedPlayId = null;
+    function getTeamName() {
+      if (match.InvolvedTeam === "first") {
+        return match.FirstTeamText;
+      } else if (match.InvolvedTeam === "second") {
+        return match.SecondTeamText;
+      }
+      return "";
+    }
+    getTeamIdentifier(match);
+    const teamName = getTeamName();
+    allMatches = (() => {
+      const matches2 = [
+        ...currentSchedule.map((m) => ({ ...m, type: "current" })),
+        ...workSchedule.map((m) => ({ ...m, type: "work" })),
+        ...futureSchedule.map((m) => ({ ...m, type: "future" }))
+      ].filter((match2, index, array) => {
+        return array.findIndex((m) => m.MatchId === match2.MatchId) === index;
+      }).sort((a, b) => {
+        const timeA = typeof a.ScheduledStartDateTime === "string" ? new Date(a.ScheduledStartDateTime).getTime() : a.ScheduledStartDateTime || 0;
+        const timeB = typeof b.ScheduledStartDateTime === "string" ? new Date(b.ScheduledStartDateTime).getTime() : b.ScheduledStartDateTime || 0;
+        return timeA - timeB;
+      });
+      return matches2;
+    })();
+    teamPools = (() => {
+      const poolSet = /* @__PURE__ */ new Set();
+      allMatches.forEach((match2) => {
+        if (match2.Division && match2.Division.PlayId) {
+          const playId = Math.abs(match2.Division.PlayId);
+          poolSet.add(playId);
+        }
+      });
+      return Array.from(poolSet);
+    })();
+    relevantPools = (() => {
+      return divisionPlays.filter((play) => {
+        const normalizedPlayId = Math.abs(play.PlayId);
+        return teamPools.includes(normalizedPlayId);
+      });
+    })();
+    if (relevantPools.length > 0 && !selectedPlayId) {
+      selectedPlayId = relevantPools[0].PlayId;
+    }
+    matchesByDate = (() => {
+      const grouped = {};
+      allMatches.forEach((match2) => {
+        const startTime = typeof match2.ScheduledStartDateTime === "string" ? new Date(match2.ScheduledStartDateTime).getTime() : match2.ScheduledStartDateTime || 0;
+        const dateKey = formatMatchDate(startTime);
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey].push(match2);
+      });
+      return grouped;
+    })();
+    (() => {
+      return Object.keys(matchesByDate).sort((a, b) => {
+        const dateA = new Date(a).getTime();
+        const dateB = new Date(b).getTime();
+        return dateA - dateB;
+      });
+    })();
+    $$renderer2.push(`<div class="mt-2 border border-[#454654] rounded-lg bg-[#3b3c48] overflow-hidden"><div class="p-3 sm:p-4"><div class="flex items-center justify-between mb-3 sm:mb-4"><h4 class="text-xs sm:text-sm font-semibold text-[#f8f8f9] truncate pr-2">${escape_html(teamName)} - Full Schedule</h4> <button class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center" aria-label="Close panel"><svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> `);
+    {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="text-center py-8 text-[#9fa2ab] text-sm">Loading schedule...</div>`);
+    }
+    $$renderer2.push(`<!--]--> `);
+    {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div></div>`);
+    bind_props($$props, { match, eventId, clubId, onClose, matches });
+  });
+}
 function MatchList($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
@@ -1052,7 +1147,13 @@ function MatchList($$renderer, $$props) {
             $$renderer2.push(`<!--]--> <div class="flex-1 min-w-0"><div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div> <div class="text-xs text-[#9fa2ab]">${escape_html(match.CourtName)} • ${escape_html(teamId || match.Division.CodeAlias)} vs ${escape_html(opponent)}</div></div> <div class="flex-shrink-0 w-4"><svg${attr_class(`w-4 h-4 text-[#9fa2ab] transition-transform ${stringify(isExpanded ? "rotate-180" : "")}`)} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div> `);
             if (isExpanded) {
               $$renderer2.push("<!--[-->");
-              $$renderer2.push(`<div class="text-[#9fa2ab] mt-2 p-4 border border-[#454654] rounded-lg">TeamDetailPanel - To be migrated</div>`);
+              TeamDetailPanel($$renderer2, {
+                match,
+                eventId,
+                clubId,
+                onClose: () => expandedMatch = null,
+                matches
+              });
             } else {
               $$renderer2.push("<!--[!-->");
             }

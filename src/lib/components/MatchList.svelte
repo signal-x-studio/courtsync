@@ -30,6 +30,8 @@
 	// import LiveMatchDashboard from '$lib/components/LiveMatchDashboard.svelte';
 	// import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
 	
+	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
+	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
 	export let clubId: number;
@@ -663,10 +665,13 @@
 								
 								<!-- Expanded Team Detail Panel -->
 								{#if isExpanded}
-									<!-- TODO: TeamDetailPanel component -->
-									<div class="text-[#9fa2ab] mt-2 p-4 border border-[#454654] rounded-lg">
-										TeamDetailPanel - To be migrated
-									</div>
+									<TeamDetailPanel
+										{match}
+										{eventId}
+										{clubId}
+										onClose={() => expandedMatch = null}
+										{matches}
+									/>
 								{/if}
 							</div>
 						{/each}
