@@ -12,6 +12,7 @@
 	
 	import EventInput from '$lib/components/EventInput.svelte';
 	import MatchList from '$lib/components/MatchList.svelte';
+	import TimelineView from '$lib/components/TimelineView.svelte';
 	// TODO: Import other components as they're migrated
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
@@ -419,8 +420,7 @@
 			{:else if viewMode === 'list'}
 				<MatchList {matches} {eventId} {clubId} />
 			{:else}
-				<!-- TODO: TimelineView component -->
-				<div class="text-[#9fa2ab]">TimelineView component - To be migrated</div>
+				<TimelineView {matches} {eventId} />
 			{/if}
 		{/if}
 
