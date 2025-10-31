@@ -15,6 +15,8 @@
 	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	import ConflictDetailsPanel from '$lib/components/ConflictDetailsPanel.svelte';
+	import LiveScoreIndicator from '$lib/components/LiveScoreIndicator.svelte';
+	import Scorekeeper from '$lib/components/Scorekeeper.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
