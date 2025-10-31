@@ -482,9 +482,11 @@
 												<div class="text-[9px] font-semibold text-white">
 													{currentSet.team1Score}-{currentSet.team2Score}
 												</div>
-												<!-- TODO: LiveScoreIndicator component -->
 												{#if score.status === 'in-progress'}
-													<div class="text-[8px] text-green-400">●</div>
+													<LiveScoreIndicator
+														isLive={true}
+														lastUpdated={score.lastUpdated}
+													/>
 												{/if}
 											</div>
 										{/if}
@@ -571,9 +573,17 @@
 		{/if}
 		
 		<!-- Scorekeeper Modal -->
-		{#if scorekeeperMatch && matchClaiming && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)}
-			<!-- TODO: Scorekeeper component -->
-			<div class="text-[#9fa2ab]">Scorekeeper - To be migrated</div>
+		{#if scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)}
+			<Scorekeeper
+				matchId={scorekeeperMatch.MatchId}
+				team1Name={scorekeeperMatch.FirstTeamText}
+				team2Name={scorekeeperMatch.SecondTeamText}
+				currentScore={matchClaiming.getScore(scorekeeperMatch.MatchId)}
+				onScoreUpdate={(sets: SetScore[], status: 'not-started' | 'in-progress' | 'completed') => {
+					matchClaiming.updateScore(scorekeeperMatch.MatchId, sets, status);
+				}}
+				onClose={() => scorekeeperMatch = null}
+			/>
 		{/if}
 		
 		<!-- Close priority menu when clicking outside -->

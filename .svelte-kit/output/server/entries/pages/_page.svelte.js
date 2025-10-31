@@ -1,4 +1,4 @@
-import { b as bind_props, e as ensure_array_like, a as attr_class, c as stringify, d as store_get, f as attr, u as unsubscribe_stores, g as attr_style } from "../../chunks/index2.js";
+import { b as bind_props, e as ensure_array_like, a as attr_class, c as stringify, d as attr, f as store_get, u as unsubscribe_stores, g as attr_style } from "../../chunks/index2.js";
 import { d as derived, w as writable, g as get } from "../../chunks/index.js";
 import { Y as ssr_context, Z as fallback, X as escape_html } from "../../chunks/context.js";
 import { format } from "date-fns";
@@ -943,6 +943,318 @@ function CoverageStatusSelector($$renderer, $$props) {
     bind_props($$props, { teamId, currentStatus, onStatusChange, onClose });
   });
 }
+function MatchClaimButton($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let claimStatus, claimer, isOwner;
+    let match = $$props["match"];
+    let eventId = $$props["eventId"];
+    let onClaim = $$props["onClaim"];
+    let onRelease = $$props["onRelease"];
+    const matchClaiming = createMatchClaiming(eventId);
+    claimStatus = matchClaiming.getClaimStatus(match.MatchId);
+    claimer = matchClaiming.getClaimer(match.MatchId);
+    isOwner = matchClaiming.isClaimOwner(match.MatchId);
+    if (claimStatus === "locked") {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#9fa2ab] border border-[#525463]">Claimed by ${escape_html(claimer)}</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      if (claimStatus === "claimed" && isOwner) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="flex items-center gap-1"><button class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]" title="Release claim">Release</button> <button class="px-2 py-1 text-xs font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors border border-[#525463]" title="Transfer claim to another scorer">Transfer</button></div> `);
+        {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]-->`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+        if (claimStatus === "available") {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<button class="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors" title="Claim this match for scoring">Claim Match</button>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]-->`);
+      }
+      $$renderer2.push(`<!--]-->`);
+    }
+    $$renderer2.push(`<!--]-->`);
+    bind_props($$props, { match, eventId, onClaim, onRelease });
+  });
+}
+function ScoreHistory($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let matchId = $$props["matchId"];
+    let history = [];
+    onDestroy(() => {
+    });
+    if (history.length === 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="text-center py-8 text-[#9fa2ab] text-sm">No score history available</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<div class="space-y-2"><h3 class="text-sm font-semibold text-[#f8f8f9] mb-3">Score History</h3> <div class="space-y-2 max-h-64 overflow-y-auto"><!--[-->`);
+      const each_array = ensure_array_like(history.slice().reverse());
+      for (let index = 0, $$length = each_array.length; index < $$length; index++) {
+        let entry = each_array[index];
+        const completedSets = entry.sets.filter((s) => s.completedAt > 0);
+        const team1SetsWon = completedSets.filter((s) => s.team1Score > s.team2Score).length;
+        const team2SetsWon = completedSets.filter((s) => s.team2Score > s.team1Score).length;
+        const currentSet = entry.sets.find((s) => s.completedAt === 0) || entry.sets[entry.sets.length - 1];
+        $$renderer2.push(`<div class="px-3 py-2 rounded-lg border border-[#454654] bg-[#3b3c48] text-xs"><div class="flex items-center justify-between mb-1"><div class="text-[#9fa2ab]">${escape_html(new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }))}</div> <div${attr_class(`px-2 py-0.5 rounded text-[10px] font-medium ${stringify(entry.status === "completed" ? "bg-green-500/20 text-green-400" : entry.status === "in-progress" ? "bg-[#eab308]/20 text-[#facc15]" : "bg-[#454654] text-[#9fa2ab]")}`)}>${escape_html(entry.status)}</div></div> `);
+        if (completedSets.length > 0) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<div class="text-[#c0c2c8] mb-1">Sets: ${escape_html(team1SetsWon)}-${escape_html(team2SetsWon)}</div>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]--> <div class="text-[#f8f8f9] font-semibold">Current: ${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> <div class="text-[10px] text-[#808593] mt-1">Updated by ${escape_html(entry.updatedBy)}</div></div>`);
+      }
+      $$renderer2.push(`<!--]--></div></div>`);
+    }
+    $$renderer2.push(`<!--]-->`);
+    bind_props($$props, { matchId });
+  });
+}
+function Scorekeeper($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let currentSet, completedSets;
+    let matchId = $$props["matchId"];
+    let team1Name = $$props["team1Name"];
+    let team2Name = $$props["team2Name"];
+    let currentScore = $$props["currentScore"];
+    let onScoreUpdate = $$props["onScoreUpdate"];
+    let onClose = $$props["onClose"];
+    let sets = currentScore?.sets || [];
+    let status = currentScore?.status || "not-started";
+    let isSaving = false;
+    onDestroy(() => {
+    });
+    if (sets.length === 0 && status === "not-started") {
+      sets = [
+        { setNumber: 1, team1Score: 0, team2Score: 0, completedAt: 0 }
+      ];
+    }
+    currentSet = sets.find((s) => s.completedAt === 0) || sets[sets.length - 1];
+    completedSets = sets.filter((s) => s.completedAt > 0);
+    $$renderer2.push(`<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div class="bg-[#3b3c48] rounded-lg border border-[#454654] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"><div class="sticky top-0 bg-[#3b3c48] border-b border-[#454654] px-4 py-3 flex items-center justify-between"><div><h2 class="text-lg font-semibold text-[#f8f8f9]">Scorekeeper</h2> <p class="text-sm text-[#9fa2ab]">${escape_html(team1Name)} vs ${escape_html(team2Name)}</p></div> <button class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors" aria-label="Close scorekeeper">✕</button></div> <div class="p-4 space-y-4"><div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Status:</span> `);
+    $$renderer2.select(
+      {
+        value: status,
+        class: "px-3 py-1 text-sm font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none"
+      },
+      ($$renderer3) => {
+        $$renderer3.option({ value: "not-started" }, ($$renderer4) => {
+          $$renderer4.push(`Not Started`);
+        });
+        $$renderer3.option({ value: "in-progress" }, ($$renderer4) => {
+          $$renderer4.push(`In Progress`);
+        });
+        $$renderer3.option({ value: "completed" }, ($$renderer4) => {
+          $$renderer4.push(`Completed`);
+        });
+      }
+    );
+    $$renderer2.push(`</div> `);
+    if (status === "not-started") {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<button class="w-full px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors">Start Match</button>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (status === "in-progress" && currentSet) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="bg-[#454654] rounded-lg border border-[#525463] p-4"><div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">Set ${escape_html(currentSet.setNumber)}</div> <div class="grid grid-cols-2 gap-4"><div class="text-center"><div class="text-xs text-[#9fa2ab] mb-1">${escape_html(team1Name)}</div> <div class="flex items-center justify-center gap-2"><button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">−</button> <div class="text-3xl font-bold text-[#f8f8f9] w-12 text-center">${escape_html(currentSet.team1Score)}</div> <button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">+</button></div></div> <div class="text-center"><div class="text-xs text-[#9fa2ab] mb-1">${escape_html(team2Name)}</div> <div class="flex items-center justify-center gap-2"><button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">−</button> <div class="text-3xl font-bold text-[#f8f8f9] w-12 text-center">${escape_html(currentSet.team2Score)}</div> <button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">+</button></div></div></div> <div class="flex gap-2 mt-4"><button class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors">Complete Set</button> `);
+      if (sets.length < 5) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<button class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors">Add Set</button>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (completedSets.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div><div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">Completed Sets</div> <div class="space-y-2"><!--[-->`);
+      const each_array = ensure_array_like(completedSets);
+      for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+        let set = each_array[$$index];
+        $$renderer2.push(`<div class="flex items-center justify-between px-3 py-2 bg-[#454654] rounded border border-[#525463]"><span class="text-sm text-[#9fa2ab]">Set ${escape_html(set.setNumber)}</span> <div class="flex items-center gap-4"><span class="text-sm font-medium text-[#f8f8f9]">${escape_html(team1Name)}: ${escape_html(set.team1Score)}</span> <span class="text-sm text-[#9fa2ab]">vs</span> <span class="text-sm font-medium text-[#f8f8f9]">${escape_html(team2Name)}: ${escape_html(set.team2Score)}</span></div></div>`);
+      }
+      $$renderer2.push(`<!--]--></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (status === "in-progress" && completedSets.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<button class="w-full px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors">Complete Match</button>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> <button${attr("disabled", isSaving, true)}${attr_class(`w-full px-4 py-2 text-sm font-medium rounded transition-colors border ${stringify("bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border-[#525463]")}`)}>${escape_html("Save Score")}</button> `);
+    if (status === "in-progress") {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="text-xs text-[#9fa2ab] text-center">${escape_html("✓ Auto-save enabled")}</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (currentScore) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="border-t border-[#454654] pt-4">`);
+      ScoreHistory($$renderer2, { matchId });
+      $$renderer2.push(`<!----></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div></div></div>`);
+    bind_props($$props, {
+      matchId,
+      team1Name,
+      team2Name,
+      currentScore,
+      onScoreUpdate,
+      onClose
+    });
+  });
+}
+function LiveScoreIndicator($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let isLive = $$props["isLive"];
+    let lastUpdated = fallback($$props["lastUpdated"], void 0);
+    let className = fallback($$props["className"], "");
+    let hasUpdate = false;
+    let timeoutId = null;
+    onDestroy(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+    });
+    if (lastUpdated) {
+      hasUpdate = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(
+        () => {
+          hasUpdate = false;
+        },
+        2e3
+      );
+    }
+    if (isLive) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div${attr_class(`flex items-center gap-1 ${stringify(className)}`)}><span${attr_class(`px-1.5 py-0.5 text-[10px] font-medium rounded border transition-all ${stringify(hasUpdate ? "bg-green-500/30 text-green-300 border-green-500/50 animate-pulse" : "bg-green-500/20 text-green-400 border-green-500/30")}`)}>LIVE</span> `);
+      if (lastUpdated) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="text-[9px] text-[#9fa2ab] opacity-75">${escape_html(new Date(lastUpdated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]-->`);
+    bind_props($$props, { isLive, lastUpdated, className });
+  });
+}
+function MyTeamsSelector($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    let matches = $$props["matches"];
+    (() => {
+      const teamMap = /* @__PURE__ */ new Map();
+      matches.forEach((match) => {
+        const teamId = match.FirstTeamText || match.SecondTeamText;
+        if (teamId && !teamMap.has(teamId)) {
+          teamMap.set(teamId, teamId);
+        }
+      });
+      return Array.from(teamMap.entries()).map(([id, name]) => ({ id, name }));
+    })();
+    $$renderer2.push(`<div class="relative"><button class="px-3 py-2 text-sm font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463] hover:border-[#eab308] transition-colors">My Teams (${escape_html(
+      // Available colors for team customization
+      // Gold
+      // Blue
+      // Green
+      // Orange
+      // Red
+      // Purple
+      // Pink
+      // Cyan
+      store_get($$store_subs ??= {}, "$followedTeams", followedTeams).followedTeams.length
+    )})</button> `);
+    {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div>`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
+    bind_props($$props, { matches });
+  });
+}
+function LiveMatchDashboard($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let liveMatches;
+    let matches = $$props["matches"];
+    let eventId = $$props["eventId"];
+    let userId = fallback($$props["userId"], void 0);
+    let onMatchClick = fallback($$props["onMatchClick"], void 0);
+    const matchClaiming = createMatchClaiming(eventId);
+    liveMatches = (() => {
+      const now = Date.now();
+      return matches.filter((match) => {
+        const matchStart = match.ScheduledStartDateTime;
+        const matchEnd = match.ScheduledEndDateTime || matchStart + 90 * 60 * 1e3;
+        const score = matchClaiming.getScore(match.MatchId);
+        return score && score.status === "in-progress" || now >= matchStart && now <= matchEnd;
+      });
+    })();
+    if (liveMatches.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="mb-6 rounded-lg border border-[#454654] bg-[#3b3c48] p-4"><div class="flex items-center justify-between mb-4"><h2 class="text-lg font-semibold text-[#f8f8f9] flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Live Now</h2> <span class="text-xs text-[#9fa2ab]">${escape_html(liveMatches.length)} match${escape_html(liveMatches.length !== 1 ? "es" : "")} in progress</span></div> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"><!--[-->`);
+      const each_array = ensure_array_like(liveMatches);
+      for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+        let match = each_array[$$index];
+        const score = matchClaiming.getScore(match.MatchId);
+        const currentSet = score?.sets.find((s) => s.completedAt === 0) || score?.sets[score?.sets.length - 1];
+        const completedSets = score?.sets.filter((s) => s.completedAt > 0) || [];
+        const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
+        const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
+        $$renderer2.push(`<div class="px-4 py-3 rounded-lg border border-[#525463] bg-[#454654] hover:border-[#eab308] transition-colors cursor-pointer"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span class="text-xs font-medium text-[#facc15]">${escape_html(match.CourtName)}</span> `);
+        LiveScoreIndicator($$renderer2, {
+          isLive: score?.status === "in-progress" || false,
+          lastUpdated: score?.lastUpdated
+        });
+        $$renderer2.push(`<!----></div> <div class="text-xs text-[#9fa2ab]">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div></div> <div class="space-y-1"><div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(match.FirstTeamText)}</div> <div class="text-xs text-[#9fa2ab]">vs</div> <div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(match.SecondTeamText)}</div></div> `);
+        if (score && score.status !== "not-started" && currentSet) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<div class="mt-3 pt-3 border-t border-[#525463]"><div class="flex items-center justify-between">`);
+          if (completedSets.length > 0) {
+            $$renderer2.push("<!--[-->");
+            $$renderer2.push(`<div class="text-xs text-[#9fa2ab]">Sets: ${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
+          } else {
+            $$renderer2.push("<!--[!-->");
+          }
+          $$renderer2.push(`<!--]--> <div class="text-lg font-bold text-[#facc15]">${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div></div></div>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]--></div>`);
+      }
+      $$renderer2.push(`<!--]--></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]-->`);
+    bind_props($$props, { matches, eventId, userId, onMatchClick });
+  });
+}
 function MatchList($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
@@ -1148,7 +1460,11 @@ function MatchList($$renderer, $$props) {
       $$renderer2.push(`<div>`);
       if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="text-[#9fa2ab] mb-4">LiveMatchDashboard - To be migrated</div>`);
+        LiveMatchDashboard($$renderer2, {
+          matches,
+          eventId,
+          userId: store_get($$store_subs ??= {}, "$isSpectator", isSpectator) ? "spectator" : "anonymous"
+        });
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -1180,7 +1496,16 @@ function MatchList($$renderer, $$props) {
       }
       $$renderer2.push(`<!--]--> <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4"><div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Sort:</span> <div class="flex gap-1 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(
         "bg-[#eab308] text-[#18181b]"
-      )}`)}>Team</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Court</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Time</button></div></div> <div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Wave:</span> <div class="flex gap-1 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>All</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Morning</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Afternoon</button></div></div></div> <div class="space-y-4">`);
+      )}`)}>Team</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Court</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Time</button></div></div> <div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Wave:</span> <div class="flex gap-1 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>All</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Morning</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Afternoon</button></div></div> `);
+      if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="flex items-center gap-2">`);
+        MyTeamsSelector($$renderer2, { matches });
+        $$renderer2.push(`<!----></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div> <div class="space-y-4">`);
       if (startTimes.length === 0) {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`<div class="text-center py-12 text-[#9fa2ab] text-sm">No matches found</div>`);
@@ -1286,6 +1611,94 @@ function MatchList($$renderer, $$props) {
             } else {
               $$renderer2.push("<!--[!-->");
             }
+            $$renderer2.push(`<!--]--> `);
+            if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
+              $$renderer2.push("<!--[-->");
+              const score = matchClaiming.getScore(match.MatchId);
+              const claimStatus = matchClaiming.getClaimStatus(match.MatchId);
+              const isOwner = matchClaiming.isClaimOwner(match.MatchId);
+              if (teamId) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="flex-shrink-0"><button${attr_class(`px-2 py-1 text-xs font-medium rounded transition-colors ${stringify(followedTeams.isFollowing(teamId) ? "bg-[#eab308] text-[#18181b]" : "bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]")}`)}${attr("title", followedTeams.isFollowing(teamId) ? "Unfollow team" : "Follow team")}>${escape_html(followedTeams.isFollowing(teamId) ? "✓" : "+")}</button></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--> <div class="flex-shrink-0 flex items-center gap-2">`);
+              MatchClaimButton($$renderer2, {
+                match,
+                eventId,
+                onClaim: (matchId) => {
+                  const claimedMatch = matches.find((m) => m.MatchId === matchId);
+                  if (claimedMatch) {
+                    setTimeout(
+                      () => {
+                        scorekeeperMatch = claimedMatch;
+                      },
+                      300
+                    );
+                  }
+                },
+                onRelease: () => {
+                  scorekeeperMatch = null;
+                }
+              });
+              $$renderer2.push(`<!----> <button class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]" title="View claim history for this match">📜</button> `);
+              if (claimStatus === "claimed" && isOwner) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<button class="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors border border-[#eab308]" title="Start keeping score for this match">${escape_html(score ? "Update Score" : "Start Scoring")}</button>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--> `);
+              if (score && score.status !== "not-started") {
+                $$renderer2.push("<!--[-->");
+                const currentSet = score.sets.find((s) => s.completedAt === 0) || score.sets[score.sets.length - 1];
+                const completedSets = score.sets.filter((s) => s.completedAt > 0);
+                const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
+                const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
+                $$renderer2.push(`<div class="flex-shrink-0 flex items-center gap-2">`);
+                if (completedSets.length > 0) {
+                  $$renderer2.push("<!--[-->");
+                  $$renderer2.push(`<div class="text-xs font-medium text-[#9fa2ab]">${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
+                } else {
+                  $$renderer2.push("<!--[!-->");
+                }
+                $$renderer2.push(`<!--]--> <div class="text-xs font-semibold text-[#f8f8f9]">${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> `);
+                LiveScoreIndicator($$renderer2, {
+                  isLive: score.status === "in-progress",
+                  lastUpdated: score.lastUpdated
+                });
+                $$renderer2.push(`<!----></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--> `);
+              if (!isOwner && score && score.status !== "not-started") {
+                $$renderer2.push("<!--[-->");
+                const currentSet = score.sets.find((s) => s.completedAt === 0) || score.sets[score.sets.length - 1];
+                const completedSets = score.sets.filter((s) => s.completedAt > 0);
+                const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
+                const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
+                $$renderer2.push(`<div class="flex-shrink-0 flex items-center gap-2">`);
+                if (completedSets.length > 0) {
+                  $$renderer2.push("<!--[-->");
+                  $$renderer2.push(`<div class="text-xs font-medium text-[#9fa2ab]">${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
+                } else {
+                  $$renderer2.push("<!--[!-->");
+                }
+                $$renderer2.push(`<!--]--> <div class="text-xs font-semibold text-[#f8f8f9]">${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> `);
+                LiveScoreIndicator($$renderer2, {
+                  isLive: score.status === "in-progress",
+                  lastUpdated: score.lastUpdated
+                });
+                $$renderer2.push(`<!----> <span class="text-[8px] text-[#9fa2ab]">(Live)</span></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
             $$renderer2.push(`<!--]--> <div class="flex-shrink-0 w-4"><svg${attr_class(`w-4 h-4 text-[#9fa2ab] transition-transform ${stringify(isExpanded ? "rotate-180" : "")}`)} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div> `);
             if (isExpanded) {
               $$renderer2.push("<!--[-->");
@@ -1306,9 +1719,37 @@ function MatchList($$renderer, $$props) {
         $$renderer2.push(`<!--]-->`);
       }
       $$renderer2.push(`<!--]--></div> `);
-      if (scorekeeperMatch) {
+      if (scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="text-[#9fa2ab]">Scorekeeper - To be migrated</div>`);
+        Scorekeeper($$renderer2, {
+          matchId: scorekeeperMatch.MatchId,
+          team1Name: scorekeeperMatch.FirstTeamText,
+          team2Name: scorekeeperMatch.SecondTeamText,
+          currentScore: matchClaiming.getScore(scorekeeperMatch.MatchId),
+          onScoreUpdate: (sets, status) => {
+            matchClaiming.updateScore(scorekeeperMatch.MatchId, sets, status);
+          },
+          onClose: () => scorekeeperMatch = null
+        });
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> `);
+      {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> `);
+      if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="fixed bottom-4 right-4 z-50"><div class="relative"><button class="px-4 py-2 text-sm font-medium rounded-lg bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors shadow-lg flex items-center gap-2" title="Score sharing &amp; sync options"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Scores</button> `);
+        {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]--></div></div> `);
+        {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]-->`);
       } else {
         $$renderer2.push("<!--[!-->");
       }

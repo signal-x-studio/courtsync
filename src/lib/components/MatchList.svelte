@@ -19,20 +19,15 @@
 	import type { CoverageStatus } from '$lib/stores/coverageStatus';
 	import type { SetScore } from '$lib/types';
 	
-	// TODO: Import Svelte components as they're migrated
-	// import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
-	// import PrioritySelector from '$lib/components/PrioritySelector.svelte';
-	// import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
-	// import MatchClaimButton from '$lib/components/MatchClaimButton.svelte';
-	// import Scorekeeper from '$lib/components/Scorekeeper.svelte';
-	// import LiveScoreIndicator from '$lib/components/LiveScoreIndicator.svelte';
-	// import MyTeamsSelector from '$lib/components/MyTeamsSelector.svelte';
-	// import LiveMatchDashboard from '$lib/components/LiveMatchDashboard.svelte';
-	// import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
-	
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
 	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
+	import MatchClaimButton from '$lib/components/MatchClaimButton.svelte';
+	import Scorekeeper from '$lib/components/Scorekeeper.svelte';
+	import LiveScoreIndicator from '$lib/components/LiveScoreIndicator.svelte';
+	import MyTeamsSelector from '$lib/components/MyTeamsSelector.svelte';
+	import LiveMatchDashboard from '$lib/components/LiveMatchDashboard.svelte';
+	import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
@@ -409,9 +404,8 @@
 	</div>
 {:else}
 	<div>
-		<!-- TODO: LiveMatchDashboard component -->
 		{#if $isSpectator}
-			<div class="text-[#9fa2ab] mb-4">LiveMatchDashboard - To be migrated</div>
+			<LiveMatchDashboard {matches} {eventId} userId={$isSpectator ? 'spectator' : 'anonymous'} />
 		{/if}
 		
 		<!-- Coverage Statistics Header - Media Only -->
@@ -569,6 +563,13 @@
 				</div>
 			</div>
 			
+			<!-- My Teams Selector - Spectator Only -->
+			{#if $isSpectator}
+				<div class="flex items-center gap-2">
+					<MyTeamsSelector {matches} />
+				</div>
+			{/if}
+			
 			<!-- TODO: Add remaining filter controls and match list rendering -->
 			<!-- This is a partial migration - remaining sections will be added incrementally -->
 		</div>
@@ -716,6 +717,129 @@
 										</div>
 									{/if}
 									
+									<!-- Spectator Features -->
+									{#if $isSpectator}
+										{@const score = matchClaiming.getScore(match.MatchId)}
+										{@const claimStatus = matchClaiming.getClaimStatus(match.MatchId)}
+										{@const isOwner = matchClaiming.isClaimOwner(match.MatchId)}
+										
+										<!-- Follow Team Button -->
+										{#if teamId}
+											<div class="flex-shrink-0">
+												<button
+													onclick={(e) => {
+														e.stopPropagation();
+														if (followedTeams.isFollowing(teamId)) {
+															followedTeams.unfollowTeam(teamId);
+														} else {
+															followedTeams.followTeam(teamId, teamId);
+														}
+													}}
+													class="px-2 py-1 text-xs font-medium rounded transition-colors {followedTeams.isFollowing(teamId) ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+													title={followedTeams.isFollowing(teamId) ? 'Unfollow team' : 'Follow team'}
+												>
+													{followedTeams.isFollowing(teamId) ? '✓' : '+'}
+												</button>
+											</div>
+										{/if}
+										
+										<!-- Match Claim Button & Score Controls -->
+										<div class="flex-shrink-0 flex items-center gap-2">
+											<!-- Claim Button -->
+											<MatchClaimButton
+												{match}
+												{eventId}
+												onClaim={(matchId) => {
+													const claimedMatch = matches.find(m => m.MatchId === matchId);
+													if (claimedMatch) {
+														setTimeout(() => {
+															scorekeeperMatch = claimedMatch;
+														}, 300);
+													}
+												}}
+												onRelease={() => {
+													scorekeeperMatch = null;
+												}}
+											/>
+											
+											<!-- Claim History Button -->
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													showClaimHistory = true;
+													claimHistoryMatchId = match.MatchId;
+												}}
+												class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+												title="View claim history for this match"
+											>
+												📜
+											</button>
+											
+											<!-- Start Scoring Button -->
+											{#if claimStatus === 'claimed' && isOwner}
+												<button
+													onclick={(e) => {
+														e.stopPropagation();
+														scorekeeperMatch = match;
+													}}
+													class="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors border border-[#eab308]"
+													title="Start keeping score for this match"
+												>
+													{score ? 'Update Score' : 'Start Scoring'}
+												</button>
+											{/if}
+											
+											<!-- Score Display - Show if match has score -->
+											{#if score && score.status !== 'not-started'}
+												{@const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1]}
+												{@const completedSets = score.sets.filter((s: SetScore) => s.completedAt > 0)}
+												{@const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length}
+												{@const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length}
+												
+												<div class="flex-shrink-0 flex items-center gap-2">
+													{#if completedSets.length > 0}
+														<div class="text-xs font-medium text-[#9fa2ab]">
+															{team1Wins}-{team2Wins}
+														</div>
+													{/if}
+													<div class="text-xs font-semibold text-[#f8f8f9]">
+														{currentSet.team1Score}-{currentSet.team2Score}
+													</div>
+													<LiveScoreIndicator
+														isLive={score.status === 'in-progress'}
+														lastUpdated={score.lastUpdated}
+													/>
+												</div>
+											{/if}
+											
+											<!-- Score Display for Non-Claimers -->
+											{#if !isOwner && score && score.status !== 'not-started'}
+												{@const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1]}
+												{@const completedSets = score.sets.filter((s: SetScore) => s.completedAt > 0)}
+												{@const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length}
+												{@const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length}
+												
+												<div class="flex-shrink-0 flex items-center gap-2">
+													{#if completedSets.length > 0}
+														<div class="text-xs font-medium text-[#9fa2ab]">
+															{team1Wins}-{team2Wins}
+														</div>
+													{/if}
+													<div class="text-xs font-semibold text-[#f8f8f9]">
+														{currentSet.team1Score}-{currentSet.team2Score}
+													</div>
+													<LiveScoreIndicator
+														isLive={score.status === 'in-progress'}
+														lastUpdated={score.lastUpdated}
+													/>
+													<span class="text-[8px] text-[#9fa2ab]">
+														(Live)
+													</span>
+												</div>
+											{/if}
+										</div>
+									{/if}
+									
 									<!-- Expand Indicator -->
 									<div class="flex-shrink-0 w-4">
 										<svg
@@ -746,9 +870,175 @@
 			{/if}
 		</div>
 		
-		<!-- TODO: Scorekeeper Modal, Score Export/Import UI, Claim History Panel -->
-		{#if scorekeeperMatch}
-			<div class="text-[#9fa2ab]">Scorekeeper - To be migrated</div>
+		<!-- Scorekeeper Modal -->
+		{#if scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)}
+			<Scorekeeper
+				matchId={scorekeeperMatch.MatchId}
+				team1Name={scorekeeperMatch.FirstTeamText}
+				team2Name={scorekeeperMatch.SecondTeamText}
+				currentScore={matchClaiming.getScore(scorekeeperMatch.MatchId)}
+				onScoreUpdate={(sets: SetScore[], status: 'not-started' | 'in-progress' | 'completed') => {
+					matchClaiming.updateScore(scorekeeperMatch.MatchId, sets, status);
+				}}
+				onClose={() => scorekeeperMatch = null}
+			/>
+		{/if}
+
+		<!-- Claim History Panel -->
+		{#if showClaimHistory}
+			<ClaimHistoryPanel
+				matchId={claimHistoryMatchId}
+				{eventId}
+				{matches}
+				onClose={() => {
+					showClaimHistory = false;
+					claimHistoryMatchId = undefined;
+				}}
+			/>
+		{/if}
+
+		<!-- Score Export/Import UI - Spectator Only -->
+		{#if $isSpectator}
+			<!-- Score Actions Button -->
+			<div class="fixed bottom-4 right-4 z-50">
+				<div class="relative">
+					<button
+						onclick={() => showScoreExportMenu = !showScoreExportMenu}
+						class="px-4 py-2 text-sm font-medium rounded-lg bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors shadow-lg flex items-center gap-2"
+						title="Score sharing & sync options"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+						Scores
+					</button>
+					
+					{#if showScoreExportMenu}
+						<div class="absolute bottom-full right-0 mb-2 w-64 rounded-lg border border-[#454654] bg-[#3b3c48] shadow-lg p-2">
+							<div class="px-3 py-2 text-xs text-[#9fa2ab] border-b border-[#454654] mb-2">
+								Score Sharing
+							</div>
+							<button
+								onclick={handleExportScores}
+								class="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+								</svg>
+								Export Scores (JSON)
+							</button>
+							<button
+								onclick={handleShareScoreLink}
+								class="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+								</svg>
+								Generate Share Link
+							</button>
+							<div class="border-t border-[#454654] my-2"></div>
+							<div class="px-3 py-2 text-xs text-[#9fa2ab] border-b border-[#454654] mb-2">
+								Receive Scores
+							</div>
+							<button
+								onclick={() => {
+									showScoreImportDialog = true;
+									showScoreExportMenu = false;
+								}}
+								class="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+								</svg>
+								Import Scores from JSON
+							</button>
+							<div class="px-3 py-1.5 mt-2 text-[10px] text-[#808593] bg-[#454654]/30 rounded">
+								💡 Scores sync automatically across tabs. To share with others, use Export or Share Link.
+							</div>
+							<div class="border-t border-[#454654] my-2"></div>
+							<div class="px-3 py-2 text-xs text-[#9fa2ab] border-b border-[#454654] mb-2">
+								Claim History
+							</div>
+							<button
+								onclick={() => {
+									showClaimHistory = true;
+									claimHistoryMatchId = undefined;
+									showScoreExportMenu = false;
+								}}
+								class="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+								</svg>
+								View All Claim History
+							</button>
+						</div>
+					{/if}
+				</div>
+			</div>
+
+			<!-- Score Import Dialog -->
+			{#if showScoreImportDialog}
+				<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+					<div class="bg-[#3b3c48] rounded-lg border border-[#454654] p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+						<div class="flex items-center justify-between mb-4">
+							<h3 class="text-lg font-semibold text-[#f8f8f9]">Import Scores</h3>
+							<button
+								onclick={() => {
+									showScoreImportDialog = false;
+									importJson = '';
+									importError = null;
+								}}
+								class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+								aria-label="Close"
+							>
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
+						</div>
+						
+						<div class="space-y-4">
+							<div>
+								<label class="block text-sm font-medium text-[#c0c2c8] mb-2">
+									Paste JSON score data:
+								</label>
+								<textarea
+									bind:value={importJson}
+									class="w-full px-3 py-2 text-sm rounded bg-[#454654] text-[#f8f8f9] border border-[#525463] focus:border-[#eab308] focus:outline-none font-mono"
+									rows="10"
+									placeholder='Paste JSON score data here'
+								></textarea>
+							</div>
+							
+							{#if importError}
+								<div class="px-4 py-2 rounded-lg border border-red-500/50 bg-red-500/10 text-red-400 text-sm">
+									{importError}
+								</div>
+							{/if}
+							
+							<div class="flex justify-end gap-2">
+								<button
+									onclick={() => {
+										showScoreImportDialog = false;
+										importJson = '';
+										importError = null;
+									}}
+									class="px-4 py-2 text-sm font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+								>
+									Cancel
+								</button>
+								<button
+									onclick={handleImportScores}
+									class="px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+								>
+									Import
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
 		{/if}
 	</div>
 {/if}
