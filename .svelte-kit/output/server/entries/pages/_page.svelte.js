@@ -2,6 +2,7 @@ import { b as bind_props, e as ensure_array_like, a as attr_class, c as stringif
 import { d as derived, w as writable, g as get } from "../../chunks/index.js";
 import { Y as ssr_context, Z as fallback, X as escape_html } from "../../chunks/context.js";
 import { format } from "date-fns";
+import "clsx";
 function onDestroy(fn) {
   /** @type {SSRContext} */
   ssr_context.r.on_destroy(fn);

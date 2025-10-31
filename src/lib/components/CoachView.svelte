@@ -2,10 +2,8 @@
 	import type { FilteredMatch } from '$lib/types';
 	import { getUniqueTeams, getTeamIdentifier } from '$lib/stores/filters';
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
-	
-	// TODO: Import other components as they're migrated
-	// import TeamMatchView from '$lib/components/TeamMatchView.svelte';
-	// import WorkAssignmentView from '$lib/components/WorkAssignmentView.svelte';
+	import TeamMatchView from '$lib/components/TeamMatchView.svelte';
+	import WorkAssignmentView from '$lib/components/WorkAssignmentView.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
@@ -106,19 +104,9 @@
 	<!-- Team Content -->
 	{#if selectedTeam}
 		{#if viewMode === 'matches'}
-			<!-- TODO: TeamMatchView component -->
-			<div class="text-center py-12 text-[#9fa2ab] text-sm">
-				TeamMatchView - To be migrated
-				<br />
-				<small class="text-xs text-[#808593] mt-2">
-					Team {selectedTeam} has {selectedTeamMatches.length} match{selectedTeamMatches.length !== 1 ? 'es' : ''}
-				</small>
-			</div>
+			<TeamMatchView {matches} {teamId} teamName={selectedTeam} {eventId} />
 		{:else}
-			<!-- TODO: WorkAssignmentView component -->
-			<div class="text-center py-12 text-[#9fa2ab] text-sm">
-				WorkAssignmentView - To be migrated
-			</div>
+			<WorkAssignmentView {matches} {teamId} teamName={selectedTeam} />
 		{/if}
 	{:else}
 		<div class="text-center py-12 text-[#9fa2ab] text-sm">
