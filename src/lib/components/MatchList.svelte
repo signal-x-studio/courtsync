@@ -14,7 +14,7 @@
 	import { followedTeams } from '$lib/stores/followedTeams';
 	import { notifications } from '$lib/stores/notifications';
 	import { createMatchClaiming } from '$lib/stores/matchClaiming';
-	import { createMatchNotes } from '$lib/stores/matchNotes';
+	import { createMatchNotesStore } from '$lib/stores/matchNotes';
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import type { CoverageStatus } from '$lib/stores/coverageStatus';
 	import type { SetScore } from '$lib/types';
@@ -58,7 +58,7 @@
 	});
 	
 	// Create match notes store
-	const matchNotes = createMatchNotes(eventId);
+	const matchNotes = createMatchNotesStore(eventId);
 	
 	// Conflicts calculation
 	$: conflicts = detectConflicts(matches);
