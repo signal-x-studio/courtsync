@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { MatchScore, SetScore } from '../types';
 import { ScoreHistory } from './ScoreHistory';
 
@@ -67,6 +67,8 @@ export const Scorekeeper = ({
     currentScore?.status || 'not-started'
   );
   const [validationWarning, setValidationWarning] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Initialize sets if not started
   useEffect(() => {
@@ -82,16 +84,25 @@ export const Scorekeeper = ({
   }, [sets.length, status]);
 
   const handleStartMatch = useCallback(() => {
-    setStatus('in-progress');
+    const newStatus = 'in-progress';
+    setStatus(newStatus);
+    
+    let newSets = sets;
     if (sets.length === 0) {
-      setSets([{
+      newSets = [{
         setNumber: 1,
         team1Score: 0,
         team2Score: 0,
         completedAt: 0,
-      }]);
+      }];
+      setSets(newSets);
     }
-  }, [sets.length]);
+    
+    // Auto-save when starting match
+    setIsSaving(true);
+    onScoreUpdate(newSets.length > 0 ? newSets : sets, newStatus);
+    setTimeout(() => setIsSaving(false), 500);
+  }, [sets, onScoreUpdate]);
 
   const handleAddSet = useCallback(() => {
     const nextSetNumber = sets.length + 1;
@@ -113,20 +124,47 @@ export const Scorekeeper = ({
       return;
     }
     
-    setSets(prev => prev.map(set => 
-      set.setNumber === setNumber
-        ? { ...set, team1Score: team1, team2Score: team2 }
-        : set
-    ));
-  }, []);
+    setSets(prev => {
+      const updated = prev.map(set => 
+        set.setNumber === setNumber
+          ? { ...set, team1Score: team1, team2Score: team2 }
+          : set
+      );
+      
+      // Auto-save score changes (debounced)
+      if (status === 'in-progress') {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        saveTimeoutRef.current = setTimeout(() => {
+          setIsSaving(true);
+          onScoreUpdate(updated, status);
+          setTimeout(() => setIsSaving(false), 300);
+        }, 1000); // Auto-save after 1 second of inactivity
+      }
+      
+      return updated;
+    });
+  }, [status, onScoreUpdate]);
 
   const handleCompleteSet = useCallback((setNumber: number) => {
-    setSets(prev => prev.map(set => 
-      set.setNumber === setNumber
-        ? { ...set, completedAt: Date.now() }
-        : set
-    ));
-  }, []);
+    setSets(prev => {
+      const updated = prev.map(set => 
+        set.setNumber === setNumber
+          ? { ...set, completedAt: Date.now() }
+          : set
+      );
+      
+      // Auto-save when completing a set
+      if (status === 'in-progress') {
+        setIsSaving(true);
+        onScoreUpdate(updated, status);
+        setTimeout(() => setIsSaving(false), 500);
+      }
+      
+      return updated;
+    });
+  }, [status, onScoreUpdate]);
 
   const handleCompleteMatch = useCallback(() => {
     setStatus('completed');
@@ -134,8 +172,19 @@ export const Scorekeeper = ({
   }, [sets, onScoreUpdate]);
 
   const handleSave = useCallback(() => {
+    setIsSaving(true);
     onScoreUpdate(sets, status);
+    setTimeout(() => setIsSaving(false), 500);
   }, [sets, status, onScoreUpdate]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const currentSet = sets.find(s => s.completedAt === 0) || sets[sets.length - 1];
   const completedSets = sets.filter(s => s.completedAt > 0);
@@ -305,10 +354,22 @@ export const Scorekeeper = ({
           {/* Save Button */}
           <button
             onClick={handleSave}
-            className="w-full px-4 py-2 text-sm font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+            disabled={isSaving}
+            className={`w-full px-4 py-2 text-sm font-medium rounded transition-colors border ${
+              isSaving
+                ? 'bg-[#525463] text-[#9fa2ab] cursor-not-allowed'
+                : 'bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border-[#525463]'
+            }`}
           >
-            Save Score
+            {isSaving ? 'Saving...' : 'Save Score'}
           </button>
+          
+          {/* Auto-save indicator */}
+          {status === 'in-progress' && (
+            <div className="text-xs text-[#9fa2ab] text-center">
+              {isSaving ? '💾 Saving...' : '✓ Auto-save enabled'}
+            </div>
+          )}
 
           {/* Score History */}
           {currentScore && (
