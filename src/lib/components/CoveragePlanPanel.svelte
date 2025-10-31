@@ -12,10 +12,8 @@
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	import CoverageAnalytics from '$lib/components/CoverageAnalytics.svelte';
 	import CoverageStats from '$lib/components/CoverageStats.svelte';
-	
-	// TODO: Import other components as they're migrated
-	// import TeamMemberSelector from '$lib/components/TeamMemberSelector.svelte';
-	// import TeamCoverageView from '$lib/components/TeamCoverageView.svelte';
+	import TeamMemberSelector from '$lib/components/TeamMemberSelector.svelte';
+	import TeamCoverageView from '$lib/components/TeamCoverageView.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let onClose: () => void;
@@ -737,9 +735,9 @@
 			{:else if activeTab === 'stats'}
 				<CoverageStats {matches} />
 			{:else}
-				<!-- TODO: TeamMemberSelector and TeamCoverageView components -->
-				<div class="text-center py-12 text-[#9fa2ab] text-sm">
-					TeamMemberSelector and TeamCoverageView - To be migrated
+				<div class="space-y-4">
+					<TeamMemberSelector />
+					<TeamCoverageView {matches} />
 				</div>
 			{/if}
 		</div>

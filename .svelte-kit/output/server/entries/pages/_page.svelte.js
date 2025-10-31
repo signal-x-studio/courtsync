@@ -1319,6 +1319,208 @@ function MatchList($$renderer, $$props) {
     bind_props($$props, { matches, eventId, clubId });
   });
 }
+const AVAILABLE_COLORS = [
+  "#eab308",
+  // Gold
+  "#3b82f6",
+  // Blue
+  "#10b981",
+  // Green
+  "#f59e0b",
+  // Orange
+  "#8b5cf6",
+  // Purple
+  "#ec4899",
+  // Pink
+  "#06b6d4",
+  // Cyan
+  "#f97316"
+  // Red-Orange
+];
+function createTeamCoordination() {
+  const { subscribe: subscribeMembers, set: setMembers, update: updateMembers } = writable([]);
+  const { subscribe: subscribeAssignments, set: setAssignments, update: updateAssignments } = writable(/* @__PURE__ */ new Map());
+  const { subscribe: subscribeCurrentMember, set: setCurrentMember } = writable(
+    null
+  );
+  const saveAssignments = (assignments) => {
+    return;
+  };
+  return {
+    members: { subscribe: subscribeMembers },
+    assignments: { subscribe: subscribeAssignments },
+    currentMemberId: { subscribe: subscribeCurrentMember },
+    setCurrentMemberId: (memberId) => {
+      setCurrentMember(memberId);
+    },
+    addMember: (name) => {
+      let usedColors = /* @__PURE__ */ new Set();
+      subscribeMembers((members) => {
+        usedColors = new Set(members.map((m) => m.color));
+      })();
+      const availableColor = AVAILABLE_COLORS.find((c) => !usedColors.has(c)) || AVAILABLE_COLORS[0];
+      const newMember = {
+        id: `member-${Date.now()}`,
+        name,
+        color: availableColor,
+        createdAt: Date.now()
+      };
+      updateMembers((members) => {
+        const next = [...members, newMember];
+        return next;
+      });
+      setCurrentMember(newMember.id);
+      return newMember.id;
+    },
+    removeMember: (memberId) => {
+      updateMembers((members) => {
+        const next = members.filter((m) => m.id !== memberId);
+        return next;
+      });
+      updateAssignments((assignments) => {
+        const next = new Map(assignments);
+        Array.from(next.entries()).forEach(([teamId, assignedMemberId]) => {
+          if (assignedMemberId === memberId) {
+            next.delete(teamId);
+          }
+        });
+        return next;
+      });
+      subscribeMembers((members) => {
+        if (members.length > 0) {
+          setCurrentMember(members[0].id);
+        }
+      })();
+    },
+    updateMember: (memberId, updates) => {
+      updateMembers((members) => {
+        const next = members.map((m) => m.id === memberId ? { ...m, ...updates } : m);
+        return next;
+      });
+    },
+    assignTeam: (teamId, memberId) => {
+      updateAssignments((assignments) => {
+        const next = new Map(assignments);
+        next.set(teamId, memberId);
+        return next;
+      });
+    },
+    unassignTeam: (teamId) => {
+      updateAssignments((assignments) => {
+        const next = new Map(assignments);
+        next.delete(teamId);
+        return next;
+      });
+    },
+    getTeamAssignment: (teamId) => {
+      let assignment = null;
+      subscribeAssignments((assignments) => {
+        assignment = assignments.get(teamId) || null;
+      })();
+      return assignment;
+    },
+    getMember: (memberId) => {
+      let member = null;
+      subscribeMembers((members) => {
+        member = members.find((m) => m.id === memberId) || null;
+      })();
+      return member;
+    },
+    getCurrentMember: () => {
+      let currentId = null;
+      subscribeCurrentMember((id) => {
+        currentId = id;
+      })();
+      if (!currentId) return null;
+      let member = null;
+      subscribeMembers((members) => {
+        member = members.find((m) => m.id === currentId) || null;
+      })();
+      return member;
+    },
+    exportCoverageStatus: (coverageStatus2, memberId) => {
+      let currentId = null;
+      subscribeCurrentMember((id) => {
+        currentId = id;
+      })();
+      const memberToExport = memberId || currentId;
+      if (!memberToExport) return JSON.stringify({});
+      let member = null;
+      subscribeMembers((members) => {
+        member = members.find((m) => m.id === memberToExport) || null;
+      })();
+      let assignments = /* @__PURE__ */ new Map();
+      subscribeAssignments((assigns) => {
+        assignments = assigns;
+      })();
+      const memberAssignments = Array.from(assignments.entries()).filter(([_, assignedMemberId]) => assignedMemberId === memberToExport).map(([teamId]) => teamId);
+      const memberCoverageStatus = {};
+      Array.from(coverageStatus2.entries()).forEach(([teamId, status]) => {
+        if (memberAssignments.includes(teamId)) {
+          memberCoverageStatus[teamId] = status;
+        }
+      });
+      const data = {
+        memberId: memberToExport,
+        memberName: member?.name || "Unknown",
+        exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+        assignments: memberAssignments.map((teamId) => ({ teamId })),
+        coverageStatus: memberCoverageStatus
+      };
+      return JSON.stringify(data, null, 2);
+    },
+    importCoverageStatus: (jsonData, mergeStrategy = "merge") => {
+      try {
+        const data = JSON.parse(jsonData);
+        if (!data.coverageStatus || !data.memberId) {
+          return {
+            success: false,
+            error: "Invalid data format: missing coverageStatus or memberId"
+          };
+        }
+        if (mergeStrategy === "merge" && data.assignments) {
+          updateAssignments((assignments) => {
+            const next = new Map(assignments);
+            data.assignments.forEach((assignment) => {
+              next.set(assignment.teamId, data.memberId);
+            });
+            saveAssignments(next);
+            return next;
+          });
+        }
+        return { success: true };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error"
+        };
+      }
+    },
+    mergeCoverageStatuses: (statuses) => {
+      const merged = /* @__PURE__ */ new Map();
+      statuses.forEach(({ coverageStatus: coverageStatus2 }) => {
+        Object.entries(coverageStatus2).forEach(([teamId, status]) => {
+          const currentStatus = merged.get(teamId);
+          if (!currentStatus) {
+            merged.set(teamId, status);
+          } else {
+            const priority2 = {
+              covered: 3,
+              "partially-covered": 2,
+              planned: 1,
+              "not-covered": 0
+            };
+            if (priority2[status] > priority2[currentStatus]) {
+              merged.set(teamId, status);
+            }
+          }
+        });
+      });
+      return merged;
+    }
+  };
+}
+createTeamCoordination();
 function CoachView($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let teams, matchesByTeam, sortedTeams;
