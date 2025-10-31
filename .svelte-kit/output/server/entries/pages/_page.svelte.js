@@ -1,6 +1,6 @@
-import { b as bind_props, a as store_get, c as attr_class, d as attr, e as stringify, f as ensure_array_like, u as unsubscribe_stores, g as attr_style } from "../../chunks/index2.js";
+import { b as bind_props, e as ensure_array_like, a as attr_class, c as stringify, d as store_get, f as attr, u as unsubscribe_stores, g as attr_style } from "../../chunks/index2.js";
 import { d as derived, w as writable, g as get } from "../../chunks/index.js";
-import { Y as ssr_context, X as escape_html, Z as fallback } from "../../chunks/context.js";
+import { Y as ssr_context, Z as fallback, X as escape_html } from "../../chunks/context.js";
 import { format } from "date-fns";
 function onDestroy(fn) {
   /** @type {SSRContext} */
@@ -857,6 +857,91 @@ function TeamDetailPanel($$renderer, $$props) {
     bind_props($$props, { match, eventId, clubId, onClose, matches });
   });
 }
+function PrioritySelector($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let matchId = $$props["matchId"];
+    let currentPriority = $$props["currentPriority"];
+    let onPriorityChange = $$props["onPriorityChange"];
+    let onClose = fallback($$props["onClose"], void 0);
+    let hoveredPriority = null;
+    const priorityOptions = [
+      {
+        value: "must-cover",
+        label: "Must Cover",
+        color: "#eab308",
+        icon: "⭐"
+      },
+      {
+        value: "priority",
+        label: "Priority",
+        color: "#f59e0b",
+        icon: "🔸"
+      },
+      {
+        value: "optional",
+        label: "Optional",
+        color: "#9fa2ab",
+        icon: "○"
+      },
+      { value: null, label: "Clear", color: "#9fa2ab", icon: "✕" }
+    ];
+    $$renderer2.push(`<div class="bg-[#3b3c48] border border-[#454654] rounded-lg p-2 shadow-lg min-w-[160px]"><div class="text-xs font-medium text-[#9fa2ab] uppercase tracking-wider mb-2 px-1">Set Priority</div> <div class="space-y-1"><!--[-->`);
+    const each_array = ensure_array_like(priorityOptions);
+    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+      let option = each_array[$$index];
+      const isSelected = currentPriority === option.value;
+      const isHovered = hoveredPriority === option.value;
+      $$renderer2.push(`<button${attr_class(`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 ${stringify(isSelected ? "bg-[#eab308]/20 text-[#facc15] border border-[#eab308]/50" : isHovered ? "bg-[#454654] text-[#f8f8f9]" : "text-[#c0c2c8] hover:bg-[#454654]")}`)}><span>${escape_html(option.icon)}</span> <span>${escape_html(option.label)}</span></button>`);
+    }
+    $$renderer2.push(`<!--]--></div></div>`);
+    bind_props($$props, { matchId, currentPriority, onPriorityChange, onClose });
+  });
+}
+function CoverageStatusSelector($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let teamId = $$props["teamId"];
+    let currentStatus = $$props["currentStatus"];
+    let onStatusChange = $$props["onStatusChange"];
+    let onClose = fallback($$props["onClose"], void 0);
+    let hoveredStatus = null;
+    const statusOptions = [
+      {
+        value: "not-covered",
+        label: "Not Covered",
+        color: "#9fa2ab",
+        icon: "○"
+      },
+      {
+        value: "covered",
+        label: "Covered",
+        color: "#10b981",
+        icon: "✓"
+      },
+      {
+        value: "partially-covered",
+        label: "Partially Covered",
+        color: "#f59e0b",
+        icon: "◐"
+      },
+      {
+        value: "planned",
+        label: "Planned",
+        color: "#eab308",
+        icon: "📋"
+      }
+    ];
+    $$renderer2.push(`<div class="bg-[#3b3c48] border border-[#454654] rounded-lg p-2 shadow-lg min-w-[180px]"><div class="text-xs font-medium text-[#9fa2ab] uppercase tracking-wider mb-2 px-1">Coverage Status</div> <div class="text-xs text-[#c0c2c8] mb-2 px-1">Team ${escape_html(teamId)}</div> <div class="space-y-1"><!--[-->`);
+    const each_array = ensure_array_like(statusOptions);
+    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+      let option = each_array[$$index];
+      const isSelected = currentStatus === option.value;
+      const isHovered = hoveredStatus === option.value;
+      $$renderer2.push(`<button${attr_class(`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 ${stringify(isSelected ? option.value === "covered" ? "bg-green-500/20 text-green-400 border border-green-500/50" : option.value === "planned" ? "bg-[#eab308]/20 text-[#facc15] border border-[#eab308]/50" : option.value === "partially-covered" ? "bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]/50" : "bg-[#454654] text-[#9fa2ab] border border-[#525463]" : isHovered ? "bg-[#454654] text-[#f8f8f9]" : "text-[#c0c2c8] hover:bg-[#454654]")}`)}><span>${escape_html(option.icon)}</span> <span>${escape_html(option.label)}</span></button>`);
+    }
+    $$renderer2.push(`<!--]--></div></div>`);
+    bind_props($$props, { teamId, currentStatus, onStatusChange, onClose });
+  });
+}
 function MatchList($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
@@ -865,6 +950,8 @@ function MatchList($$renderer, $$props) {
     let eventId = $$props["eventId"];
     let clubId = $$props["clubId"];
     let expandedMatch = null;
+    let priorityMenuOpen = null;
+    let coverageStatusMenuOpen = null;
     let showSuggestions = false;
     let scorekeeperMatch = null;
     let previousClaimedMatchIds = /* @__PURE__ */ new Set();
@@ -1144,7 +1231,61 @@ function MatchList($$renderer, $$props) {
             } else {
               $$renderer2.push("<!--[!-->");
             }
-            $$renderer2.push(`<!--]--> <div class="flex-1 min-w-0"><div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div> <div class="text-xs text-[#9fa2ab]">${escape_html(match.CourtName)} • ${escape_html(teamId || match.Division.CodeAlias)} vs ${escape_html(opponent)}</div></div> <div class="flex-shrink-0 w-4"><svg${attr_class(`w-4 h-4 text-[#9fa2ab] transition-transform ${stringify(isExpanded ? "rotate-180" : "")}`)} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div> `);
+            $$renderer2.push(`<!--]--> <div class="flex-1 min-w-0"><div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div> <div class="text-xs text-[#9fa2ab]">${escape_html(match.CourtName)} • ${escape_html(teamId || match.Division.CodeAlias)} vs ${escape_html(opponent)}</div></div> `);
+            if (store_get($$store_subs ??= {}, "$isMedia", isMedia)) {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<div class="relative"><button${attr_class(`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[#454654] ${stringify(matchPriority === "must-cover" ? "text-[#eab308]" : matchPriority === "priority" ? "text-[#f59e0b]" : matchPriority === "optional" ? "text-[#9fa2ab]" : "text-[#808593]")}`)} aria-label="Set priority"${attr("title", matchPriority ? `Priority: ${matchPriority}` : "Set priority")}>${escape_html(matchPriority === "must-cover" && "⭐")}
+												${escape_html(matchPriority === "priority" && "🔸")}
+												${escape_html(matchPriority === "optional" && "○")} `);
+              if (!matchPriority) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></button> `);
+              if (priorityMenuOpen === match.MatchId) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="absolute left-0 top-8 z-50">`);
+                PrioritySelector($$renderer2, {
+                  matchId: match.MatchId,
+                  currentPriority: matchPriority,
+                  onPriorityChange: priority.setPriority,
+                  onClose: () => priorityMenuOpen = null
+                });
+                $$renderer2.push(`<!----></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--> `);
+            if (store_get($$store_subs ??= {}, "$isMedia", isMedia) && teamId) {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<div class="relative"><button${attr_class(`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[#454654] ${stringify(teamCoverageStatus === "covered" ? "text-green-500" : teamCoverageStatus === "partially-covered" ? "text-[#f59e0b]" : teamCoverageStatus === "planned" ? "text-[#eab308]" : "text-[#808593]")}`)} aria-label="Set coverage status"${attr("title", `Coverage: ${stringify(teamCoverageStatus)}`)}>${escape_html(teamCoverageStatus === "covered" && "✓")}
+												${escape_html(teamCoverageStatus === "partially-covered" && "◐")}
+												${escape_html(teamCoverageStatus === "planned" && "📋")}
+												${escape_html(teamCoverageStatus === "not-covered" && "○")}</button> `);
+              if (coverageStatusMenuOpen === teamId) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="absolute left-0 top-8 z-50">`);
+                CoverageStatusSelector($$renderer2, {
+                  teamId,
+                  currentStatus: teamCoverageStatus,
+                  onStatusChange: coverageStatus.setTeamStatus,
+                  onClose: () => coverageStatusMenuOpen = null
+                });
+                $$renderer2.push(`<!----></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--> <div class="flex-shrink-0 w-4"><svg${attr_class(`w-4 h-4 text-[#9fa2ab] transition-transform ${stringify(isExpanded ? "rotate-180" : "")}`)} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div> `);
             if (isExpanded) {
               $$renderer2.push("<!--[-->");
               TeamDetailPanel($$renderer2, {

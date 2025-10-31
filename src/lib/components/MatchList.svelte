@@ -652,6 +652,70 @@
 										</div>
 									</div>
 									
+									<!-- Priority Button - Media Only -->
+									{#if $isMedia}
+										<div class="relative">
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													priorityMenuOpen = priorityMenuOpen === match.MatchId ? null : match.MatchId;
+												}}
+												class="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[#454654] {matchPriority === 'must-cover' ? 'text-[#eab308]' : matchPriority === 'priority' ? 'text-[#f59e0b]' : matchPriority === 'optional' ? 'text-[#9fa2ab]' : 'text-[#808593]'}"
+												aria-label="Set priority"
+												title={matchPriority ? `Priority: ${matchPriority}` : 'Set priority'}
+											>
+												{matchPriority === 'must-cover' && '⭐'}
+												{matchPriority === 'priority' && '🔸'}
+												{matchPriority === 'optional' && '○'}
+												{#if !matchPriority}
+													<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+													</svg>
+												{/if}
+											</button>
+											{#if priorityMenuOpen === match.MatchId}
+												<div class="absolute left-0 top-8 z-50">
+													<PrioritySelector
+														matchId={match.MatchId}
+														currentPriority={matchPriority}
+														onPriorityChange={priority.setPriority}
+														onClose={() => priorityMenuOpen = null}
+													/>
+												</div>
+											{/if}
+										</div>
+									{/if}
+									
+									<!-- Coverage Status Button - Media Only -->
+									{#if $isMedia && teamId}
+										<div class="relative">
+											<button
+												onclick={(e) => {
+													e.stopPropagation();
+													coverageStatusMenuOpen = coverageStatusMenuOpen === teamId ? null : teamId;
+												}}
+												class="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[#454654] {teamCoverageStatus === 'covered' ? 'text-green-500' : teamCoverageStatus === 'partially-covered' ? 'text-[#f59e0b]' : teamCoverageStatus === 'planned' ? 'text-[#eab308]' : 'text-[#808593]'}"
+												aria-label="Set coverage status"
+												title="Coverage: {teamCoverageStatus}"
+											>
+												{teamCoverageStatus === 'covered' && '✓'}
+												{teamCoverageStatus === 'partially-covered' && '◐'}
+												{teamCoverageStatus === 'planned' && '📋'}
+												{teamCoverageStatus === 'not-covered' && '○'}
+											</button>
+											{#if coverageStatusMenuOpen === teamId}
+												<div class="absolute left-0 top-8 z-50">
+													<CoverageStatusSelector
+														{teamId}
+														currentStatus={teamCoverageStatus}
+														onStatusChange={coverageStatus.setTeamStatus}
+														onClose={() => coverageStatusMenuOpen = null}
+													/>
+												</div>
+											{/if}
+										</div>
+									{/if}
+									
 									<!-- Expand Indicator -->
 									<div class="flex-shrink-0 w-4">
 										<svg

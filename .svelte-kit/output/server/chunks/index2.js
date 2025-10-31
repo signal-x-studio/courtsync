@@ -822,12 +822,12 @@ function ensure_array_like(array_like_or_iterator) {
   return [];
 }
 export {
-  store_get as a,
+  attr_class as a,
   bind_props as b,
-  attr_class as c,
-  attr as d,
-  stringify as e,
-  ensure_array_like as f,
+  stringify as c,
+  store_get as d,
+  ensure_array_like as e,
+  attr as f,
   attr_style as g,
   is_passive_event as i,
   render as r,
