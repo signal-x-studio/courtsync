@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* Custom color tokens for Tailwind v4 - using proper v4 syntax */
+@theme {
+  --color-charcoal-50: #f8f8f9;
+  --color-charcoal-100: #efeff1;
+  --color-charcoal-200: #dcdde0;
+  --color-charcoal-300: #c0c2c8;
+  --color-charcoal-400: #9fa2ab;
+  --color-charcoal-500: #808593;
+  --color-charcoal-600: #67697a;
+  --color-charcoal-700: #525463;
+  --color-charcoal-800: #454654;
+  --color-charcoal-900: #3b3c48;
+  --color-charcoal-950: #18181b;
+
+  --color-gold-50: #fefce8;
+  --color-gold-100: #fef9c3;
+  --color-gold-200: #fef08a;
+  --color-gold-300: #fde047;
+  --color-gold-400: #facc15;
+  --color-gold-500: #eab308;
+  --color-gold-600: #ca8a04;
+  --color-gold-700: #a16207;
+  --color-gold-800: #854d0e;
+  --color-gold-900: #713f12;
+  --color-gold-950: #422006;
+}
+
+/* Base styles */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #18181b;
+  color: #f8f8f9;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Focus states - WCAG compliant */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #eab308, 0 0 0 4px rgba(234, 179, 8, 0.3);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #3b3c48;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #525463;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #67697a;
+}
+
+/* Animations */
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  header,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  .match-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .time-block {
+    break-after: auto;
+    page-break-after: auto;
+  }
+}
