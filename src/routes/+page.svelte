@@ -214,7 +214,7 @@
 
 <div class="min-h-screen" style="background-color: #18181b;">
 	<!-- Compact Header -->
-	<header class="border-b sticky top-0 z-10" style="border-color: #454654; background-color: rgba(59, 60, 72, 0.5);">
+	<header data-header class="border-b sticky top-0 z-10" style="border-color: #454654; background-color: rgba(59, 60, 72, 0.5);">
 		<div class="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
 				<div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1">

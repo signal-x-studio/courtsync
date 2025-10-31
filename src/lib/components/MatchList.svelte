@@ -575,7 +575,7 @@
 		</div>
 		
 		<!-- Matches List - Grouped by Start Time -->
-		<div class="space-y-4">
+		<div data-match-list class="space-y-4">
 			{#if startTimes.length === 0}
 				<div class="text-center py-12 text-[#9fa2ab] text-sm">
 					No matches found
@@ -623,6 +623,7 @@
 							<div>
 								<div
 									onclick={() => expandedMatch = isExpanded ? null : match.MatchId}
+									data-match-card
 									class="group relative rounded transition-all flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 py-2.5 sm:py-2 cursor-pointer match-card min-h-[44px] sm:min-h-0 {showConflictStyling ? 'border border-red-800/50 bg-red-950/10' : matchPriority === 'must-cover' ? 'border-2 border-[#eab308] bg-[#eab308]/10' : matchPriority === 'priority' ? 'border border-[#f59e0b] bg-[#f59e0b]/10' : isUncovered && !isSelected ? 'border border-[#eab308] bg-[#eab308]/5' : isPlanned ? 'border border-[#eab308]/50 bg-[#eab308]/10' : isCovered ? 'border border-green-500/30 bg-green-950/5' : isOpportunity && !isSelected ? 'border border-green-500/50 bg-green-950/10' : isSelected ? 'border border-[#eab308]/50 bg-[#eab308]/10' : 'border border-[#454654] bg-[#3b3c48]'} {shouldDim ? 'opacity-30' : ''} hover:border-[#525463] hover:bg-[#3b3c48]/80"
 								>
 									<!-- Selection Checkbox - Media Only -->
