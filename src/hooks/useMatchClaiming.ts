@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { MatchClaim, MatchScore, SetScore } from '../types';
 import { broadcastScoreUpdate } from '../utils/scoreSync';
 import { addScoreHistory } from '../utils/scoreStats';
+import { addClaimHistory } from '../utils/claimHistory';
 
 const STORAGE_KEY_CLAIMS = 'matchClaims';
 const STORAGE_KEY_SCORES = 'matchScores';
@@ -139,16 +140,38 @@ export const useMatchClaiming = ({ eventId, userId = 'anonymous' }: UseMatchClai
       next.set(matchId, claim);
       return next;
     });
+
+    // Add to claim history
+    addClaimHistory({
+      matchId,
+      eventId,
+      action: 'claimed',
+      userId,
+      timestamp: now,
+    });
   }, [eventId, userId]);
 
   // Release a claim
   const releaseClaim = useCallback((matchId: number) => {
+    const claim = claims.get(matchId);
+    
     setClaims(prev => {
       const next = new Map(prev);
       next.delete(matchId);
       return next;
     });
-  }, []);
+
+    // Add to claim history
+    if (claim) {
+      addClaimHistory({
+        matchId,
+        eventId,
+        action: 'released',
+        userId: claim.claimedBy,
+        timestamp: Date.now(),
+      });
+    }
+  }, [claims, eventId]);
 
   // Transfer a claim to another user
   const transferClaim = useCallback((matchId: number, newUserId: string) => {
@@ -171,8 +194,18 @@ export const useMatchClaiming = ({ eventId, userId = 'anonymous' }: UseMatchClai
       return next;
     });
 
+    // Add to claim history
+    addClaimHistory({
+      matchId,
+      eventId,
+      action: 'transferred',
+      userId,
+      timestamp: now,
+      transferredTo: newUserId,
+    });
+
     return true;
-  }, [claims, userId]);
+  }, [claims, userId, eventId]);
 
   // Check if match is claimed
   const isClaimed = useCallback((matchId: number): boolean => {

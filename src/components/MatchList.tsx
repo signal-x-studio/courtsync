@@ -24,6 +24,7 @@ import { useFollowedTeams } from '../hooks/useFollowedTeams';
 import { useNotifications } from '../hooks/useNotifications';
 import { MyTeamsSelector } from './MyTeamsSelector';
 import { LiveMatchDashboard } from './LiveMatchDashboard';
+import { ClaimHistoryPanel } from './ClaimHistoryPanel';
 
 interface MatchListProps {
   matches: FilteredMatch[];
@@ -45,6 +46,8 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
   const [scorekeeperMatch, setScorekeeperMatch] = useState<FilteredMatch | null>(null);
   const [showScoreExportMenu, setShowScoreExportMenu] = useState(false);
   const [showScoreImportDialog, setShowScoreImportDialog] = useState(false);
+  const [showClaimHistory, setShowClaimHistory] = useState(false);
+  const [claimHistoryMatchId, setClaimHistoryMatchId] = useState<number | undefined>(undefined);
   const [importJson, setImportJson] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const conflicts = detectConflicts(matches);
@@ -1054,6 +1057,19 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
                               }}
                             />
                             
+                            {/* Claim History Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowClaimHistory(true);
+                                setClaimHistoryMatchId(match.MatchId);
+                              }}
+                              className="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+                              title="View claim history for this match"
+                            >
+                              📜
+                            </button>
+                            
                             {/* Start Scoring Button - Show if claimed by current user */}
                             {matchClaiming.getClaimStatus(match.MatchId) === 'claimed' && (
                               <button
@@ -1238,6 +1254,23 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
                   <div className="px-3 py-1.5 mt-2 text-[10px] text-[#808593] bg-[#454654]/30 rounded">
                     💡 Scores sync automatically across tabs. To share with others, use Export or Share Link.
                   </div>
+                  <div className="border-t border-[#454654] my-2"></div>
+                  <div className="px-3 py-2 text-xs text-[#9fa2ab] border-b border-[#454654] mb-2">
+                    Claim History
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowClaimHistory(true);
+                      setClaimHistoryMatchId(undefined);
+                      setShowScoreExportMenu(false);
+                    }}
+                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    View All Claim History
+                  </button>
                 </div>
               )}
             </div>
@@ -1314,6 +1347,19 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
             </div>
           )}
         </>
+      )}
+
+      {/* Claim History Panel */}
+      {showClaimHistory && (
+        <ClaimHistoryPanel
+          matchId={claimHistoryMatchId}
+          eventId={eventId}
+          matches={matches}
+          onClose={() => {
+            setShowClaimHistory(false);
+            setClaimHistoryMatchId(undefined);
+          }}
+        />
       )}
       
       {/* Close priority menu when clicking outside */}

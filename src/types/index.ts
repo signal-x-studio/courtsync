@@ -71,3 +71,12 @@ export interface ScoreHistoryEntry {
   sets: SetScore[];
   status: 'not-started' | 'in-progress' | 'completed';
 }
+
+export interface ClaimHistoryEntry {
+  matchId: number;
+  eventId: string;
+  action: 'claimed' | 'released' | 'transferred';
+  userId: string;
+  timestamp: number;
+  transferredTo?: string; // Only present for 'transferred' action
+}
