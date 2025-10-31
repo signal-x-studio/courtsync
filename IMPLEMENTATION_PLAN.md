@@ -20,7 +20,7 @@ This document outlines the step-by-step implementation plan for transforming the
 
 ### Remaining Items:
 - **2.3 Route Optimization** - Not implemented (low priority, can be added later)
-- **2.2 Conflict Resolution** - "Next Conflict" navigation pending (minor enhancement)
+- **2.2 Conflict Resolution** - Completion state pending (minor enhancement)
 - **4.3 Team Coverage Statistics** - Coverage timeline/goals pending (minor enhancements)
 - **5.2 Match Claiming** - Claim history/log pending (minor enhancement)
 - **5.5 Coach View** - Match notes/comments pending (minor enhancement)
@@ -207,8 +207,8 @@ This document outlines the step-by-step implementation plan for transforming the
   - [x] Selecting a match adds it to plan
   - [x] Deselecting removes from plan
   - [x] Show plan status for each conflict
-- [ ] Conflict resolution workflow
-  - [ ] "Next Conflict" navigation
+- [x] Conflict resolution workflow
+  - [x] "Next Conflict" navigation
   - [x] Progress indicator (X of Y conflicts resolved)
   - [ ] Completion state
 
