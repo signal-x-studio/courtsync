@@ -150,6 +150,30 @@ export const useMatchClaiming = ({ eventId, userId = 'anonymous' }: UseMatchClai
     });
   }, []);
 
+  // Transfer a claim to another user
+  const transferClaim = useCallback((matchId: number, newUserId: string) => {
+    const claim = claims.get(matchId);
+    if (!claim || claim.claimedBy !== userId) {
+      // Can't transfer if not the owner
+      return false;
+    }
+
+    const now = Date.now();
+    const transferredClaim: MatchClaim = {
+      ...claim,
+      claimedBy: newUserId,
+      claimedAt: now, // Update claim time to transfer time
+    };
+
+    setClaims(prev => {
+      const next = new Map(prev);
+      next.set(matchId, transferredClaim);
+      return next;
+    });
+
+    return true;
+  }, [claims, userId]);
+
   // Check if match is claimed
   const isClaimed = useCallback((matchId: number): boolean => {
     const claim = claims.get(matchId);
@@ -239,6 +263,7 @@ export const useMatchClaiming = ({ eventId, userId = 'anonymous' }: UseMatchClai
   return {
     claimMatch,
     releaseClaim,
+    transferClaim,
     isClaimed,
     getClaimStatus,
     getClaimer,
