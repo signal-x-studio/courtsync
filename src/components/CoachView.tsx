@@ -132,6 +132,7 @@ export const CoachView = ({ matches, eventId, clubId }: CoachViewProps) => {
             matches={selectedTeamMatches}
             teamId={selectedTeam}
             teamName={selectedTeam}
+            eventId={eventId}
           />
         ) : (
           <WorkAssignmentView
