@@ -14,6 +14,7 @@
 	
 	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
+	import ConflictDetailsPanel from '$lib/components/ConflictDetailsPanel.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
@@ -562,10 +563,11 @@
 		
 		<!-- Conflict Details Panel -->
 		{#if selectedConflict}
-			<!-- TODO: ConflictDetailsPanel component -->
-			<div class="text-[#9fa2ab] mt-4 p-4 border border-[#454654] rounded-lg">
-				ConflictDetailsPanel - To be migrated
-			</div>
+			<ConflictDetailsPanel
+				match={selectedConflict}
+				conflictingMatches={conflictingMatchesForSelected}
+				onClose={() => selectedConflict = null}
+			/>
 		{/if}
 		
 		<!-- Scorekeeper Modal -->

@@ -25,8 +25,11 @@ All React hooks converted to Svelte stores:
 ### Phase 3: Component Migration - Core UI (In Progress) 🔄
 - ✅ Migrated `App.tsx` → `src/routes/+page.svelte`
 - ✅ Migrated `EventInput.tsx` → `src/lib/components/EventInput.svelte`
-- ✅ Migrated `MatchList.tsx` → `src/lib/components/MatchList.svelte` (partial, core functionality working)
-- ✅ Migrated `TimelineView.tsx` → `src/lib/components/TimelineView.svelte` (partial, core functionality working)
+- ✅ Migrated `MatchList.tsx` → `src/lib/components/MatchList.svelte` (core functionality working)
+- ✅ Migrated `TimelineView.tsx` → `src/lib/components/TimelineView.svelte` (core functionality working)
+- ✅ Migrated `TeamDetailPanel.tsx` → `src/lib/components/TeamDetailPanel.svelte`
+- ✅ Migrated `PrioritySelector.tsx` → `src/lib/components/PrioritySelector.svelte`
+- ✅ Migrated `CoverageStatusSelector.tsx` → `src/lib/components/CoverageStatusSelector.svelte`
 - ⏳ `CoachView.tsx` → `src/lib/components/CoachView.svelte` (TODO)
 
 ## Current Status
