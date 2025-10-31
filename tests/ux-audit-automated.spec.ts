@@ -36,7 +36,7 @@ async function runAudit(page: any) {
 		};
 
 		// Measure chrome ratio
-		const header = document.querySelector('header');
+		const header = document.querySelector('[data-header]');
 		const controls = document.querySelector('[data-controls]');
 		const filterSection = document.querySelector('.sticky.top-0');
 		const eventInput = document.querySelector('[data-event-input]');
@@ -68,17 +68,19 @@ async function runAudit(page: any) {
 
 		// Check content above fold - look for match cards or timeline
 		const isLandingPage = document.querySelector('.min-h-screen');
-		const firstMatch = document.querySelector('[data-match-card], .match-card, [data-testid="match"]');
-		const timeline = document.querySelector('[data-timeline], .timeline-view');
+		const firstMatch = document.querySelector('[data-match-card]');
+		const timeline = document.querySelector('[data-timeline]');
+		const matchList = document.querySelector('[data-match-list]');
 
-		if (isLandingPage && !firstMatch && !timeline) {
+		if (isLandingPage && !firstMatch && !timeline && !matchList) {
 			audit.metrics.contentAboveFold = {
 				value: null,
 				pass: true,
 				note: 'Landing page detected - skipping content burial check'
 			};
-		} else if (firstMatch) {
-			const matchTop = firstMatch.getBoundingClientRect().top;
+		} else if (firstMatch || matchList) {
+			const contentElement = firstMatch || matchList;
+			const matchTop = contentElement.getBoundingClientRect().top;
 			const contentAboveFold = matchTop < window.innerHeight * 0.5;
 
 			audit.metrics.contentAboveFold = {
@@ -95,19 +97,37 @@ async function runAudit(page: any) {
 					fix: 'Collapse chrome to bring content above fold'
 				});
 			}
+		} else if (timeline) {
+			const timelineTop = timeline.getBoundingClientRect().top;
+			const contentAboveFold = timelineTop < window.innerHeight * 0.5;
+
+			audit.metrics.contentAboveFold = {
+				value: timelineTop,
+				pass: contentAboveFold,
+				severity: !contentAboveFold ? 'P0' : null
+			};
+
+			if (!contentAboveFold) {
+				audit.violations.push({
+					type: 'Content burial',
+					severity: 'P0',
+					value: `Timeline at ${timelineTop}px (below 50% of viewport)`,
+					fix: 'Collapse chrome to bring content above fold'
+				});
+			}
 		} else {
 			audit.metrics.contentAboveFold = {
 				value: null,
 				pass: null,
-				note: 'No match cards found on page (may be landing/input page)'
+				note: 'No match cards or timeline found on page (may be landing/input page)'
 			};
 		}
 
 		// Component count (only count CHROME components, not content like match cards)
 		const chromeComponents = document.querySelectorAll(
-			'header button, header input, header select, [data-filter], nav button, nav input, nav select, .sticky button:not([data-match-card] button), [data-event-input] button'
+			'[data-header] button, [data-header] input, [data-header] select, [data-filter], nav button, nav input, nav select, .sticky button:not([data-match-card] button), [data-event-input] button'
 		);
-		const matchCardButtons = document.querySelectorAll('[data-match-card] button, .match-card button');
+		const matchCardButtons = document.querySelectorAll('[data-match-card] button');
 
 		audit.metrics.componentCount = {
 			chromeComponents: chromeComponents.length,
@@ -128,7 +148,7 @@ async function runAudit(page: any) {
 
 		// Gestalt: Check sort proximity to content (if applicable)
 		const sortControl = document.querySelector('select[aria-label*="sort" i], [data-sort]');
-		const content = document.querySelector('[data-match-list], [data-timeline], .match-list, .timeline-view');
+		const content = document.querySelector('[data-match-list], [data-timeline]');
 
 		if (sortControl && content) {
 			const sortPos = sortControl.getBoundingClientRect();
