@@ -30,6 +30,8 @@ All React hooks converted to Svelte stores:
 - ✅ Migrated `TeamDetailPanel.tsx` → `src/lib/components/TeamDetailPanel.svelte`
 - ✅ Migrated `PrioritySelector.tsx` → `src/lib/components/PrioritySelector.svelte`
 - ✅ Migrated `CoverageStatusSelector.tsx` → `src/lib/components/CoverageStatusSelector.svelte`
+- ✅ Migrated `ConflictDetailsPanel.tsx` → `src/lib/components/ConflictDetailsPanel.svelte`
+- ✅ Migrated `CoveragePlanPanel.tsx` → `src/lib/components/CoveragePlanPanel.svelte` (plan tab complete, other tabs pending)
 - ⏳ `CoachView.tsx` → `src/lib/components/CoachView.svelte` (TODO)
 
 ## Current Status

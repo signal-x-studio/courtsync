@@ -14,6 +14,7 @@
 	import MatchList from '$lib/components/MatchList.svelte';
 	import TimelineView from '$lib/components/TimelineView.svelte';
 	import CoveragePlanPanel from '$lib/components/CoveragePlanPanel.svelte';
+	import CoachView from '$lib/components/CoachView.svelte';
 	// TODO: Import other components as they're migrated
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
@@ -416,8 +417,7 @@
 
 		{#if matches.length > 0}
 			{#if isCoachValue}
-				<!-- TODO: CoachView component -->
-				<div class="text-[#9fa2ab]">CoachView component - To be migrated</div>
+				<CoachView {matches} {eventId} {clubId} />
 			{:else if viewMode === 'list'}
 				<MatchList {matches} {eventId} {clubId} />
 			{:else}

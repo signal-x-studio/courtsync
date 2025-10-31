@@ -1318,6 +1318,69 @@ function MatchList($$renderer, $$props) {
     bind_props($$props, { matches, eventId, clubId });
   });
 }
+function CoachView($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let teams, matchesByTeam, sortedTeams;
+    let matches = $$props["matches"];
+    let eventId = $$props["eventId"];
+    let clubId = $$props["clubId"];
+    let selectedTeam = null;
+    teams = getUniqueTeams(matches);
+    matchesByTeam = (() => {
+      const grouped = {};
+      matches.forEach((match) => {
+        const teamId = getTeamIdentifier(match);
+        if (teamId) {
+          if (!grouped[teamId]) {
+            grouped[teamId] = [];
+          }
+          grouped[teamId].push(match);
+        }
+      });
+      return grouped;
+    })();
+    sortedTeams = (() => {
+      return [...teams].sort((a, b) => {
+        const matchesA = matchesByTeam[a]?.length || 0;
+        const matchesB = matchesByTeam[b]?.length || 0;
+        return matchesB - matchesA;
+      });
+    })();
+    $$renderer2.push(`<div class="space-y-4"><div class="flex items-center justify-between flex-wrap gap-4"><div><h1 class="text-xl font-bold text-[#f8f8f9]">Coach View</h1> <p class="text-sm text-[#9fa2ab] mt-1">View matches and work assignments by team</p></div> <div class="flex items-center gap-2 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(
+      "bg-[#eab308] text-[#18181b]"
+    )}`)}>Matches</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Work Assignments</button></div></div> `);
+    if (teams.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="border-b border-[#454654] pb-4"><div class="flex items-center gap-2 flex-wrap"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Select Team:</span> <!--[-->`);
+      const each_array = ensure_array_like(sortedTeams);
+      for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+        let teamId = each_array[$$index];
+        $$renderer2.push(`<button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(selectedTeam === teamId ? "bg-[#eab308] text-[#18181b]" : "bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]")}`)}>${escape_html(teamId)} `);
+        if (matchesByTeam[teamId]) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<span class="ml-2 text-[10px] opacity-75">(${escape_html(matchesByTeam[teamId].length)})</span>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]--></button>`);
+      }
+      $$renderer2.push(`<!--]--></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<div class="text-center py-12 text-[#9fa2ab] text-sm">Select a team to view matches and work assignments</div>`);
+    }
+    $$renderer2.push(`<!--]--> `);
+    {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div>`);
+    bind_props($$props, { matches, eventId, clubId });
+  });
+}
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
@@ -1496,7 +1559,7 @@ function _page($$renderer, $$props) {
       $$renderer2.push("<!--[-->");
       if (isCoachValue) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="text-[#9fa2ab]">CoachView component - To be migrated</div>`);
+        CoachView($$renderer2, { matches, eventId, clubId });
       } else {
         $$renderer2.push("<!--[!-->");
         {
