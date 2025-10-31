@@ -370,8 +370,7 @@
 						<!-- Timeline Bar -->
 						<div class="relative h-20 sm:h-20 rounded-lg border overflow-hidden bg-[#3b3c48] border-[#454654]">
 							<!-- Time gaps visualization -->
-							{@const gaps = calculateGaps(courtMatches)}
-							{#each gaps as gap, gapIndex}
+							{#each calculateGaps(courtMatches) as gap, gapIndex}
 								{@const gapStart = getPosition(gap.before.ScheduledEndDateTime)}
 								{@const gapEnd = getPosition(gap.after.ScheduledStartDateTime)}
 								{@const gapWidth = gapEnd - gapStart}
@@ -468,29 +467,6 @@
 										{formatMatchTime(match.ScheduledStartDateTime)}
 									</div>
 									
-									<!-- Score Display -->
-									{#if matchClaiming}
-										{@const score = matchClaiming.getScore(match.MatchId)}
-										{#if score && score.status !== 'not-started'}
-											{@const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1]}
-											{@const completedSets = score.sets.filter((s: SetScore) => s.completedAt > 0)}
-											{@const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length}
-											{@const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length}
-											
-											<div class="flex items-center gap-1 mt-0.5">
-												{#if completedSets.length > 0}
-													<div class="text-[8px] text-[#9fa2ab]">
-														({team1Wins}-{team2Wins})
-													</div>
-												{/if}
-												<div class="text-[9px] font-semibold text-white">
-													{currentSet.team1Score}-{currentSet.team2Score}
-												</div>
-												<!-- TODO: LiveScoreIndicator component -->
-												{#if score.status === 'in-progress'}
-													<div class="text-[8px] text-green-400">●</div>
-												{/if}
-											</div>
 										{/if}
 									{/if}
 									
