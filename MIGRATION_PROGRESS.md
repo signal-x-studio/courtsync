@@ -33,8 +33,8 @@ All React hooks converted to Svelte stores:
 - ✅ Migrated `ConflictDetailsPanel.tsx` → `src/lib/components/ConflictDetailsPanel.svelte`
 - ✅ Migrated `CoveragePlanPanel.tsx` → `src/lib/components/CoveragePlanPanel.svelte` (plan tab complete, other tabs pending)
 - ✅ Migrated `CoachView.tsx` → `src/lib/components/CoachView.svelte` (core functionality working)
-- ⏳ `TeamMatchView.tsx` → `src/lib/components/TeamMatchView.svelte` (TODO - used by CoachView)
-- ⏳ `WorkAssignmentView.tsx` → `src/lib/components/WorkAssignmentView.svelte` (TODO - used by CoachView)
+- ✅ Migrated `TeamMatchView.tsx` → `src/lib/components/TeamMatchView.svelte`
+- ✅ Migrated `WorkAssignmentView.tsx` → `src/lib/components/WorkAssignmentView.svelte`
 
 ## Current Status
 

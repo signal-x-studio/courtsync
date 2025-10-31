@@ -10,10 +10,10 @@
 	import { generateCoverageSuggestions } from '$lib/utils/coverageSuggestions';
 	import { exportCoveragePlanToICS } from '$lib/utils/icsExport';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
+	import CoverageAnalytics from '$lib/components/CoverageAnalytics.svelte';
+	import CoverageStats from '$lib/components/CoverageStats.svelte';
 	
 	// TODO: Import other components as they're migrated
-	// import CoverageAnalytics from '$lib/components/CoverageAnalytics.svelte';
-	// import CoverageStats from '$lib/components/CoverageStats.svelte';
 	// import TeamMemberSelector from '$lib/components/TeamMemberSelector.svelte';
 	// import TeamCoverageView from '$lib/components/TeamCoverageView.svelte';
 	
@@ -733,15 +733,9 @@
 					</div>
 				{/if}
 			{:else if activeTab === 'analytics'}
-				<!-- TODO: CoverageAnalytics component -->
-				<div class="text-center py-12 text-[#9fa2ab] text-sm">
-					CoverageAnalytics - To be migrated
-				</div>
+				<CoverageAnalytics {matches} />
 			{:else if activeTab === 'stats'}
-				<!-- TODO: CoverageStats component -->
-				<div class="text-center py-12 text-[#9fa2ab] text-sm">
-					CoverageStats - To be migrated
-				</div>
+				<CoverageStats {matches} />
 			{:else}
 				<!-- TODO: TeamMemberSelector and TeamCoverageView components -->
 				<div class="text-center py-12 text-[#9fa2ab] text-sm">
