@@ -1,7 +1,7 @@
 import type { FilteredMatch } from '../types';
 import { formatMatchTime, calculateTimeGap, formatTimeGap } from '../utils/dateUtils';
 import { detectConflicts } from '../utils/matchFilters';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { TeamDetailPanel } from './TeamDetailPanel';
 import type { useCoveragePlan } from '../hooks/useCoveragePlan';
 import { useFilters } from '../hooks/useFilters';
@@ -67,6 +67,38 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
     },
   });
 
+  // Track claimed matches to auto-open scorekeeper (use ref to avoid dependency issues)
+  const previousClaimedMatchIdsRef = useRef<Set<number>>(new Set());
+  
+  // Get claimed match IDs for dependency tracking
+  const claimedMatchIds = useMemo(() => {
+    return Array.from(matchClaiming.claims.keys()).sort();
+  }, [matchClaiming.claims]);
+  
+  // Auto-open scorekeeper when a match is newly claimed
+  useEffect(() => {
+    if (!userRole.isSpectator) return;
+    
+    // Find currently claimed matches
+    const currentClaimed = new Set<number>();
+    matches.forEach(match => {
+      if (matchClaiming.isClaimOwner(match.MatchId)) {
+        currentClaimed.add(match.MatchId);
+        
+        // If this is a newly claimed match and scorekeeper isn't open, open it
+        if (!previousClaimedMatchIdsRef.current.has(match.MatchId) && 
+            (!scorekeeperMatch || scorekeeperMatch.MatchId !== match.MatchId)) {
+          setTimeout(() => {
+            setScorekeeperMatch(match);
+          }, 200);
+        }
+      }
+    });
+    
+    // Update ref for next render
+    previousClaimedMatchIdsRef.current = currentClaimed;
+  }, [matches, claimedMatchIds, userRole.isSpectator, scorekeeperMatch, matchClaiming]);
+  
   // Check for shareable scores in URL on mount
   useEffect(() => {
     if (hasShareableScoresInUrl()) {
@@ -1000,27 +1032,77 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
                           </div>
                         )}
 
-                        {/* Match Claim Button - Spectator Only */}
+                        {/* Match Claim Button & Score Controls - Spectator Only */}
                         {userRole.isSpectator && (
-                          <div className="flex-shrink-0">
+                          <div className="flex-shrink-0 flex items-center gap-2">
+                            {/* Claim Button */}
                             <MatchClaimButton
                               match={match}
                               matchClaiming={matchClaiming}
-                              onClaim={() => {
-                                // Claim successful, can open scorekeeper
-                                if (matchClaiming.isClaimOwner(match.MatchId)) {
-                                  setScorekeeperMatch(match);
+                              onClaim={(matchId) => {
+                                // Find the match that was claimed
+                                const claimedMatch = matches.find(m => m.MatchId === matchId);
+                                if (claimedMatch) {
+                                  // Auto-open scorekeeper after claim state updates
+                                  setTimeout(() => {
+                                    setScorekeeperMatch(claimedMatch);
+                                  }, 300);
                                 }
                               }}
                               onRelease={() => {
                                 setScorekeeperMatch(null);
                               }}
                             />
+                            
+                            {/* Start Scoring Button - Show if claimed by current user */}
+                            {matchClaiming.getClaimStatus(match.MatchId) === 'claimed' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setScorekeeperMatch(match);
+                                }}
+                                className="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors border border-[#eab308]"
+                                title="Start keeping score for this match"
+                              >
+                                {matchClaiming.getScore(match.MatchId) ? 'Update Score' : 'Start Scoring'}
+                              </button>
+                            )}
+                            
+                            {/* Score Display - Show if match has score */}
+                            {(() => {
+                              const score = matchClaiming.getScore(match.MatchId);
+                              if (score && score.status !== 'not-started') {
+                                const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1];
+                                const completedSets = score.sets.filter((s: SetScore) => s.completedAt > 0);
+                                const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length;
+                                const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length;
+                                
+                                return (
+                                  <div className="flex-shrink-0 flex items-center gap-2">
+                                    {completedSets.length > 0 && (
+                                      <div className="text-xs font-medium text-[#9fa2ab]">
+                                        {team1Wins}-{team2Wins}
+                                      </div>
+                                    )}
+                                    <div className="text-xs font-semibold text-[#f8f8f9]">
+                                      {currentSet.team1Score}-{currentSet.team2Score}
+                                    </div>
+                                    <LiveScoreIndicator
+                                      isLive={score.status === 'in-progress'}
+                                      lastUpdated={score.lastUpdated}
+                                    />
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         )}
-
-                        {/* Score Display - Show if match has score */}
-                        {(() => {
+                        
+                        {/* Score Display for Non-Claimers - Show if someone else is scoring */}
+                        {userRole.isSpectator && 
+                         !matchClaiming.isClaimOwner(match.MatchId) && 
+                         matchClaiming.getScore(match.MatchId) && (() => {
                           const score = matchClaiming.getScore(match.MatchId);
                           if (score && score.status !== 'not-started') {
                             const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1];
@@ -1042,17 +1124,9 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
                                   isLive={score.status === 'in-progress'}
                                   lastUpdated={score.lastUpdated}
                                 />
-                                {matchClaiming.isClaimOwner(match.MatchId) && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setScorekeeperMatch(match);
-                                    }}
-                                    className="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
-                                  >
-                                    Score
-                                  </button>
-                                )}
+                                <span className="text-[8px] text-[#9fa2ab]">
+                                  (Live)
+                                </span>
                               </div>
                             );
                           }
@@ -1092,7 +1166,7 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
       </div>
       
       {/* Scorekeeper Modal */}
-      {scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId) && (
+      {scorekeeperMatch && (
         <Scorekeeper
           matchId={scorekeeperMatch.MatchId}
           team1Name={scorekeeperMatch.FirstTeamText}
@@ -1113,34 +1187,57 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
             <div className="relative">
               <button
                 onClick={() => setShowScoreExportMenu(!showScoreExportMenu)}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors shadow-lg"
+                className="px-4 py-2 text-sm font-medium rounded-lg bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors shadow-lg flex items-center gap-2"
+                title="Score sharing & sync options"
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 Scores
               </button>
               
               {showScoreExportMenu && (
-                <div className="absolute bottom-full right-0 mb-2 w-48 rounded-lg border border-[#454654] bg-[#3b3c48] shadow-lg p-2">
+                <div className="absolute bottom-full right-0 mb-2 w-64 rounded-lg border border-[#454654] bg-[#3b3c48] shadow-lg p-2">
+                  <div className="px-3 py-2 text-xs text-[#9fa2ab] border-b border-[#454654] mb-2">
+                    Score Sharing
+                  </div>
                   <button
                     onClick={handleExportScores}
-                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors"
+                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                     Export Scores (JSON)
                   </button>
                   <button
                     onClick={handleShareScoreLink}
-                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors"
+                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
                   >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
                     Generate Share Link
                   </button>
+                  <div className="border-t border-[#454654] my-2"></div>
+                  <div className="px-3 py-2 text-xs text-[#9fa2ab] border-b border-[#454654] mb-2">
+                    Receive Scores
+                  </div>
                   <button
                     onClick={() => {
                       setShowScoreImportDialog(true);
                       setShowScoreExportMenu(false);
                     }}
-                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors"
+                    className="w-full px-3 py-2 text-sm text-left text-[#c0c2c8] hover:bg-[#454654] rounded transition-colors flex items-center gap-2"
                   >
-                    Import Scores
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Import Scores from JSON
                   </button>
+                  <div className="px-3 py-1.5 mt-2 text-[10px] text-[#808593] bg-[#454654]/30 rounded">
+                    💡 Scores sync automatically across tabs. To share with others, use Export or Share Link.
+                  </div>
                 </div>
               )}
             </div>
@@ -1148,9 +1245,36 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
 
           {/* Score Import Dialog */}
           {showScoreImportDialog && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-              <div className="bg-[#3b3c48] rounded-lg border border-[#454654] p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                <h3 className="text-lg font-semibold text-[#f8f8f9] mb-4">Import Scores</h3>
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+              <div className="bg-[#3b3c48] rounded-lg border border-[#454654] p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-[#f8f8f9]">Import Scores</h3>
+                  <button
+                    onClick={() => {
+                      setShowScoreImportDialog(false);
+                      setImportJson('');
+                      setImportError(null);
+                    }}
+                    className="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+                    aria-label="Close"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="mb-4 p-3 bg-[#454654]/50 rounded border border-[#525463]">
+                  <div className="text-sm text-[#c0c2c8] mb-2">
+                    <strong className="text-[#facc15]">How to receive scores:</strong>
+                  </div>
+                  <ol className="text-xs text-[#9fa2ab] space-y-1 ml-4 list-decimal">
+                    <li>Ask the scorekeeper to click "Scores" button → "Generate Share Link"</li>
+                    <li>They copy the link and send it to you</li>
+                    <li>Open the link in your browser, or paste JSON data below</li>
+                    <li>Scores will sync automatically across tabs if you're both viewing the same event</li>
+                  </ol>
+                </div>
                 
                 <textarea
                   value={importJson}
@@ -1158,8 +1282,8 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
                     setImportJson(e.target.value);
                     setImportError(null);
                   }}
-                  placeholder="Paste JSON score data here..."
-                  className="w-full h-64 px-3 py-2 text-sm font-mono bg-[#454654] text-[#c0c2c8] border border-[#525463] rounded focus:border-[#eab308] focus:outline-none"
+                  placeholder="Paste JSON score data here, or paste a share link URL..."
+                  className="w-full h-48 px-3 py-2 bg-[#454654] border border-[#525463] rounded text-[#c0c2c8] font-mono text-xs focus:border-[#eab308] focus:outline-none"
                 />
                 
                 {importError && (
@@ -1173,7 +1297,7 @@ export const MatchList = ({ matches, eventId, clubId, coveragePlan, userRole }: 
                     onClick={handleImportScores}
                     className="px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
                   >
-                    Import
+                    Import Scores
                   </button>
                   <button
                     onClick={() => {

@@ -246,6 +246,7 @@ export const useMatchClaiming = ({ eventId, userId = 'anonymous' }: UseMatchClai
     updateScore,
     getScore,
     clearEventData,
+    claims, // Expose claims for reactivity
   };
 };
 

@@ -5,7 +5,7 @@ import type { useMatchClaiming } from '../hooks/useMatchClaiming';
 interface MatchClaimButtonProps {
   match: FilteredMatch;
   matchClaiming: ReturnType<typeof useMatchClaiming>;
-  onClaim: () => void;
+  onClaim: (matchId: number) => void;
   onRelease: () => void;
 }
 
@@ -22,7 +22,10 @@ export const MatchClaimButton = ({
   const handleClick = useCallback(() => {
     if (claimStatus === 'available') {
       matchClaiming.claimMatch(match.MatchId, match.ScheduledEndDateTime);
-      onClaim();
+      // Call onClaim with matchId after claiming
+      setTimeout(() => {
+        onClaim(match.MatchId);
+      }, 100);
     } else if (isOwner) {
       matchClaiming.releaseClaim(match.MatchId);
       onRelease();
