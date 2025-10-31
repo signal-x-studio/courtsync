@@ -12,6 +12,7 @@ import { useCoverageStatus } from '../hooks/useCoverageStatus';
 import { CoverageStatusSelector } from './CoverageStatusSelector';
 import { generateCoverageSuggestions } from '../utils/coverageSuggestions';
 import { useFilters } from '../hooks/useFilters';
+import { exportCoveragePlanToICS } from '../utils/icsExport';
 
 interface CoveragePlanPanelProps {
   matches: FilteredMatch[];
@@ -296,6 +297,23 @@ export const CoveragePlanPanel = ({
     const link = document.createElement('a');
     link.href = url;
     link.download = `coverage-plan-${formatMatchDate(selectedMatchesList[0]?.ScheduledStartDateTime || Date.now()).replace(/,/g, '')}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportICS = () => {
+    const icsContent = exportCoveragePlanToICS(
+      selectedMatchesList,
+      getTeamIdentifier,
+      getOpponent,
+      'Coverage Plan'
+    );
+
+    const dataBlob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `coverage-plan-${formatMatchDate(selectedMatchesList[0]?.ScheduledStartDateTime || Date.now()).replace(/,/g, '')}.ics`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -836,6 +854,13 @@ export const CoveragePlanPanel = ({
                   title="Export as Text"
                 >
                   TXT
+                </button>
+                <button
+                  onClick={handleExportICS}
+                  className="px-2 py-1 text-xs font-medium rounded transition-colors text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#454654]"
+                  title="Export as Calendar (ICS)"
+                >
+                  📅 ICS
                 </button>
               </div>
             </div>
