@@ -21,7 +21,7 @@
 	}
 </script>
 
-<form on:submit={handleSubmit} class="space-y-4">
+<form data-event-input on:submit={handleSubmit} class="space-y-4">
 	<div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
 		<div class="flex-1">
 			<label for="eventId" class="block text-xs text-[#9fa2ab] mb-1.5">Event ID</label>

@@ -288,7 +288,7 @@
 			: 'No matches found'}
 	</div>
 {:else}
-	<div class="space-y-4">
+	<div data-timeline class="space-y-4">
 		<!-- Filter Controls -->
 		<div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
 			<!-- Wave Filter -->
