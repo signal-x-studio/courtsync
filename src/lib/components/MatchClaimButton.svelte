@@ -75,7 +75,6 @@
 					bind:value={transferUserId}
 					placeholder="Enter scorer name or ID..."
 					class="w-full px-3 py-2 bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-brand-500 focus:outline-none mb-4"
-					autofocus
 					onkeydown={(e) => {
 						if (e.key === 'Enter') {
 							handleTransfer();

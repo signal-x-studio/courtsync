@@ -60,7 +60,6 @@
 		if ($filters.wave !== 'all') count++;
 		if ($filters.division) count++;
 		if ($filters.teams.length > 0) count++;
-		if ($filters.timeRange.start || $filters.timeRange.end) count++;
 		if ($filters.priority && $filters.priority !== 'all') count++;
 		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
 		return count;
@@ -416,7 +415,7 @@
 
 {#if filteredMatches.length === 0}
 	<div class="text-center py-12 text-charcoal-300 text-sm">
-		{$filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || $filters.timeRange.start || $filters.timeRange.end
+		{$filters.division || $filters.wave !== 'all' || $filters.teams.length > 0
 			? 'No matches found for selected filters'
 			: 'No matches found'}
 	</div>
@@ -488,7 +487,7 @@
 									e.stopPropagation();
 									coveragePlan.selectMatch(suggestion.match.MatchId);
 								}}
-								class="ml-3 px-3 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors flex-shrink-0"
+								class="ml-3 px-3 py-1 text-xs font-medium rounded bg-brand-500 text-white hover:bg-brand-600 transition-colors flex-shrink-0"
 							>
 								Add
 							</button>
@@ -500,24 +499,54 @@
 		
 		<!-- Coverage Legend - Media Only -->
 		{#if $isMedia}
-			<div class="mb-4 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs">
-				<div class="font-medium text-charcoal-300 uppercase tracking-wider mb-2">Coverage Status Legend</div>
+			<div class="mb-4 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs" role="region" aria-label="Coverage status legend">
+				<div class="font-medium text-charcoal-300 mb-2 flex items-center gap-2">
+					<span>Coverage Status</span>
+					<button
+						type="button"
+						class="w-4 h-4 rounded-full border border-charcoal-600 text-charcoal-400 hover:text-charcoal-200 hover:border-charcoal-500 transition-colors flex items-center justify-center text-[10px]"
+						title="Coverage status indicates whether you've planned to photograph a team's matches"
+						aria-label="Coverage status help"
+					>
+						?
+					</button>
+				</div>
 				<div class="flex flex-wrap gap-4 text-charcoal-200">
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-gold-500 bg-gold-500/5"></div>
-						<span>Uncovered</span>
+						<div class="w-4 h-4 rounded border border-gold-500 bg-gold-500/5 flex items-center justify-center" aria-hidden="true">
+							<span class="text-gold-500 text-xs">○</span>
+						</div>
+						<span class="flex flex-col">
+							<span class="font-medium text-charcoal-50">Uncovered</span>
+							<span class="text-[10px] text-charcoal-400 hidden sm:inline">No matches planned</span>
+						</span>
 					</div>
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-gold-500/50 bg-gold-500/10"></div>
-						<span>Planned</span>
+						<div class="w-4 h-4 rounded border border-gold-500/50 bg-gold-500/10 flex items-center justify-center" aria-hidden="true">
+							<span class="text-gold-500 text-xs">📋</span>
+						</div>
+						<span class="flex flex-col">
+							<span class="font-medium text-gold-400">Planned</span>
+							<span class="text-[10px] text-charcoal-400 hidden sm:inline">On your schedule</span>
+						</span>
 					</div>
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5"></div>
-						<span>Covered</span>
+						<div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5 flex items-center justify-center" aria-hidden="true">
+							<span class="text-success-500 text-xs">✓</span>
+						</div>
+						<span class="flex flex-col">
+							<span class="font-medium text-success-400">Covered</span>
+							<span class="text-[10px] text-charcoal-400 hidden sm:inline">All matches planned</span>
+						</span>
 					</div>
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-red-800/50 bg-red-950/10"></div>
-						<span>Conflict</span>
+						<div class="w-4 h-4 rounded border border-warning-500/50 bg-warning-500/10 flex items-center justify-center" aria-hidden="true">
+							<span class="text-warning-500 text-xs">⚠</span>
+						</div>
+						<span class="flex flex-col">
+							<span class="font-medium text-warning-400">Conflict</span>
+							<span class="text-[10px] text-charcoal-400 hidden sm:inline">Overlapping times</span>
+						</span>
 					</div>
 				</div>
 			</div>
@@ -629,7 +658,6 @@
 		
 		<!-- Filter Bottom Sheet (Mobile Only) -->
 		<FilterBottomSheet
-			{matches}
 			{divisions}
 			{teams}
 			open={showFilterSheet}
@@ -733,7 +761,7 @@
 														class="w-3 h-3 rounded-full flex-shrink-0"
 														style="background-color: {teamColor};"
 														title="{teamId} (followed)"
-													/>
+													></div>
 												{/if}
 											{/if}
 											<div class="text-sm text-charcoal-200 truncate">
@@ -1055,9 +1083,9 @@
 						
 						<div class="space-y-4">
 							<div>
-								<label class="block text-sm font-medium text-charcoal-200 mb-2">
+								<div class="block text-sm font-medium text-charcoal-200 mb-2">
 									Paste JSON score data:
-								</label>
+								</div>
 								<textarea
 									bind:value={importJson}
 									class="w-full px-3 py-2 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-gold-500 focus:outline-none font-mono"

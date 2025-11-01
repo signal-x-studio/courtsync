@@ -125,7 +125,7 @@
 			<div
 				class="h-full bg-gold-500 transition-all duration-300"
 				style="width: {Math.min(dashboardMetrics.coveragePercentage, 100)}%;"
-			/>
+			></div>
 		</div>
 	</div>
 
@@ -154,7 +154,7 @@
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-3 flex-1 min-w-0">
 						<div class="flex items-center gap-2 flex-shrink-0">
-							<div class="w-3 h-3 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" />
+							<div class="w-3 h-3 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"></div>
 							<div class="text-sm font-medium text-charcoal-50">
 								Team {team.teamId}
 							</div>
@@ -167,12 +167,12 @@
 						</div>
 					</div>
 					<div class="flex items-center gap-2 flex-shrink-0">
-						<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
-							<div
-								class="h-full transition-all duration-300 {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"
-								style="width: {Math.min(team.coveragePercentage, 100)}%;"
-							/>
-						</div>
+					<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
+						<div
+							class="h-full transition-all duration-300 {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"
+							style="width: {Math.min(team.coveragePercentage, 100)}%;"
+						></div>
+					</div>
 						<div class="text-xs text-charcoal-300 w-12 text-right">
 							{team.coveragePercentage.toFixed(0)}%
 						</div>

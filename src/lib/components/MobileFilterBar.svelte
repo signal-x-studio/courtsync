@@ -33,18 +33,6 @@
 			});
 		}
 		
-		if ($filters.timeRange.start || $filters.timeRange.end) {
-			const timeStr = [
-				$filters.timeRange.start || '00:00',
-				$filters.timeRange.end || '23:59'
-			].join(' - ');
-			active.push({
-				key: 'timeRange',
-				label: 'Time',
-				value: timeStr
-			});
-		}
-		
 		if ($filters.priority && $filters.priority !== 'all') {
 			active.push({
 				key: 'priority',
@@ -87,8 +75,6 @@
 			} else {
 				updateFilter('teams', []);
 			}
-		} else if (key === 'timeRange') {
-			updateFilter('timeRange', { start: null, end: null });
 		} else if (key === 'priority') {
 			updateFilter('priority', null);
 		} else if (key === 'coverageStatus') {

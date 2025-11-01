@@ -33,7 +33,6 @@
 		if ($filters.wave !== 'all') count++;
 		if ($filters.division) count++;
 		if ($filters.teams.length > 0) count++;
-		if ($filters.timeRange.start || $filters.timeRange.end) count++;
 		if ($filters.priority && $filters.priority !== 'all') count++;
 		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
 		return count;
@@ -49,10 +48,10 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between p-4 border-b border-charcoal-900">
 		{#if !collapsed}
-			<h2 class="text-sm font-semibold uppercase tracking-wider text-charcoal-50">Filters</h2>
+			<h2 class="text-sm font-semibold text-charcoal-50">Filters</h2>
 		{:else}
 			<div class="w-6 h-6 flex items-center justify-center">
-				<span class="text-lg">🎯</span>
+				<span class="text-lg" role="img" aria-label="Filters">🎯</span>
 			</div>
 		{/if}
 		<button
@@ -72,39 +71,46 @@
 	<!-- Filters Section -->
 	{#if !collapsed}
 		<div class="flex-1 overflow-y-auto p-4 space-y-3">
-		<!-- Wave Filter -->
+		<!-- Session Time Filter -->
 		<div class="pb-3 border-b border-charcoal-900">
-			<label for="wave-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Wave</label>
+			<label for="wave-filter-sidebar" class="block text-xs font-medium mb-2 text-left text-charcoal-300">
+				Session Time
+				<span class="block text-[10px] font-normal text-charcoal-400 mt-0.5">Filter by morning or afternoon matches</span>
+			</label>
 			<div class="flex gap-2">
 					<button
 						onclick={() => updateFilter('wave', 'all')}
 						class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors {$filters.wave === 'all' ? 'bg-gold-500 text-charcoal-950' : 'bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900'}"
+						aria-label="Show all matches"
 					>
 						All
 					</button>
 					<button
 						onclick={() => updateFilter('wave', 'morning')}
 						class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors {$filters.wave === 'morning' ? 'bg-gold-500 text-charcoal-950' : 'bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900'}"
+						aria-label="Show morning matches only"
 					>
 						AM
 					</button>
 					<button
 						onclick={() => updateFilter('wave', 'afternoon')}
 						class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors {$filters.wave === 'afternoon' ? 'bg-gold-500 text-charcoal-950' : 'bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900'}"
+						aria-label="Show afternoon matches only"
 					>
 						PM
 					</button>
 				</div>
 			</div>
-			
+
 			<!-- Division Filter -->
 			<div class="pb-3 border-b border-charcoal-900">
-				<label for="sidebar-division" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Division</label>
+				<label for="sidebar-division" class="block text-xs font-medium mb-2 text-left text-charcoal-300">Division</label>
 				<select
 					id="sidebar-division"
 					value={$filters.division || ''}
 					onchange={(e) => updateFilter('division', e.target.value || null)}
-					class="w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+					class="w-full px-3 py-2 rounded-lg text-sm focus:border-gold-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+					aria-label="Filter matches by division"
 				>
 					<option value="">All Divisions</option>
 					{#each divisions as division}
@@ -115,12 +121,13 @@
 
 			<!-- Team Filter -->
 			<div class="pb-3 border-b border-charcoal-900">
-				<label for="sidebar-team" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Team</label>
+				<label for="sidebar-team" class="block text-xs font-medium mb-2 text-left text-charcoal-300">Team</label>
 				<select
 					id="sidebar-team"
 					value={$filters.teams[0] || ''}
 					onchange={(e) => updateFilter('teams', e.target.value ? [e.target.value] : [])}
-					class="w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+					class="w-full px-3 py-2 rounded-lg text-sm focus:border-gold-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+					aria-label="Filter matches by team"
 				>
 					<option value="">All Teams</option>
 					{#each teams as team}
@@ -129,34 +136,6 @@
 				</select>
 			</div>
 
-		<!-- Time Range Filter -->
-		<div class="pb-3 border-b border-charcoal-900">
-			<label for="time-range-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Time Range</label>
-			<div class="space-y-2">
-					<div>
-						<label for="sidebar-time-start" class="block text-xs mb-1 text-charcoal-500">Start</label>
-						<input
-							id="sidebar-time-start"
-							type="time"
-							value={$filters.timeRange.start || ''}
-							onchange={(e) => updateFilter('timeRange', { ...$filters.timeRange, start: e.target.value || null })}
-							class="w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none bg-surface-200 text-charcoal-50 border border-charcoal-900"
-						/>
-					</div>
-					<div>
-						<label for="sidebar-time-end" class="block text-xs mb-1" style="color: #6e6e73;">End</label>
-						<input
-							id="sidebar-time-end"
-							type="time"
-							value={$filters.timeRange.end || ''}
-							onchange={(e) => updateFilter('timeRange', { ...$filters.timeRange, end: e.target.value || null })}
-							class="w-full px-3 py-2 rounded-lg text-sm focus:border-[#eab308] focus:outline-none"
-							style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
-						/>
-					</div>
-				</div>
-			</div>
-			
 			<!-- Clear Filters Button -->
 			{#if activeFilterCount > 0}
 				<button
@@ -190,7 +169,7 @@
 	<!-- Quick Stats Section -->
 	<div class="p-4 border-t" style="border-color: #2a2a2f;">
 		{#if !collapsed}
-			<h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: #a1a1a6;">Quick Stats</h3>
+			<h3 class="text-xs font-semibold mb-3" style="color: #a1a1a6;">Quick Stats</h3>
 			<div class="space-y-3">
 				<div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;">
 					<div class="text-xs mb-1" style="color: #6e6e73;">Total Matches</div>

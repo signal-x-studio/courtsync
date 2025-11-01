@@ -55,8 +55,11 @@
 		<!-- Overlay -->
 		<div
 			class="fixed inset-0 z-40"
+			role="button"
 			onclick={() => isOpen = false}
-		/>
+			onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') isOpen = false; }}
+			tabindex="0"
+		></div>
 		
 		<!-- Dropdown -->
 		<div class="absolute top-full left-0 mt-2 w-80 bg-charcoal-800 border border-charcoal-700 rounded-lg shadow-lg z-50 max-h-[500px] overflow-y-auto">
@@ -79,12 +82,12 @@
 								<!-- Color Picker -->
 								<div class="flex-shrink-0 flex items-center gap-1">
 									{#each AVAILABLE_COLORS as color}
-										<button
-											onclick={() => handleColorChange(team.teamId, color)}
-											class="w-4 h-4 rounded border-2 transition-all {$followedTeams.getTeamColor(team.teamId) === color ? 'border-white scale-110' : 'border-charcoal-600 hover:border-[#9fa2ab]'}"
-											style="background-color: {color}"
-											title={color}
-										/>
+								<button
+									onclick={() => handleColorChange(team.teamId, color)}
+									class="w-4 h-4 rounded border-2 transition-all {$followedTeams.getTeamColor(team.teamId) === color ? 'border-white scale-110' : 'border-charcoal-600 hover:border-[#9fa2ab]'}"
+									style="background-color: {color}"
+									title={color}
+								></button>
 									{/each}
 								</div>
 

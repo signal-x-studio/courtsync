@@ -88,12 +88,12 @@
 					<div class="flex items-center justify-between">
 						<span class="text-xs text-charcoal-300">Wins</span>
 						<div class="flex items-center gap-2">
-							<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
-								<div
-									class="h-full bg-green-500"
-									style="width: {stats.winPercentage}%"
-								/>
-							</div>
+					<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
+						<div
+							class="h-full bg-green-500"
+							style="width: {stats.winPercentage}%"
+						></div>
+					</div>
 							<span class="text-sm font-semibold text-charcoal-50 w-8 text-right">
 								{stats.wins}
 							</span>
@@ -102,12 +102,12 @@
 					<div class="flex items-center justify-between">
 						<span class="text-xs text-charcoal-300">Losses</span>
 						<div class="flex items-center gap-2">
-							<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
-								<div
-									class="h-full bg-red-500"
-									style="width: {100 - stats.winPercentage}%"
-								/>
-							</div>
+					<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
+						<div
+							class="h-full bg-red-500"
+							style="width: {100 - stats.winPercentage}%"
+						></div>
+					</div>
 							<span class="text-sm font-semibold text-charcoal-50 w-8 text-right">
 								{stats.losses}
 							</span>

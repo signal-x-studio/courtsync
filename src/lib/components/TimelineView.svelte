@@ -308,7 +308,7 @@
 
 {#if filteredMatches.length === 0}
 	<div class="text-center py-12 text-charcoal-300 text-sm">
-		{$filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || $filters.timeRange.start || $filters.timeRange.end
+		{$filters.division || $filters.wave !== 'all' || $filters.teams.length > 0
 			? 'No matches found for selected filters'
 			: 'No matches found'}
 	</div>
@@ -379,31 +379,6 @@
 				</div>
 			{/if}
 			
-			<!-- Time Range Filter -->
-			<div class="flex items-center gap-2">
-				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Time:</span>
-				<div class="flex gap-1 bg-charcoal-700 rounded-lg p-1">
-					<button
-						onclick={() => updateFilter('timeRange', { start: null, end: null })}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === null && $filters.timeRange.end === null ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-					>
-						All
-					</button>
-					<button
-						onclick={() => updateFilter('timeRange', { start: '08:00', end: '14:30' })}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === '08:00' && $filters.timeRange.end === '14:30' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-					>
-						Morning
-					</button>
-					<button
-						onclick={() => updateFilter('timeRange', { start: '14:30', end: '23:59' })}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === '14:30' && $filters.timeRange.end === '23:59' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-					>
-						Afternoon
-					</button>
-				</div>
-			</div>
-			
 			<!-- Priority Filter - Media Only -->
 			{#if $isMedia}
 				<div class="flex items-center gap-2">
@@ -442,7 +417,7 @@
 			{/if}
 			
 			<!-- Clear Filters -->
-			{#if $filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || $filters.timeRange.start || $filters.timeRange.end || ($filters.priority && $filters.priority !== 'all') || ($filters.coverageStatus && $filters.coverageStatus !== 'all')}
+			{#if $filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || ($filters.priority && $filters.priority !== 'all') || ($filters.coverageStatus && $filters.coverageStatus !== 'all')}
 				<button
 					onclick={resetFilters}
 					class="px-3 py-2 sm:py-1 text-xs font-medium rounded-lg transition-colors text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-700 border border-charcoal-600 min-h-[44px] sm:min-h-0"
@@ -641,7 +616,7 @@
 							onkeydown={(e) => { if (teamId && (e.key === 'Enter' || e.key === ' ')) handleTeamClick(teamId, e); }}
 							class="text-xs sm:text-sm font-bold truncate leading-tight {teamId ? 'cursor-pointer hover:underline' : ''}"
 							role={teamId ? "button" : undefined}
-							tabindex={teamId ? 0 : undefined}
+							tabIndex={teamId ? 0 : undefined}
 						>
 										{teamId || match.Division.CodeAlias}
 									</div>

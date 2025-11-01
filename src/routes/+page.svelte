@@ -9,7 +9,7 @@
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import { selectedCount } from '$lib/stores/coveragePlan';
 	import type { FilteredMatch } from '$lib/types';
-	
+
 	import EventInput from '$lib/components/EventInput.svelte';
 	import MatchList from '$lib/components/MatchList.svelte';
 	import TimelineView from '$lib/components/TimelineView.svelte';
@@ -20,6 +20,7 @@
 	import MobileBottomNav from '$lib/components/MobileBottomNav.svelte';
 	import FilterBottomSheet from '$lib/components/FilterBottomSheet.svelte';
 	import MobileFilterBar from '$lib/components/MobileFilterBar.svelte';
+	import OnboardingModal from '$lib/components/OnboardingModal.svelte';
 	import { getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
@@ -40,6 +41,7 @@
 	let activeTab: 'matches' | 'plan' | 'filters' | 'more' = 'matches';
 	let showFilterSheet = false;
 	let showMoreMenu = false;
+	let showOnboarding = false;
 	
 	// Get unique divisions and teams for filter sheet
 	$: divisions = getUniqueDivisions(matches);
@@ -157,8 +159,16 @@
 		});
 	}
 	
-	// Auto-load on mount
+	// Check for first-time visit and auto-load
 	onMount(() => {
+		// Check if user has seen onboarding
+		if (typeof window !== 'undefined') {
+			const hasSeenOnboarding = localStorage.getItem('courtSync_hasSeenOnboarding');
+			if (!hasSeenOnboarding) {
+				showOnboarding = true;
+			}
+		}
+
 		handleLoad(eventId, date, timeWindow);
 	});
 	
@@ -370,65 +380,78 @@
 			<!-- Mobile: Expanded State / Desktop: Always Visible -->
 			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4" class:hidden={headerCollapsed}>
 				<div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1">
-					<div class="flex items-center gap-2 min-w-0">
-						<h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">
-							630 Volleyball Coverage
-						</h1>
-						{#if matches.length > 0}
-							<span class="text-xs whitespace-nowrap hidden sm:inline text-charcoal-300">
-								{matches.length} matches
-								{#if conflictCount > 0}
-									<span class="ml-2 text-warning-500">• {conflictCount} conflicts</span>
-								{/if}
-							</span>
-						{/if}
-					</div>
-					
-					<!-- Event Name and Date Range -->
-					{#if eventInfo && (eventInfo.name || eventInfo.startDate)}
-						<div class="flex items-center gap-2 text-xs text-charcoal-300">
-							{#if eventInfo.name}
-								<span class="font-medium truncate max-w-[200px] sm:max-w-none">
+					<div class="flex flex-col gap-1 min-w-0">
+						<!-- Context Label -->
+						<div class="text-[10px] sm:text-xs text-charcoal-400 uppercase tracking-wider">
+							Event Schedule
+						</div>
+
+						<!-- Event Name as H1 (if available) or Club Name -->
+						<div class="flex items-center gap-2 min-w-0">
+							{#if eventInfo && eventInfo.name}
+								<h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">
 									{eventInfo.name}
-								</span>
+								</h1>
+							{:else}
+								<h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">
+									630 Volleyball
+								</h1>
 							{/if}
-							{#if (eventInfo.startDate || eventInfo.endDate) && (() => {
-								try {
-									const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
-									const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
-									return startDate && endDate && Math.abs(startDate - endDate) > 86400000;
-								} catch {
-									return false;
-								}
-							})()}
-								<span class="hidden sm:inline">
-									{(() => {
-										try {
-											const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
-											const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
-											if (startDate && endDate && Math.abs(startDate - endDate) > 86400000) {
-												return `${formatMatchDate(startDate)} - ${formatMatchDate(endDate)}`;
-											} else if (startDate) {
-												return formatMatchDate(startDate);
-											} else if (endDate) {
-												return formatMatchDate(endDate);
-											}
-											return null;
-										} catch {
-											return null;
-										}
-									})()}
+							{#if matches.length > 0}
+								<span class="text-xs whitespace-nowrap hidden sm:inline text-charcoal-300">
+									{matches.length} {matches.length === 1 ? 'match' : 'matches'}
+									{#if conflictCount > 0}
+										<span class="ml-2 text-warning-500">• {conflictCount} {conflictCount === 1 ? 'conflict' : 'conflicts'}</span>
+									{/if}
 								</span>
 							{/if}
 						</div>
-					{/if}
+
+						<!-- Date Range and Club Name (if event name is shown) -->
+						{#if eventInfo && (eventInfo.startDate || eventInfo.endDate)}
+							<div class="flex items-center gap-2 text-xs text-charcoal-300">
+								{#if eventInfo.name}
+									<span class="text-charcoal-400">630 Volleyball</span>
+									<span class="text-charcoal-600">•</span>
+								{/if}
+								{#if (eventInfo.startDate || eventInfo.endDate) && (() => {
+									try {
+										const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
+										const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
+										return startDate && endDate && Math.abs(startDate - endDate) > 86400000;
+									} catch {
+										return false;
+									}
+								})()}
+									<span class="hidden sm:inline">
+										{(() => {
+											try {
+												const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
+												const endDate = eventInfo.endDate ? new Date(eventInfo.endDate).getTime() : null;
+												if (startDate && endDate && Math.abs(startDate - endDate) > 86400000) {
+													return `${formatMatchDate(startDate)} - ${formatMatchDate(endDate)}`;
+												} else if (startDate) {
+													return formatMatchDate(startDate);
+												} else if (endDate) {
+													return formatMatchDate(endDate);
+												}
+												return null;
+											} catch {
+												return null;
+											}
+										})()}
+									</span>
+								{/if}
+							</div>
+						{/if}
+					</div>
 					
 					<!-- Mobile: Show match count below -->
 					{#if matches.length > 0}
 						<span class="text-xs sm:hidden text-charcoal-300">
-							{matches.length} matches
+							{matches.length} {matches.length === 1 ? 'match' : 'matches'}
 							{#if conflictCount > 0}
-								<span class="ml-2 text-warning-500">• {conflictCount} conflicts</span>
+								<span class="ml-2 text-warning-500">• {conflictCount} {conflictCount === 1 ? 'conflict' : 'conflicts'}</span>
 							{/if}
 						</span>
 					{/if}
@@ -438,18 +461,22 @@
 				<div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
 					<!-- User Role Selector -->
 					<div class="flex items-center gap-1">
-						<label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">Role:</label>
+						<label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">I am a:</label>
 						<select
 							id="role-selector-header"
 							value={userRoleValue}
 							onchange={(e) => userRole.setRole(e.target.value as 'media' | 'spectator' | 'coach')}
 							class="px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0 bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
-							title="Select your role"
+							title="Select your role to customize the app features for your needs"
+							aria-describedby="role-help"
 						>
-							<option value="media">Media</option>
-							<option value="spectator">Spectator</option>
-							<option value="coach">Coach</option>
+							<option value="media">📸 Photographer</option>
+							<option value="spectator">📊 Scorekeeper</option>
+							<option value="coach">📋 Coach</option>
 						</select>
+						<span id="role-help" class="sr-only">
+							Select your role to customize the app features for your needs
+						</span>
 					</div>
 					
 					{#if matches.length > 0}
@@ -488,8 +515,13 @@
 								class:text-charcoal-950={showCoveragePlan}
 								class:text-gold-500={!showCoveragePlan}
 								style={showCoveragePlan ? '' : 'background-color: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);'}
+								title="View and manage your photography coverage schedule"
+								aria-label={`My schedule with ${selectedCountValue} ${selectedCountValue === 1 ? 'match' : 'matches'}`}
 							>
-								Plan ({selectedCountValue})
+								<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+								</svg>
+								My Schedule ({selectedCountValue})
 							</button>
 						{/if}
 
@@ -497,20 +529,28 @@
 						<button
 							onclick={handleExportJSON}
 							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0"
-							title="Export JSON"
+							title="Export match data as JSON"
+							aria-label="Export data as JSON"
 						>
+							<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+							</svg>
 							JSON
 						</button>
 						<button
 							onclick={handleExportCSV}
 							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0"
-							title="Export CSV"
+							title="Export to Excel (CSV format)"
+							aria-label="Export to Excel"
 						>
+							<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+							</svg>
 							CSV
 						</button>
 					{/if}
-					
-					<!-- Config Toggle -->
+
+					<!-- Event Settings Toggle -->
 					<button
 						onclick={() => showConfig = !showConfig}
 						class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0"
@@ -518,8 +558,14 @@
 						class:text-charcoal-950={showConfig}
 						class:bg-charcoal-700={!showConfig}
 						class:text-charcoal-200={!showConfig}
+						title="Change event parameters and tournament settings"
+						aria-label={showConfig ? 'Hide event settings' : 'Show event settings'}
 					>
-						{showConfig ? 'Hide' : 'Config'}
+						<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+						</svg>
+						{showConfig ? 'Hide Settings' : 'Event Settings'}
 					</button>
 				</div>
 			</div>
@@ -592,11 +638,25 @@
 		{/if}
 
 		{#if !loading && matches.length === 0 && !error}
-			<div class="text-center py-12 text-charcoal-300">
-				<div class="text-sm">No matches found for 630 Volleyball</div>
-				<div class="text-xs mt-2" style="color: #808593;">
-					Click "Config" to change event parameters
+			<div class="text-center py-12 px-4 max-w-md mx-auto">
+				<div class="w-16 h-16 mx-auto mb-4 rounded-full bg-charcoal-800 flex items-center justify-center">
+					<svg class="w-8 h-8 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+					</svg>
 				</div>
+				<h2 class="text-lg font-semibold text-charcoal-50 mb-2">
+					Ready to Load Your Tournament
+				</h2>
+				<p class="text-sm text-charcoal-300 mb-4">
+					Enter your event details to see the 630 Volleyball match schedule and plan your coverage
+				</p>
+				<button
+					onclick={() => showConfig = true}
+					class="px-6 py-3 bg-gold-500 text-charcoal-950 rounded-lg font-medium hover:bg-gold-400 transition-colors min-h-[44px]"
+					aria-label="Open event settings to get started"
+				>
+					Get Started
+				</button>
 			</div>
 		{/if}
 
@@ -670,9 +730,10 @@
 						type="button"
 						onclick={() => { showConfig = !showConfig; closeMoreMenu(); }}
 						class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"
+						aria-label="Open event settings"
 					>
-						<div class="font-medium">Config</div>
-						<div class="text-xs text-charcoal-400 mt-0.5">Change event parameters</div>
+						<div class="font-medium">Event Settings</div>
+						<div class="text-xs text-charcoal-400 mt-0.5">Change tournament parameters and load schedule</div>
 					</button>
 					
 					{#if matches.length > 0}
@@ -696,18 +757,19 @@
 					{/if}
 					
 					<div class="pt-2 border-t border-charcoal-700">
-						<label for="role-selector-menu" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
-							Role
+						<label for="role-selector-menu" class="block text-sm font-medium text-charcoal-300 mb-2">
+							I am a:
 						</label>
 						<select
 							id="role-selector-menu"
 							value={userRoleValue}
 							onchange={(e) => { userRole.setRole(e.target.value as 'media' | 'spectator' | 'coach'); }}
 							class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
+							aria-label="Select your role to customize features"
 						>
-							<option value="media">Media</option>
-							<option value="spectator">Spectator</option>
-							<option value="coach">Coach</option>
+							<option value="media">📸 Photographer</option>
+							<option value="spectator">📊 Scorekeeper</option>
+							<option value="coach">📋 Coach</option>
 						</select>
 					</div>
 					
@@ -751,5 +813,10 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	<!-- Onboarding Modal - First Time Visit -->
+	{#if showOnboarding}
+		<OnboardingModal onComplete={() => showOnboarding = false} />
 	{/if}
 </div>

@@ -28,7 +28,7 @@
 	<div class="mb-6 rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 		<div class="flex items-center justify-between mb-4">
 			<h2 class="text-lg font-semibold text-charcoal-50 flex items-center gap-2">
-				<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+				<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
 				Live Now
 			</h2>
 			<span class="text-xs text-charcoal-300">
@@ -46,6 +46,9 @@
 				
 				<div
 					onclick={() => onMatchClick?.(match)}
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMatchClick?.(match); }}
+					role="button"
+					tabindex="0"
 					class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700 hover:border-gold-500 transition-colors cursor-pointer"
 				>
 					<!-- Match Header -->

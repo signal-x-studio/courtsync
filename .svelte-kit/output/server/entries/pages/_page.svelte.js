@@ -910,7 +910,7 @@ function MatchDetailSheet($$renderer, $$props) {
       match
     ) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div${attr_class("fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity", void 0, { "opacity-0": !isVisible, "opacity-100": isVisible })} role="dialog" aria-modal="true" aria-label="Match details" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 top-0 bg-charcoal-950 overflow-y-auto transition-transform duration-300"${attr_style(`transform: translateY(${stringify(isVisible ? swipeOffset : "100%")}%);`)} role="dialog"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10 shadow-lg" style="padding-top: max(1rem, env(safe-area-inset-top));"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div> <button type="button" class="ml-auto w-10 h-10 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-800 transition-colors min-h-[44px]" aria-label="Close match details"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> <div class="pb-8" style="padding-bottom: max(2rem, env(safe-area-inset-bottom));">`);
+      $$renderer2.push(`<div${attr_class("fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity", void 0, { "opacity-0": !isVisible, "opacity-100": isVisible })} role="dialog" aria-modal="true" aria-label="Match details" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 top-0 bg-charcoal-950 overflow-y-auto transition-transform duration-300"${attr_style(`transform: translateY(${stringify(isVisible ? swipeOffset : "100%")}%);`)} role="dialog" tabindex="0"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10 shadow-lg" style="padding-top: max(1rem, env(safe-area-inset-top));"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div> <button type="button" class="ml-auto w-10 h-10 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-800 transition-colors min-h-[44px]" aria-label="Close match details"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> <div class="pb-8" style="padding-bottom: max(2rem, env(safe-area-inset-bottom));">`);
       if (match) {
         $$renderer2.push("<!--[-->");
         TeamDetailPanel($$renderer2, { match, eventId, clubId, onClose: handleClose, matches });
@@ -1293,7 +1293,7 @@ function LiveMatchDashboard($$renderer, $$props) {
         const completedSets = score?.sets.filter((s) => s.completedAt > 0) || [];
         const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
         const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
-        $$renderer2.push(`<div class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700 hover:border-gold-500 transition-colors cursor-pointer"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span class="text-xs font-medium text-[#facc15]">${escape_html(match.CourtName)}</span> `);
+        $$renderer2.push(`<div role="button" tabindex="0" class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700 hover:border-gold-500 transition-colors cursor-pointer"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span class="text-xs font-medium text-[#facc15]">${escape_html(match.CourtName)}</span> `);
         LiveScoreIndicator($$renderer2, {
           isLive: score?.status === "in-progress" || false,
           lastUpdated: score?.lastUpdated
@@ -1326,7 +1326,6 @@ function FilterBottomSheet($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
     let activeFilterCount;
-    let matches = $$props["matches"];
     let divisions = $$props["divisions"];
     let teams = $$props["teams"];
     let open = fallback($$props["open"], false);
@@ -1337,7 +1336,6 @@ function FilterBottomSheet($$renderer, $$props) {
       if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
-      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly) count++;
@@ -1347,7 +1345,7 @@ function FilterBottomSheet($$renderer, $$props) {
     activeFilterCount = getActiveFilterCount();
     if (open) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-label="Filter matches"><div class="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto transform transition-transform backdrop-blur-sm"${attr_style(`backdrop-filter: blur(8px); transform: translateY(${stringify(swipeOffset)}px);`)}><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div> <h2 class="text-lg font-semibold text-charcoal-50 ml-auto">Filters</h2> <div class="flex items-center gap-2 ml-auto">`);
+      $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-label="Filter matches" tabindex="0"><div class="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto transform transition-transform backdrop-blur-sm"${attr_style(`backdrop-filter: blur(8px); transform: translateY(${stringify(swipeOffset)}px);`)} role="none"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div> <h2 class="text-lg font-semibold text-charcoal-50 ml-auto">Filters</h2> <div class="flex items-center gap-2 ml-auto">`);
       if (activeFilterCount > 0) {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`<span class="px-2 py-1 rounded-full bg-gold-500 text-charcoal-950 text-xs font-medium">${escape_html(activeFilterCount)}</span>`);
@@ -1400,7 +1398,7 @@ function FilterBottomSheet($$renderer, $$props) {
           $$renderer3.push(`<!--]-->`);
         }
       );
-      $$renderer2.push(`</div> <div><label for="time-range-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Time Range</label> <div class="grid grid-cols-2 gap-2"><div><label for="time-start" class="block text-xs text-charcoal-500 mb-1">Start</label> <input id="time-start" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || "")} class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"/></div> <div><label for="time-end" class="block text-xs text-charcoal-500 mb-1">End</label> <input id="time-end" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.end || "")} class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"/></div></div></div> `);
+      $$renderer2.push(`</div> `);
       if (store_get($$store_subs ??= {}, "$userRole", userRole) === "media") {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`<div><label for="priority-filter-sheet" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Priority</label> `);
@@ -1473,7 +1471,7 @@ function FilterBottomSheet($$renderer, $$props) {
     }
     $$renderer2.push(`<!--]-->`);
     if ($$store_subs) unsubscribe_stores($$store_subs);
-    bind_props($$props, { matches, divisions, teams, open, onClose });
+    bind_props($$props, { divisions, teams, open, onClose });
   });
 }
 function MatchCardMobile($$renderer, $$props) {
@@ -1521,7 +1519,7 @@ function MatchCardMobile($$renderer, $$props) {
       !hasConflict && !isCovered && !isPlanned && !isSelected && matchPriority !== "must-cover" ? "border-charcoal-700 bg-charcoal-900" : "",
       "hover:border-charcoal-600 hover:bg-charcoal-800"
     ].filter(Boolean).join(" ");
-    $$renderer2.push(`<div${attr_class("relative w-full rounded-xl transition-all duration-200 cursor-pointer touch-pan-y svelte-xjb0a1", void 0, { "opacity-30": shouldDim })}${attr_style(`transform: translateX(${stringify(swipeOffset * 0)}px);`)} data-match-card=""${attr("data-match-id", match.MatchId)}>`);
+    $$renderer2.push(`<div${attr_class("relative w-full rounded-xl transition-all duration-200 cursor-pointer touch-pan-y svelte-xjb0a1", void 0, { "opacity-30": shouldDim })}${attr_style(`transform: translateX(${stringify(swipeOffset * 0)}px);`)} role="button" tabindex="0" data-match-card=""${attr("data-match-id", match.MatchId)}>`);
     {
       $$renderer2.push("<!--[!-->");
     }
@@ -1627,7 +1625,6 @@ function MatchList($$renderer, $$props) {
       if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
-      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
       return count;
@@ -1819,7 +1816,7 @@ function MatchList($$renderer, $$props) {
     }
     if (filteredMatches.length === 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-12 text-charcoal-300 text-sm">${escape_html(store_get($$store_subs ??= {}, "$filters", filters).division || store_get($$store_subs ??= {}, "$filters", filters).wave !== "all" || store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0 || store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end ? "No matches found for selected filters" : "No matches found")}</div>`);
+      $$renderer2.push(`<div class="text-center py-12 text-charcoal-300 text-sm">${escape_html(store_get($$store_subs ??= {}, "$filters", filters).division || store_get($$store_subs ??= {}, "$filters", filters).wave !== "all" || store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0 ? "No matches found for selected filters" : "No matches found")}</div>`);
     } else {
       $$renderer2.push("<!--[!-->");
       $$renderer2.push(`<div>`);
@@ -1855,14 +1852,14 @@ function MatchList($$renderer, $$props) {
       $$renderer2.push(`<!--]--> `);
       if (store_get($$store_subs ??= {}, "$isMedia", isMedia)) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="mb-4 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs"><div class="font-medium text-charcoal-300 uppercase tracking-wider mb-2">Coverage Status Legend</div> <div class="flex flex-wrap gap-4 text-charcoal-200"><div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-gold-500 bg-gold-500/5"></div> <span>Uncovered</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-gold-500/50 bg-gold-500/10"></div> <span>Planned</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5"></div> <span>Covered</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-red-800/50 bg-red-950/10"></div> <span>Conflict</span></div></div></div>`);
+        $$renderer2.push(`<div class="mb-4 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs" role="region" aria-label="Coverage status legend"><div class="font-medium text-charcoal-300 mb-2 flex items-center gap-2"><span>Coverage Status</span> <button type="button" class="w-4 h-4 rounded-full border border-charcoal-600 text-charcoal-400 hover:text-charcoal-200 hover:border-charcoal-500 transition-colors flex items-center justify-center text-[10px]" title="Coverage status indicates whether you've planned to photograph a team's matches" aria-label="Coverage status help">?</button></div> <div class="flex flex-wrap gap-4 text-charcoal-200"><div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-gold-500 bg-gold-500/5 flex items-center justify-center" aria-hidden="true"><span class="text-gold-500 text-xs">○</span></div> <span class="flex flex-col"><span class="font-medium text-charcoal-50">Uncovered</span> <span class="text-[10px] text-charcoal-400 hidden sm:inline">No matches planned</span></span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-gold-500/50 bg-gold-500/10 flex items-center justify-center" aria-hidden="true"><span class="text-gold-500 text-xs">📋</span></div> <span class="flex flex-col"><span class="font-medium text-gold-400">Planned</span> <span class="text-[10px] text-charcoal-400 hidden sm:inline">On your schedule</span></span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5 flex items-center justify-center" aria-hidden="true"><span class="text-success-500 text-xs">✓</span></div> <span class="flex flex-col"><span class="font-medium text-success-400">Covered</span> <span class="text-[10px] text-charcoal-400 hidden sm:inline">All matches planned</span></span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-warning-500/50 bg-warning-500/10 flex items-center justify-center" aria-hidden="true"><span class="text-warning-500 text-xs">⚠</span></div> <span class="flex flex-col"><span class="font-medium text-warning-400">Conflict</span> <span class="text-[10px] text-charcoal-400 hidden sm:inline">Overlapping times</span></span></div></div></div>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
-      $$renderer2.push(`<!--]--> <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4"><button class="fixed bottom-4 right-4 w-14 h-14 rounded-full bg-gold-500 text-charcoal-950 shadow-lg flex items-center justify-center font-semibold z-40 sm:hidden" aria-label="Open filters">Filters `);
+      $$renderer2.push(`<!--]--> <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4"><button class="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center font-semibold z-[60] sm:hidden hover:bg-brand-600 transition-colors" aria-label="Open filters">Filters `);
       if (activeFilterCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-charcoal-50 text-xs flex items-center justify-center">${escape_html(activeFilterCount)}</span>`);
+        $$renderer2.push(`<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error-500 text-charcoal-50 text-xs flex items-center justify-center">${escape_html(activeFilterCount)}</span>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -1881,7 +1878,6 @@ function MatchList($$renderer, $$props) {
         "bg-gold-500 text-charcoal-950"
       )}`)}>Team</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Court</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Time</button></div></div></div> `);
       FilterBottomSheet($$renderer2, {
-        matches,
         divisions,
         teams,
         open: showFilterSheet,
@@ -1904,7 +1900,7 @@ function MatchList($$renderer, $$props) {
           $$renderer2.push(`<div class="space-y-2"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><h3 class="text-base font-bold text-charcoal-50">${escape_html(startTime)}</h3> <span class="text-xs text-charcoal-300">${escape_html(timeMatches.length)} match${escape_html(timeMatches.length !== 1 ? "es" : "")}</span></div> `);
           if (hasAnyConflict) {
             $$renderer2.push("<!--[-->");
-            $$renderer2.push(`<span class="text-xs font-medium text-[#ef4444]">${escape_html(timeConflicts)} conflict${escape_html(timeConflicts !== 1 ? "s" : "")}</span>`);
+            $$renderer2.push(`<span class="text-xs font-medium text-warning-500">${escape_html(timeConflicts)} conflict${escape_html(timeConflicts !== 1 ? "s" : "")}</span>`);
           } else {
             $$renderer2.push("<!--[!-->");
           }
@@ -1948,7 +1944,7 @@ function MatchList($$renderer, $$props) {
             $$renderer2.push(`<!--]--> <div class="text-sm text-charcoal-200 truncate">vs ${escape_html(opponent)}</div> `);
             if (hasConflict) {
               $$renderer2.push("<!--[-->");
-              $$renderer2.push(`<span class="text-xs text-[#ef4444] flex-shrink-0">⚠️</span>`);
+              $$renderer2.push(`<span class="text-xs text-warning-500 flex-shrink-0">⚠️</span>`);
             } else {
               $$renderer2.push("<!--[!-->");
             }
@@ -2055,7 +2051,7 @@ function MatchList($$renderer, $$props) {
               $$renderer2.push(`<!----></div> `);
               if (claimStatus === "claimed" && isOwner) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<button class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors border border-gold-500 whitespace-nowrap" title="Start keeping score for this match">${escape_html(score ? "Update Score" : "Start Scoring")}</button>`);
+                $$renderer2.push(`<button class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-brand-500 text-white hover:bg-brand-600 transition-colors whitespace-nowrap" title="Start keeping score for this match">${escape_html(score ? "Update Score" : "Start Scoring")}</button>`);
               } else {
                 $$renderer2.push("<!--[!-->");
               }
@@ -2122,7 +2118,7 @@ function MatchList($$renderer, $$props) {
       $$renderer2.push(`<!--]--> `);
       if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="fixed bottom-4 right-4 z-50"><div class="relative"><button class="px-4 py-2 text-sm font-medium rounded-lg bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors shadow-lg flex items-center gap-2" title="Score sharing &amp; sync options"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Scores</button> `);
+        $$renderer2.push(`<div class="fixed bottom-4 right-4 z-50"><div class="relative"><button class="px-4 py-2 text-sm font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 hover:text-charcoal-50 transition-colors shadow-lg flex items-center gap-2 border border-charcoal-600" title="Score sharing &amp; sync options"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Scores</button> `);
         {
           $$renderer2.push("<!--[!-->");
         }
@@ -2532,7 +2528,7 @@ function CoveragePlanPanel($$renderer, $$props) {
         $$renderer2.push(`<div class="space-y-4">`);
         if (conflictGroups.length > 0) {
           $$renderer2.push("<!--[-->");
-          $$renderer2.push(`<div class="border border-red-800/50 rounded-lg bg-red-950/10 p-4"><div class="flex items-center justify-between mb-3"><div><h4 class="text-sm font-semibold text-red-400">⚠️ Conflicts Detected</h4> <p class="text-xs text-charcoal-300 mt-0.5">${escape_html(conflictGroups.length)} conflict group${escape_html(conflictGroups.length !== 1 ? "s" : "")} in your plan `);
+          $$renderer2.push(`<div class="border border-warning-500/50 rounded-lg bg-warning-500/10 p-4"><div class="flex items-center justify-between mb-3"><div><h4 class="text-sm font-semibold text-warning-500">⚠️ Conflicts Detected</h4> <p class="text-xs text-charcoal-300 mt-0.5">${escape_html(conflictGroups.length)} conflict group${escape_html(conflictGroups.length !== 1 ? "s" : "")} in your plan `);
           if (conflictGroups.length > 0) {
             $$renderer2.push("<!--[-->");
             $$renderer2.push(`<span class="ml-2 text-gold-500">• Conflict ${escape_html(currentConflictIndex + 1)} of ${escape_html(conflictGroups.length)}</span>`);
@@ -2546,7 +2542,7 @@ function CoveragePlanPanel($$renderer, $$props) {
           } else {
             $$renderer2.push("<!--[!-->");
           }
-          $$renderer2.push(`<!--]--> <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors">Auto-Resolve</button></div></div> <div class="space-y-3"><!--[-->`);
+          $$renderer2.push(`<!--]--> <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-warning-500/20 text-warning-500 border border-warning-500/50 hover:bg-warning-500/30 transition-colors">Auto-Resolve</button></div></div> <div class="space-y-3"><!--[-->`);
           const each_array = ensure_array_like(conflictGroups);
           for (let groupIndex = 0, $$length = each_array.length; groupIndex < $$length; groupIndex++) {
             let group = each_array[groupIndex];
@@ -2581,7 +2577,7 @@ function CoveragePlanPanel($$renderer, $$props) {
               $$renderer2.push(`<!--]--></div> `);
               if (!isFirstMatch) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<button class="px-2 py-1 text-[10px] font-medium rounded bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors">Remove</button>`);
+                $$renderer2.push(`<button class="px-2 py-1 text-[10px] font-medium rounded bg-warning-500/20 text-warning-500 border border-warning-500/50 hover:bg-warning-500/30 transition-colors">Remove</button>`);
               } else {
                 $$renderer2.push("<!--[!-->");
               }
@@ -2628,10 +2624,10 @@ function CoveragePlanPanel($$renderer, $$props) {
             const teamId = getTeamIdentifier(match);
             const opponent = getOpponent(match);
             const hasConflict = planConflicts.has(match.MatchId);
-            $$renderer2.push(`<div${attr_class(`flex items-center gap-3 px-3 py-2.5 rounded border ${stringify(hasConflict ? "border-red-800/50 bg-red-950/10" : "border-gold-500/50 bg-gold-500/5")}`)}><button${attr_class(`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors ${stringify(hasConflict ? "border-red-800/50 bg-red-950/20" : "border-gold-500 bg-gold-500/20")}`)} aria-label="Remove from plan"><svg${attr_class(`w-3 h-3 ${stringify(hasConflict ? "text-red-400" : "text-[#facc15]")}`)} fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button> `);
+            $$renderer2.push(`<div${attr_class(`flex items-center gap-3 px-3 py-2.5 rounded border ${stringify(hasConflict ? "border-warning-500/50 bg-warning-500/10" : "border-gold-500/50 bg-gold-500/5")}`)}><button${attr_class(`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors ${stringify(hasConflict ? "border-warning-500/50 bg-warning-500/20" : "border-gold-500 bg-gold-500/20")}`)} aria-label="Remove from plan"><svg${attr_class(`w-3 h-3 ${stringify(hasConflict ? "text-warning-500" : "text-[#facc15]")}`)} fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button> `);
             if (hasConflict) {
               $$renderer2.push("<!--[-->");
-              $$renderer2.push(`<div class="flex-shrink-0 text-[10px] font-semibold text-red-400 px-1.5 py-0.5 rounded bg-red-950/50">CONFLICT</div>`);
+              $$renderer2.push(`<div class="flex-shrink-0 text-[10px] font-semibold text-warning-500 px-1.5 py-0.5 rounded bg-warning-500/20">CONFLICT</div>`);
             } else {
               $$renderer2.push("<!--[!-->");
             }
@@ -2655,7 +2651,7 @@ function CoveragePlanPanel($$renderer, $$props) {
               })())}</button> `);
               if (coverageStatusMenuOpen === teamId) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<div class="fixed inset-0 z-40"></div> <div class="absolute right-0 top-full mt-1 z-50">`);
+                $$renderer2.push(`<div class="fixed inset-0 z-40" role="button" tabindex="0"></div> <div class="absolute right-0 top-full mt-1 z-50">`);
                 CoverageStatusSelector($$renderer2, {
                   teamId,
                   currentStatus: coverageStatus.getTeamStatus(teamId),
@@ -2782,7 +2778,6 @@ function Sidebar($$renderer, $$props) {
       if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
-      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
       if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
       return count;
@@ -2790,10 +2785,10 @@ function Sidebar($$renderer, $$props) {
     $$renderer2.push(`<aside${attr_class("hidden lg:flex flex-col h-[calc(100vh-64px)] border-r transition-all duration-300 overflow-hidden bg-surface-100 border-charcoal-900", void 0, { "w-64": !collapsed, "w-16": collapsed })} style="max-width: 250px;"><div class="flex items-center justify-between p-4 border-b border-charcoal-900">`);
     if (!collapsed) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<h2 class="text-sm font-semibold uppercase tracking-wider text-charcoal-50">Filters</h2>`);
+      $$renderer2.push(`<h2 class="text-sm font-semibold text-charcoal-50">Filters</h2>`);
     } else {
       $$renderer2.push("<!--[!-->");
-      $$renderer2.push(`<div class="w-6 h-6 flex items-center justify-center"><span class="text-lg">🎯</span></div>`);
+      $$renderer2.push(`<div class="w-6 h-6 flex items-center justify-center"><span class="text-lg" role="img" aria-label="Filters">🎯</span></div>`);
     }
     $$renderer2.push(`<!--]--> <button class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-surface-200"${attr("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar")}${attr("title", collapsed ? "Expand sidebar" : "Collapse sidebar")}>`);
     if (collapsed) {
@@ -2806,13 +2801,14 @@ function Sidebar($$renderer, $$props) {
     $$renderer2.push(`<!--]--></button></div> `);
     if (!collapsed) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="flex-1 overflow-y-auto p-4 space-y-3"><div class="pb-3 border-b border-charcoal-900"><label for="wave-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Wave</label> <div class="flex gap-2"><button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)}>All</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)}>AM</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)}>PM</button></div></div> <div class="pb-3 border-b border-charcoal-900"><label for="sidebar-division" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Division</label> `);
+      $$renderer2.push(`<div class="flex-1 overflow-y-auto p-4 space-y-3"><div class="pb-3 border-b border-charcoal-900"><label for="wave-filter-sidebar" class="block text-xs font-medium mb-2 text-left text-charcoal-300">Session Time <span class="block text-[10px] font-normal text-charcoal-400 mt-0.5">Filter by morning or afternoon matches</span></label> <div class="flex gap-2"><button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)} aria-label="Show all matches">All</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)} aria-label="Show morning matches only">AM</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)} aria-label="Show afternoon matches only">PM</button></div></div> <div class="pb-3 border-b border-charcoal-900"><label for="sidebar-division" class="block text-xs font-medium mb-2 text-left text-charcoal-300">Division</label> `);
       $$renderer2.select(
         {
           id: "sidebar-division",
           value: store_get($$store_subs ??= {}, "$filters", filters).division || "",
           onchange: (e) => updateFilter("division", e.target.value || null),
-          class: "w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+          class: "w-full px-3 py-2 rounded-lg text-sm focus:border-gold-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900",
+          "aria-label": "Filter matches by division"
         },
         ($$renderer3) => {
           $$renderer3.option({ value: "" }, ($$renderer4) => {
@@ -2829,13 +2825,14 @@ function Sidebar($$renderer, $$props) {
           $$renderer3.push(`<!--]-->`);
         }
       );
-      $$renderer2.push(`</div> <div class="pb-3 border-b border-charcoal-900"><label for="sidebar-team" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Team</label> `);
+      $$renderer2.push(`</div> <div class="pb-3 border-b border-charcoal-900"><label for="sidebar-team" class="block text-xs font-medium mb-2 text-left text-charcoal-300">Team</label> `);
       $$renderer2.select(
         {
           id: "sidebar-team",
           value: store_get($$store_subs ??= {}, "$filters", filters).teams[0] || "",
           onchange: (e) => updateFilter("teams", e.target.value ? [e.target.value] : []),
-          class: "w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+          class: "w-full px-3 py-2 rounded-lg text-sm focus:border-gold-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900",
+          "aria-label": "Filter matches by team"
         },
         ($$renderer3) => {
           $$renderer3.option({ value: "" }, ($$renderer4) => {
@@ -2852,7 +2849,7 @@ function Sidebar($$renderer, $$props) {
           $$renderer3.push(`<!--]-->`);
         }
       );
-      $$renderer2.push(`</div> <div class="pb-3 border-b border-charcoal-900"><label for="time-range-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Time Range</label> <div class="space-y-2"><div><label for="sidebar-time-start" class="block text-xs mb-1 text-charcoal-500">Start</label> <input id="sidebar-time-start" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || "")} class="w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none bg-surface-200 text-charcoal-50 border border-charcoal-900"/></div> <div><label for="sidebar-time-end" class="block text-xs mb-1" style="color: #6e6e73;">End</label> <input id="sidebar-time-end" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.end || "")} class="w-full px-3 py-2 rounded-lg text-sm focus:border-[#eab308] focus:outline-none" style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"/></div></div></div> `);
+      $$renderer2.push(`</div> `);
       if (activeFilterCount > 0) {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`<button class="w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #252529; color: #a1a1a6; border: 1px solid #2a2a2f;">Clear Filters (${escape_html(activeFilterCount)})</button>`);
@@ -2874,10 +2871,10 @@ function Sidebar($$renderer, $$props) {
     $$renderer2.push(`<!--]--> <div class="p-4 border-t" style="border-color: #2a2a2f;">`);
     if (!collapsed) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: #a1a1a6;">Quick Stats</h3> <div class="space-y-3"><div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;"><div class="text-xs mb-1" style="color: #6e6e73;">Total Matches</div> <div class="text-xl font-bold" style="color: #f5f5f7;">${escape_html(matches.length)}</div></div> `);
+      $$renderer2.push(`<h3 class="text-xs font-semibold mb-3" style="color: #a1a1a6;">Quick Stats</h3> <div class="space-y-3"><div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;"><div class="text-xs mb-1" style="color: #6e6e73;">Total Matches</div> <div class="text-xl font-bold" style="color: #f5f5f7;">${escape_html(matches.length)}</div></div> `);
       if (conflictCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;"><div class="text-xs mb-1" style="color: #6e6e73;">Conflicts</div> <div class="text-xl font-bold" style="color: #ef4444;">${escape_html(conflictCount)}</div></div>`);
+        $$renderer2.push(`<div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;"><div class="text-xs mb-1" style="color: #6e6e73;">Conflicts</div> <div class="text-xl font-bold text-warning-500">${escape_html(conflictCount)}</div></div>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -2887,7 +2884,7 @@ function Sidebar($$renderer, $$props) {
       $$renderer2.push(`<div class="space-y-2"><div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;"><span class="text-xs font-medium" style="color: #f5f5f7;">${escape_html(matches.length)}</span> <span class="text-xs" style="color: #6e6e73;">📊</span></div> `);
       if (conflictCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;"><span class="text-xs font-medium" style="color: #ef4444;">${escape_html(conflictCount)}</span> <span class="text-xs" style="color: #6e6e73;">⚠️</span></div>`);
+        $$renderer2.push(`<div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;"><span class="text-xs font-medium text-warning-500">${escape_html(conflictCount)}</span> <span class="text-xs" style="color: #6e6e73;">⚠️</span></div>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -2974,7 +2971,7 @@ function MobileBottomNav($$renderer, $$props) {
       { id: "matches", label: "Matches", icon: "📋" },
       {
         id: "plan",
-        label: "Plan",
+        label: "Schedule",
         icon: "📝",
         badge: selectedCountValue > 0 ? selectedCountValue : void 0
       },
@@ -2998,7 +2995,7 @@ function MobileBottomNav($$renderer, $$props) {
       },
       { id: "more", label: "More", icon: "⚙️" }
     ];
-    $$renderer2.push(`<nav class="fixed bottom-0 left-0 right-0 z-50 bg-charcoal-900 border-t border-charcoal-700 svelte-2rf3uy" style="padding-bottom: env(safe-area-inset-bottom);" role="tablist" aria-label="Main navigation"><div class="flex items-center justify-around h-16"><!--[-->`);
+    $$renderer2.push(`<nav class="fixed bottom-0 left-0 right-0 z-50 bg-charcoal-900 border-t border-charcoal-700 svelte-2rf3uy" style="padding-bottom: env(safe-area-inset-bottom);" aria-label="Main navigation"><div class="flex items-center justify-around h-16" role="tablist"><!--[-->`);
     const each_array = ensure_array_like(tabs);
     for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
       let tab = each_array[$$index];
@@ -3051,13 +3048,6 @@ function MobileFilterBar($$renderer, $$props) {
         store_get($$store_subs ??= {}, "$filters", filters).teams.forEach((team) => {
           active.push({ key: "team", label: "Team", value: team });
         });
-      }
-      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) {
-        const timeStr = [
-          store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || "00:00",
-          store_get($$store_subs ??= {}, "$filters", filters).timeRange.end || "23:59"
-        ].join(" - ");
-        active.push({ key: "timeRange", label: "Time", value: timeStr });
       }
       if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") {
         active.push({
@@ -3287,13 +3277,18 @@ function _page($$renderer, $$props) {
     } else {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--></div> <button class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900"${attr("aria-label", headerCollapsed ? "Expand header" : "Collapse header")}>${escape_html(headerCollapsed ? "▼" : "▲")}</button></div> <div${attr_class("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4", void 0, { "hidden": headerCollapsed })}><div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1"><div class="flex items-center gap-2 min-w-0"><h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">630 Volleyball Coverage</h1> `);
+    $$renderer2.push(`<!--]--></div> <button class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900"${attr("aria-label", headerCollapsed ? "Expand header" : "Collapse header")}>${escape_html(headerCollapsed ? "▼" : "▲")}</button></div> <div${attr_class("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4", void 0, { "hidden": headerCollapsed })}><div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1"><div class="flex flex-col gap-1 min-w-0"><div class="text-[10px] sm:text-xs text-charcoal-400 uppercase tracking-wider">Event Schedule</div> <div class="flex items-center gap-2 min-w-0">`);
+    {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">630 Volleyball</h1>`);
+    }
+    $$renderer2.push(`<!--]--> `);
     if (matches.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<span class="text-xs whitespace-nowrap hidden sm:inline text-charcoal-300">${escape_html(matches.length)} matches `);
+      $$renderer2.push(`<span class="text-xs whitespace-nowrap hidden sm:inline text-charcoal-300">${escape_html(matches.length)} ${escape_html(matches.length === 1 ? "match" : "matches")} `);
       if (conflictCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} conflicts</span>`);
+        $$renderer2.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} ${escape_html(conflictCount === 1 ? "conflict" : "conflicts")}</span>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -3305,13 +3300,13 @@ function _page($$renderer, $$props) {
     {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--> `);
+    $$renderer2.push(`<!--]--></div> `);
     if (matches.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<span class="text-xs sm:hidden text-charcoal-300">${escape_html(matches.length)} matches `);
+      $$renderer2.push(`<span class="text-xs sm:hidden text-charcoal-300">${escape_html(matches.length)} ${escape_html(matches.length === 1 ? "match" : "matches")} `);
       if (conflictCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} conflicts</span>`);
+        $$renderer2.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} ${escape_html(conflictCount === 1 ? "conflict" : "conflicts")}</span>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -3319,28 +3314,29 @@ function _page($$renderer, $$props) {
     } else {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--></div> <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap"><div class="flex items-center gap-1"><label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">Role:</label> `);
+    $$renderer2.push(`<!--]--></div> <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap"><div class="flex items-center gap-1"><label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">I am a:</label> `);
     $$renderer2.select(
       {
         id: "role-selector-header",
         value: userRoleValue,
         onchange: (e) => userRole.setRole(e.target.value),
         class: "px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0 bg-charcoal-700 text-charcoal-200 border border-charcoal-600",
-        title: "Select your role"
+        title: "Select your role to customize the app features for your needs",
+        "aria-describedby": "role-help"
       },
       ($$renderer3) => {
         $$renderer3.option({ value: "media" }, ($$renderer4) => {
-          $$renderer4.push(`Media`);
+          $$renderer4.push(`📸 Photographer`);
         });
         $$renderer3.option({ value: "spectator" }, ($$renderer4) => {
-          $$renderer4.push(`Spectator`);
+          $$renderer4.push(`📊 Scorekeeper`);
         });
         $$renderer3.option({ value: "coach" }, ($$renderer4) => {
-          $$renderer4.push(`Coach`);
+          $$renderer4.push(`📋 Coach`);
         });
       }
     );
-    $$renderer2.push(`</div> `);
+    $$renderer2.push(` <span id="role-help" class="sr-only">Select your role to customize the app features for your needs</span></div> `);
     if (matches.length > 0) {
       $$renderer2.push("<!--[-->");
       if (!isCoachValue) {
@@ -3366,11 +3362,11 @@ function _page($$renderer, $$props) {
           "bg-gold-500": showCoveragePlan,
           "text-charcoal-950": showCoveragePlan,
           "text-gold-500": !showCoveragePlan
-        })}${attr_style(showCoveragePlan ? "" : "background-color: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);")}>Plan (${escape_html(selectedCountValue)})</button>`);
+        })}${attr_style(showCoveragePlan ? "" : "background-color: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);")} title="View and manage your photography coverage schedule"${attr("aria-label", `My schedule with ${selectedCountValue} ${selectedCountValue === 1 ? "match" : "matches"}`)}><svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> My Schedule (${escape_html(selectedCountValue)})</button>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
-      $$renderer2.push(`<!--]--> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0" title="Export JSON">JSON</button> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0" title="Export CSV">CSV</button>`);
+      $$renderer2.push(`<!--]--> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0" title="Export match data as JSON" aria-label="Export data as JSON"><svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path></svg> JSON</button> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0" title="Export to Excel (CSV format)" aria-label="Export to Excel"><svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path></svg> CSV</button>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -3379,7 +3375,7 @@ function _page($$renderer, $$props) {
       "text-charcoal-950": showConfig,
       "bg-charcoal-700": !showConfig,
       "text-charcoal-200": !showConfig
-    })}>${escape_html("Config")}</button></div></div></div></header> `);
+    })} title="Change event parameters and tournament settings"${attr("aria-label", "Show event settings")}><svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> ${escape_html("Event Settings")}</button></div></div></div></header> `);
     {
       $$renderer2.push("<!--[!-->");
     }
@@ -3421,7 +3417,7 @@ function _page($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (matches.length === 0 && true) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-12 text-charcoal-300"><div class="text-sm">No matches found for 630 Volleyball</div> <div class="text-xs mt-2" style="color: #808593;">Click "Config" to change event parameters</div></div>`);
+      $$renderer2.push(`<div class="text-center py-12 px-4 max-w-md mx-auto"><div class="w-16 h-16 mx-auto mb-4 rounded-full bg-charcoal-800 flex items-center justify-center"><svg class="w-8 h-8 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div> <h2 class="text-lg font-semibold text-charcoal-50 mb-2">Ready to Load Your Tournament</h2> <p class="text-sm text-charcoal-300 mb-4">Enter your event details to see the 630 Volleyball match schedule and plan your coverage</p> <button class="px-6 py-3 bg-gold-500 text-charcoal-950 rounded-lg font-medium hover:bg-gold-400 transition-colors min-h-[44px]" aria-label="Open event settings to get started">Get Started</button></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -3463,14 +3459,14 @@ function _page($$renderer, $$props) {
     $$renderer2.push(`<!----> `);
     if (showMoreMenu) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-label="More options" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 max-h-[60vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto" style="padding-bottom: env(safe-area-inset-bottom);" role="dialog" tabindex="-1"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10"><h2 class="text-lg font-semibold text-charcoal-50">More</h2> <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]" aria-label="Close menu">×</button></div> <div class="p-4 space-y-2"><button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"><div class="font-medium">Config</div> <div class="text-xs text-charcoal-400 mt-0.5">Change event parameters</div></button> `);
+      $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-label="More options" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 max-h-[60vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto" style="padding-bottom: env(safe-area-inset-bottom);" role="dialog" tabindex="-1"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10"><h2 class="text-lg font-semibold text-charcoal-50">More</h2> <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]" aria-label="Close menu">×</button></div> <div class="p-4 space-y-2"><button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]" aria-label="Open event settings"><div class="font-medium">Event Settings</div> <div class="text-xs text-charcoal-400 mt-0.5">Change tournament parameters and load schedule</div></button> `);
       if (matches.length > 0) {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`<button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"><div class="font-medium">Export JSON</div> <div class="text-xs text-charcoal-400 mt-0.5">Download matches as JSON</div></button> <button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"><div class="font-medium">Export CSV</div> <div class="text-xs text-charcoal-400 mt-0.5">Download matches as CSV</div></button>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
-      $$renderer2.push(`<!--]--> <div class="pt-2 border-t border-charcoal-700"><label for="role-selector-menu" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Role</label> `);
+      $$renderer2.push(`<!--]--> <div class="pt-2 border-t border-charcoal-700"><label for="role-selector-menu" class="block text-sm font-medium text-charcoal-300 mb-2">I am a:</label> `);
       $$renderer2.select(
         {
           id: "role-selector-menu",
@@ -3478,17 +3474,18 @@ function _page($$renderer, $$props) {
           onchange: (e) => {
             userRole.setRole(e.target.value);
           },
-          class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
+          class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none bg-charcoal-700 text-charcoal-200 border border-charcoal-600",
+          "aria-label": "Select your role to customize features"
         },
         ($$renderer3) => {
           $$renderer3.option({ value: "media" }, ($$renderer4) => {
-            $$renderer4.push(`Media`);
+            $$renderer4.push(`📸 Photographer`);
           });
           $$renderer3.option({ value: "spectator" }, ($$renderer4) => {
-            $$renderer4.push(`Spectator`);
+            $$renderer4.push(`📊 Scorekeeper`);
           });
           $$renderer3.option({ value: "coach" }, ($$renderer4) => {
-            $$renderer4.push(`Coach`);
+            $$renderer4.push(`📋 Coach`);
           });
         }
       );
@@ -3513,6 +3510,10 @@ function _page($$renderer, $$props) {
       }
       $$renderer2.push(`<!--]--></div></div></div>`);
     } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--></div>`);

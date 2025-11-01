@@ -78,7 +78,7 @@
 			<div
 				class="h-full bg-gold-500 transition-all duration-300"
 				style="width: {Math.min(metrics.coveragePercentage, 100)}%;"
-			/>
+			></div>
 		</div>
 	</div>
 
@@ -98,12 +98,12 @@
 							</div>
 						</div>
 						<div class="flex items-center gap-2 flex-shrink-0">
-							<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
-								<div
-									class="h-full bg-gold-500 transition-all duration-300"
-									style="width: {Math.min(team.coveragePercentage, 100)}%;"
-								/>
-							</div>
+						<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
+							<div
+								class="h-full bg-gold-500 transition-all duration-300"
+								style="width: {Math.min(team.coveragePercentage, 100)}%;"
+							></div>
+						</div>
 							<div class="text-xs text-charcoal-300 w-12 text-right">
 								{team.coveragePercentage.toFixed(0)}%
 							</div>

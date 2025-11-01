@@ -280,11 +280,11 @@
 						✕
 					</button>
 				</div>
-				<textarea
-					bind:value={importJson}
-					placeholder="Paste JSON data here..."
-					class="w-full h-64 px-3 py-2 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-gold-500 focus:outline-none font-mono"
-				/>
+			<textarea
+				bind:value={importJson}
+				placeholder="Paste JSON data here..."
+				class="w-full h-64 px-3 py-2 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-gold-500 focus:outline-none font-mono"
+			></textarea>
 				{#if importError}
 					<div class="mt-2 text-xs text-red-400">{importError}</div>
 				{/if}
@@ -366,7 +366,7 @@
 					{#each teamsByAssignment.get('unassigned')! as team}
 						<div class="flex items-center justify-between p-2 rounded bg-charcoal-700 border border-charcoal-600">
 							<div class="flex items-center gap-2">
-								<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" />
+								<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"></div>
 								<span class="text-sm text-charcoal-50">Team {team.teamId}</span>
 								<span class="text-xs text-charcoal-300">({team.matches.length} matches)</span>
 							</div>
@@ -399,7 +399,7 @@
 						<div
 							class="w-3 h-3 rounded-full"
 							style="background-color: {member.color}"
-						/>
+						></div>
 						<h4 class="text-xs font-medium text-charcoal-50 uppercase tracking-wider">
 							{member.name} ({memberTeams.length})
 						</h4>
@@ -408,7 +408,7 @@
 						{#each memberTeams as team}
 							<div class="flex items-center justify-between p-2 rounded bg-charcoal-700 border border-charcoal-600">
 								<div class="flex items-center gap-2">
-									<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" />
+									<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"></div>
 									<span class="text-sm text-charcoal-50">Team {team.teamId}</span>
 									<span class="text-xs text-charcoal-300">({team.matches.length} matches)</span>
 								</div>

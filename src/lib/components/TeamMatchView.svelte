@@ -115,8 +115,7 @@
 									placeholder="Add notes about this match..."
 									class="w-full px-3 py-2 text-sm bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-[#eab308] focus:outline-none resize-none"
 									rows={3}
-									autofocus
-								/>
+								></textarea>
 								<div class="flex items-center gap-2 mt-2">
 									<button
 										onclick={() => handleSaveNote(match.MatchId)}
@@ -201,8 +200,7 @@
 									placeholder="Add notes about this match..."
 									class="w-full px-3 py-2 text-sm bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-[#eab308] focus:outline-none resize-none"
 									rows={3}
-									autofocus
-								/>
+								></textarea>
 								<div class="flex items-center gap-2 mt-2">
 									<button
 										onclick={() => handleSaveNote(match.MatchId)}
@@ -287,8 +285,7 @@
 									placeholder="Add notes about this match..."
 									class="w-full px-3 py-2 text-sm bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-[#eab308] focus:outline-none resize-none"
 									rows={3}
-									autofocus
-								/>
+								></textarea>
 								<div class="flex items-center gap-2 mt-2">
 									<button
 										onclick={() => handleSaveNote(match.MatchId)}

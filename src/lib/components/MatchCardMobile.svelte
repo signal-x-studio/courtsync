@@ -127,6 +127,9 @@
 	class:opacity-30={shouldDim}
 	style="transform: translateX({swipeOffset * (swipeDirection === 'left' ? -1 : swipeDirection === 'right' ? 1 : 0)}px);"
 	onclick={handleTap}
+	onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTap(e); }}
+	role="button"
+	tabindex="0"
 	data-match-card
 	data-match-id={match.MatchId}
 >

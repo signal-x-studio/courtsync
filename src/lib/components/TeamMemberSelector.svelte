@@ -54,7 +54,6 @@
 					onkeypress={(e) => e.key === 'Enter' && handleAddMember()}
 					placeholder="Member name"
 					class="flex-1 px-3 py-2 text-sm rounded bg-charcoal-800 text-charcoal-50 border border-charcoal-600 focus:border-[#eab308] focus:outline-none"
-					autofocus
 				/>
 				<button
 					onclick={handleAddMember}
@@ -81,7 +80,7 @@
 					<div
 						class="w-4 h-4 rounded-full flex-shrink-0"
 						style="background-color: {member.color}"
-					/>
+					></div>
 					
 					<!-- Member Name -->
 					{#if isEditing}
@@ -100,7 +99,6 @@
 								}
 							}}
 							class="flex-1 px-2 py-1 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-[#eab308] focus:outline-none"
-							autofocus
 						/>
 					{:else}
 						<div class="flex items-center gap-2 flex-1 min-w-0">

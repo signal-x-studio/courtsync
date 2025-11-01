@@ -105,6 +105,7 @@
 			style="transform: translateY({isVisible ? swipeOffset : '100%'}%);"
 			onclick={(e) => e.stopPropagation()}
 			role="dialog"
+			tabindex="0"
 		>
 			<!-- Header with Drag Handle -->
 			<div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10 shadow-lg"

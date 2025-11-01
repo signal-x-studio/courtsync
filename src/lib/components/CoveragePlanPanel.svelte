@@ -783,8 +783,11 @@
 													{#if coverageStatusMenuOpen === teamId}
 														<div
 															class="fixed inset-0 z-40"
+															role="button"
 															onclick={() => coverageStatusMenuOpen = null}
-														/>
+															onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') coverageStatusMenuOpen = null; }}
+															tabindex="0"
+														></div>
 														<div class="absolute right-0 top-full mt-1 z-50">
 															<CoverageStatusSelector
 																{teamId}

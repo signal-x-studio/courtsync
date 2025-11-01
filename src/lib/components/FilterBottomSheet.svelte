@@ -4,7 +4,6 @@
 	import { userRole } from '$lib/stores/userRole';
 	import { createSwipeHandler } from '$lib/utils/gestures';
 	
-	export let matches: any[];
 	export let divisions: string[];
 	export let teams: string[];
 	export let open: boolean = false;
@@ -20,7 +19,6 @@
 		if ($filters.wave !== 'all') count++;
 		if ($filters.division) count++;
 		if ($filters.teams.length > 0) count++;
-		if ($filters.timeRange.start || $filters.timeRange.end) count++;
 		if ($filters.priority && $filters.priority !== 'all') count++;
 		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
 		if ($filters.conflictsOnly) count++;
@@ -79,9 +77,11 @@
 	<div
 		class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity"
 		onclick={onClose}
+		onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClose(); }}
 		role="dialog"
 		aria-modal="true"
 		aria-label="Filter matches"
+		tabindex="0"
 	>
 		<!-- Bottom Sheet -->
 		<div
@@ -89,6 +89,7 @@
 			class="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto transform transition-transform backdrop-blur-sm"
 			style="backdrop-filter: blur(8px); transform: translateY({swipeOffset}px);"
 			onclick={(e) => e.stopPropagation()}
+			role="none"
 		>
 			<!-- Header with Drag Handle -->
 			<div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10">
@@ -175,35 +176,6 @@
 							<option value={team}>{team}</option>
 						{/each}
 					</select>
-				</div>
-				
-			<!-- Time Range Filter -->
-			<div>
-				<label for="time-range-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
-					Time Range
-				</label>
-				<div class="grid grid-cols-2 gap-2">
-						<div>
-							<label for="time-start" class="block text-xs text-charcoal-500 mb-1">Start</label>
-						<input
-							id="time-start"
-							type="time"
-							value={$filters.timeRange.start || ''}
-							onchange={(e) => updateFilter('timeRange', { ...$filters.timeRange, start: e.target.value || null })}
-							class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
-						/>
-						</div>
-						<div>
-							<label for="time-end" class="block text-xs text-charcoal-500 mb-1">End</label>
-						<input
-							id="time-end"
-							type="time"
-							value={$filters.timeRange.end || ''}
-							onchange={(e) => updateFilter('timeRange', { ...$filters.timeRange, end: e.target.value || null })}
-							class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
-						/>
-						</div>
-					</div>
 				</div>
 				
 			<!-- Priority Filter (Media Only) -->

@@ -34,23 +34,23 @@
 
 		<div class="space-y-4">
 			<div>
-				<label class="text-xs text-charcoal-300 mb-1 block">Team</label>
+				<div class="text-xs text-charcoal-300 mb-1 block">Team</div>
 				<div class="text-sm text-charcoal-50">Team {teamId}</div>
 			</div>
 
 			<div>
-				<label class="text-xs text-charcoal-300 mb-1 block">From</label>
+				<div class="text-xs text-charcoal-300 mb-1 block">From</div>
 				<div class="flex items-center gap-2">
 					<div
 						class="w-3 h-3 rounded-full"
 						style="background-color: {fromMember?.color}"
-					/>
+					></div>
 					<span class="text-sm text-charcoal-50">{fromMember?.name || 'Unknown'}</span>
 				</div>
 			</div>
 
 			<div>
-				<label class="text-xs text-charcoal-300 mb-1 block">Transfer To</label>
+				<div class="text-xs text-charcoal-300 mb-1 block">Transfer To</div>
 				<select
 					bind:value={selectedMemberId}
 					class="w-full px-3 py-2 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
@@ -63,13 +63,13 @@
 			</div>
 
 			<div>
-				<label class="text-xs text-charcoal-300 mb-1 block">Notes (optional)</label>
+				<div class="text-xs text-charcoal-300 mb-1 block">Notes (optional)</div>
 				<textarea
 					bind:value={handoffNote}
 					placeholder="Add any notes about this handoff..."
 					rows={3}
 					class="w-full px-3 py-2 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-gold-500 focus:outline-none resize-none"
-				/>
+				></textarea>
 			</div>
 		</div>
 

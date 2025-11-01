@@ -375,8 +375,8 @@
 											<div
 												class="flex items-center gap-4 px-4 py-3 rounded border {matchData.isWork ? 'border-charcoal-600 bg-charcoal-700/30' : matchData.isPlaying ? 'border-[#eab308]/50 bg-gold-500/5' : 'border-charcoal-700 bg-charcoal-800/30'}"
 											>
-												<!-- Status Indicator -->
-												<div class="flex-shrink-0 w-1 h-full rounded-full {matchData.isWork ? 'bg-[#808593]' : matchData.isPlaying ? 'bg-gold-500' : 'bg-[#525463]'}" />
+											<!-- Status Indicator -->
+											<div class="flex-shrink-0 w-1 h-full rounded-full {matchData.isWork ? 'bg-[#808593]' : matchData.isPlaying ? 'bg-gold-500' : 'bg-[#525463]'}"></div>
 												
 												<!-- Date (only show if different from previous) -->
 												{#if showDate}
@@ -475,7 +475,7 @@
 							<!-- Pool Selector -->
 							{#if relevantPools.length > 1}
 								<div class="mb-4">
-									<label class="text-xs text-charcoal-300 mb-1 block">Pool:</label>
+									<div class="text-xs text-charcoal-300 mb-1 block">Pool:</div>
 									<select
 										value={selectedPlayId || ''}
 										onchange={(e) => selectedPlayId = Number(e.target.value)}

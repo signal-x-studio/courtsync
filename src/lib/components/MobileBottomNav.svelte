@@ -30,7 +30,7 @@
 	$: tabs = isMediaValue
 		? [
 				{ id: 'matches' as const, label: 'Matches', icon: '📋' },
-				{ id: 'plan' as const, label: 'Plan', icon: '📝', badge: selectedCountValue > 0 ? selectedCountValue : undefined },
+				{ id: 'plan' as const, label: 'Schedule', icon: '📝', badge: selectedCountValue > 0 ? selectedCountValue : undefined },
 				{ id: 'filters' as const, label: 'Filters', icon: '🔍', badge: activeFilterCount > 0 ? activeFilterCount : undefined },
 				{ id: 'more' as const, label: 'More', icon: '⚙️' }
 		  ]
@@ -49,10 +49,9 @@
 <nav
 	class="fixed bottom-0 left-0 right-0 z-50 bg-charcoal-900 border-t border-charcoal-700"
 	style="padding-bottom: env(safe-area-inset-bottom);"
-	role="tablist"
 	aria-label="Main navigation"
 >
-	<div class="flex items-center justify-around h-16">
+	<div class="flex items-center justify-around h-16" role="tablist">
 		{#each tabs as tab}
 			<button
 				type="button"

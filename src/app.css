@@ -228,25 +228,48 @@
    * ACCESSIBILITY: WCAG 2.1 AA Compliant Focus Styles
    * ======================================== */
   *:focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--color-gold-500);
     outline-offset: 2px;
   }
 
   button:focus-visible,
   a:focus-visible,
   [role="button"]:focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--color-gold-500);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(91, 124, 255, 0.2);
+    box-shadow: 0 0 0 4px rgba(234, 179, 8, 0.2);
   }
 
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--color-gold-500);
     outline-offset: 0px;
-    border-color: var(--color-brand-500);
-    box-shadow: 0 0 0 3px rgba(91, 124, 255, 0.15);
+    border-color: var(--color-gold-500);
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.15);
+  }
+
+  /* ========================================
+   * HOVER STATES: Interactive Elements
+   * ======================================== */
+  button:not(:disabled):hover,
+  [role="button"]:hover {
+    filter: brightness(1.1);
+    transition: filter 0.2s ease, background-color 0.2s ease;
+  }
+
+  /* Specific hover states for common patterns */
+  button.filter-chip:hover,
+  button[class*="rounded"]:hover,
+  button[class*="px-"]:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    transition: background-color 200ms;
+  }
+
+  /* Link hover states */
+  a:hover {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
   }
 
   /* ========================================
@@ -330,6 +353,19 @@
    * ======================================== */
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Screen Reader Only - for accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
   /* ========================================
