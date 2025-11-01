@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { MatchScore, SetScore } from '$lib/types';
 	import ScoreHistory from '$lib/components/ScoreHistory.svelte';
+	import { AlertTriangle, Save, Check } from 'lucide-svelte';
 	
 	export let matchId: number;
 	export let team1Name: string;
@@ -152,16 +153,16 @@
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-	<div class="bg-[#3b3c48] rounded-lg border border-[#454654] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+	<div class="bg-charcoal-800 rounded-lg border border-charcoal-700 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
 		<!-- Header -->
-		<div class="sticky top-0 bg-[#3b3c48] border-b border-[#454654] px-4 py-3 flex items-center justify-between">
+		<div class="sticky top-0 bg-charcoal-800 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between">
 			<div>
-				<h2 class="text-lg font-semibold text-[#f8f8f9]">Scorekeeper</h2>
-				<p class="text-sm text-[#9fa2ab]">{team1Name} vs {team2Name}</p>
+				<h2 class="text-lg font-semibold text-charcoal-50">Scorekeeper</h2>
+				<p class="text-sm text-charcoal-300">{team1Name} vs {team2Name}</p>
 			</div>
 			<button
 				onclick={onClose}
-				class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+				class="text-charcoal-300 hover:text-charcoal-50 transition-colors"
 				aria-label="Close scorekeeper"
 			>
 				✕
@@ -172,10 +173,10 @@
 		<div class="p-4 space-y-4">
 			<!-- Status -->
 			<div class="flex items-center gap-2">
-				<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Status:</span>
+				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Status:</span>
 				<select
 					bind:value={status}
-					class="px-3 py-1 text-sm font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none"
+					class="px-3 py-1 text-sm font-medium rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
 				>
 					<option value="not-started">Not Started</option>
 					<option value="in-progress">In Progress</option>
@@ -187,7 +188,7 @@
 			{#if status === 'not-started'}
 				<button
 					onclick={handleStartMatch}
-					class="w-full px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+					class="w-full px-4 py-2 text-sm font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors"
 				>
 					Start Match
 				</button>
@@ -196,30 +197,31 @@
 			<!-- Validation Warning -->
 			{#if validationWarning}
 				<div class="px-4 py-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 text-sm">
-					⚠️ {validationWarning}
+					<AlertTriangle size={16} class="inline" />
+					{validationWarning}
 				</div>
 			{/if}
 
 			<!-- Current Set Score -->
 			{#if status === 'in-progress' && currentSet}
-				<div class="bg-[#454654] rounded-lg border border-[#525463] p-4">
-					<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">
+				<div class="bg-charcoal-700 rounded-lg border border-charcoal-600 p-4">
+					<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-2">
 						Set {currentSet.setNumber}
 					</div>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="text-center">
-							<div class="text-xs text-[#9fa2ab] mb-1">{team1Name}</div>
+							<div class="text-xs text-charcoal-300 mb-1">{team1Name}</div>
 							<div class="flex items-center justify-center gap-2">
 								<button
 									onclick={() => {
 										const newScore = Math.max(0, currentSet.team1Score - 1);
 										handleUpdateSetScore(currentSet.setNumber, newScore, currentSet.team2Score);
 									}}
-									class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold"
+									class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold"
 								>
 									−
 								</button>
-								<div class="text-3xl font-bold text-[#f8f8f9] w-12 text-center">
+								<div class="text-3xl font-bold text-charcoal-50 w-12 text-center">
 									{currentSet.team1Score}
 								</div>
 								<button
@@ -227,25 +229,25 @@
 										const newScore = currentSet.team1Score + 1;
 										handleUpdateSetScore(currentSet.setNumber, newScore, currentSet.team2Score);
 									}}
-									class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold"
+									class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold"
 								>
 									+
 								</button>
 							</div>
 						</div>
 						<div class="text-center">
-							<div class="text-xs text-[#9fa2ab] mb-1">{team2Name}</div>
+							<div class="text-xs text-charcoal-300 mb-1">{team2Name}</div>
 							<div class="flex items-center justify-center gap-2">
 								<button
 									onclick={() => {
 										const newScore = Math.max(0, currentSet.team2Score - 1);
 										handleUpdateSetScore(currentSet.setNumber, currentSet.team1Score, newScore);
 									}}
-									class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold"
+									class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold"
 								>
 									−
 								</button>
-								<div class="text-3xl font-bold text-[#f8f8f9] w-12 text-center">
+								<div class="text-3xl font-bold text-charcoal-50 w-12 text-center">
 									{currentSet.team2Score}
 								</div>
 								<button
@@ -253,7 +255,7 @@
 										const newScore = currentSet.team2Score + 1;
 										handleUpdateSetScore(currentSet.setNumber, currentSet.team1Score, newScore);
 									}}
-									class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold"
+									class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold"
 								>
 									+
 								</button>
@@ -263,14 +265,14 @@
 					<div class="flex gap-2 mt-4">
 						<button
 							onclick={() => handleCompleteSet(currentSet.setNumber)}
-							class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors"
+							class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors"
 						>
 							Complete Set
 						</button>
 						{#if sets.length < 5}
 							<button
 								onclick={handleAddSet}
-								class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors"
+								class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors"
 							>
 								Add Set
 							</button>
@@ -282,15 +284,15 @@
 			<!-- Completed Sets -->
 			{#if completedSets.length > 0}
 				<div>
-					<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">Completed Sets</div>
+					<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-2">Completed Sets</div>
 					<div class="space-y-2">
 						{#each completedSets as set}
-							<div class="flex items-center justify-between px-3 py-2 bg-[#454654] rounded border border-[#525463]">
-								<span class="text-sm text-[#9fa2ab]">Set {set.setNumber}</span>
+							<div class="flex items-center justify-between px-3 py-2 bg-charcoal-700 rounded border border-charcoal-600">
+								<span class="text-sm text-charcoal-300">Set {set.setNumber}</span>
 								<div class="flex items-center gap-4">
-									<span class="text-sm font-medium text-[#f8f8f9]">{team1Name}: {set.team1Score}</span>
-									<span class="text-sm text-[#9fa2ab]">vs</span>
-									<span class="text-sm font-medium text-[#f8f8f9]">{team2Name}: {set.team2Score}</span>
+									<span class="text-sm font-medium text-charcoal-50">{team1Name}: {set.team1Score}</span>
+									<span class="text-sm text-charcoal-300">vs</span>
+									<span class="text-sm font-medium text-charcoal-50">{team2Name}: {set.team2Score}</span>
 								</div>
 							</div>
 						{/each}
@@ -302,7 +304,7 @@
 			{#if status === 'in-progress' && completedSets.length > 0}
 				<button
 					onclick={handleCompleteMatch}
-					class="w-full px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+					class="w-full px-4 py-2 text-sm font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors"
 				>
 					Complete Match
 				</button>
@@ -312,21 +314,27 @@
 			<button
 				onclick={handleSave}
 				disabled={isSaving}
-				class="w-full px-4 py-2 text-sm font-medium rounded transition-colors border {isSaving ? 'bg-[#525463] text-[#9fa2ab] cursor-not-allowed' : 'bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border-[#525463]'}"
+				class="w-full px-4 py-2 text-sm font-medium rounded transition-colors border {isSaving ? 'bg-[#525463] text-charcoal-300 cursor-not-allowed' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border-charcoal-600'}"
 			>
 				{isSaving ? 'Saving...' : 'Save Score'}
 			</button>
 			
 			<!-- Auto-save indicator -->
 			{#if status === 'in-progress'}
-				<div class="text-xs text-[#9fa2ab] text-center">
-					{isSaving ? '💾 Saving...' : '✓ Auto-save enabled'}
+				<div class="text-xs text-charcoal-300 text-center">
+					{#if isSaving}
+						<Save size={14} class="inline" />
+						Saving...
+					{:else}
+						<Check size={14} class="inline" />
+						Auto-save enabled
+					{/if}
 				</div>
 			{/if}
 
 			<!-- Score History -->
 			{#if currentScore}
-				<div class="border-t border-[#454654] pt-4">
+				<div class="border-t border-charcoal-700 pt-4">
 					<ScoreHistory {matchId} />
 				</div>
 			{/if}

@@ -17,12 +17,14 @@
     "test:visual": "playwright test visual-regression",
     "test:audit": "playwright test ux-audit-automated",
     "test:screenshots": "playwright test ux-audit-screenshots",
+    "test:journey": "playwright test user-journey",
     "audit:capture": "node scripts/audit-screenshots.js"
   },
   "dependencies": {
     "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.7.0",
     "date-fns": "^4.1.0",
+    "lucide-svelte": "^0.552.0",
     "svelte": "^5.0.0"
   },
   "devDependencies": {

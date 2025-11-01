@@ -10,7 +10,7 @@
 <style>
 	main {
 		min-height: 100vh;
-		background-color: #18181b;
+		background-color: var(--color-bg-primary);
 	}
 </style>
 

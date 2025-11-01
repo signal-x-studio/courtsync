@@ -21,43 +21,45 @@
 	}
 </script>
 
-<form data-event-input on:submit={handleSubmit} class="space-y-4">
-	<div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-		<div class="flex-1">
-			<label for="eventId" class="block text-xs text-[#9fa2ab] mb-1.5">Event ID</label>
+<form data-event-input on:submit={handleSubmit} class="space-y-3 sm:space-y-4">
+	<!-- Mobile: Horizontal Compact Layout -->
+	<div class="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:gap-4">
+		<div class="flex-1 min-w-0">
+			<label for="eventId" class="block text-xs text-charcoal-300 mb-1 sm:mb-1.5">Event ID</label>
 			<input
 				id="eventId"
 				type="text"
 				bind:value={localEventId}
 				disabled={loading}
-				class="w-full px-3 py-2 sm:py-2 text-sm rounded-lg transition-colors min-h-[44px] sm:min-h-0 focus:border-[#eab308] focus:outline-none"
+				class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm rounded-lg transition-colors min-h-[40px] sm:min-h-[44px] focus:border-gold-500 focus:outline-none"
 				style="background-color: #454654; color: #f8f8f9; border: 1px solid #525463;"
-				placeholder="Enter Event ID"
+				placeholder="Event ID"
 			/>
 		</div>
 
-		<div class="flex-1 sm:min-w-[160px]">
-			<label for="date" class="block text-xs text-[#9fa2ab] mb-1.5">Date</label>
+		<div class="flex-1 sm:min-w-[140px]">
+			<label for="date" class="block text-xs text-charcoal-300 mb-1 sm:mb-1.5">Date</label>
 			<input
 				id="date"
 				type="date"
 				bind:value={localDate}
 				disabled={loading}
-				class="w-full px-3 py-2 sm:py-2 text-sm rounded-lg transition-colors min-h-[44px] sm:min-h-0 focus:border-[#eab308] focus:outline-none"
+				class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm rounded-lg transition-colors min-h-[40px] sm:min-h-[44px] focus:border-gold-500 focus:outline-none"
 				style="background-color: #454654; color: #f8f8f9; border: 1px solid #525463;"
 			/>
 		</div>
 
-		<div class="flex-1 sm:min-w-[120px]">
-			<label for="timeWindow" class="block text-xs text-[#9fa2ab] mb-1.5">Window (min)</label>
+		<div class="flex-1 sm:min-w-[100px]">
+			<label for="timeWindow" class="block text-xs text-charcoal-300 mb-1 sm:mb-1.5">Window</label>
 			<input
 				id="timeWindow"
 				type="number"
 				bind:value={localTimeWindow}
 				disabled={loading}
 				min="1"
-				class="w-full px-3 py-2 sm:py-2 text-sm rounded-lg transition-colors min-h-[44px] sm:min-h-0 focus:border-[#eab308] focus:outline-none"
+				class="w-full px-2 sm:px-3 py-1.5 sm:py-2 text-sm rounded-lg transition-colors min-h-[40px] sm:min-h-[44px] focus:border-gold-500 focus:outline-none"
 				style="background-color: #454654; color: #f8f8f9; border: 1px solid #525463;"
+				placeholder="Mins"
 			/>
 		</div>
 
@@ -65,7 +67,7 @@
 			<button
 				type="submit"
 				disabled={loading}
-				class="px-4 py-2 sm:py-2 text-sm font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 disabled:opacity-50 disabled:cursor-not-allowed"
+				class="px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-medium rounded-lg transition-colors min-h-[40px] sm:min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
 				style="background-color: {loading ? '#ca8a04' : '#eab308'}; color: #18181b;"
 			>
 				{loading ? 'Loading...' : 'Load'}

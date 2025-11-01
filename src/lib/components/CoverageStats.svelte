@@ -71,78 +71,78 @@
 	<!-- Dashboard Summary -->
 	<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 		<!-- Coverage Percentage -->
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Coverage</div>
-			<div class="text-2xl font-bold text-[#f8f8f9] mb-1">
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Coverage</div>
+			<div class="text-2xl font-bold text-charcoal-50 mb-1">
 				{dashboardMetrics.coveragePercentage.toFixed(1)}%
 			</div>
-			<div class="text-xs text-[#9fa2ab]">
+			<div class="text-xs text-charcoal-300">
 				{dashboardMetrics.coveredTeams + dashboardMetrics.partiallyCoveredTeams} of {dashboardMetrics.totalTeams} teams
 			</div>
 		</div>
 
 		<!-- Covered Teams -->
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Covered</div>
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Covered</div>
 			<div class="text-2xl font-bold text-green-400 mb-1">
 				{dashboardMetrics.coveredTeams}
 			</div>
-			<div class="text-xs text-[#9fa2ab]">
+			<div class="text-xs text-charcoal-300">
 				{dashboardMetrics.partiallyCoveredTeams} partially covered
 			</div>
 		</div>
 
 		<!-- Planned Teams -->
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Planned</div>
-			<div class="text-2xl font-bold text-[#eab308] mb-1">
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Planned</div>
+			<div class="text-2xl font-bold text-gold-500 mb-1">
 				{dashboardMetrics.plannedTeams}
 			</div>
-			<div class="text-xs text-[#9fa2ab]">
+			<div class="text-xs text-charcoal-300">
 				{dashboardMetrics.plannedPercentage.toFixed(1)}% of teams
 			</div>
 		</div>
 
 		<!-- Uncovered Teams -->
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Uncovered</div>
-			<div class="text-2xl font-bold text-[#808593] mb-1">
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Uncovered</div>
+			<div class="text-2xl font-bold text-charcoal-400 mb-1">
 				{dashboardMetrics.uncoveredTeams}
 			</div>
-			<div class="text-xs text-[#9fa2ab]">
+			<div class="text-xs text-charcoal-300">
 				{dashboardMetrics.totalTeams > 0 ? ((dashboardMetrics.uncoveredTeams / dashboardMetrics.totalTeams) * 100).toFixed(1) : 0}% remaining
 			</div>
 		</div>
 	</div>
 
 	<!-- Coverage Progress Bar -->
-	<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
+	<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 		<div class="flex items-center justify-between mb-2">
-			<div class="text-sm font-medium text-[#f8f8f9]">Overall Coverage Progress</div>
-			<div class="text-xs text-[#9fa2ab]">{dashboardMetrics.coveragePercentage.toFixed(1)}%</div>
+			<div class="text-sm font-medium text-charcoal-50">Overall Coverage Progress</div>
+			<div class="text-xs text-charcoal-300">{dashboardMetrics.coveragePercentage.toFixed(1)}%</div>
 		</div>
-		<div class="w-full h-3 bg-[#454654] rounded-full overflow-hidden">
+		<div class="w-full h-3 bg-charcoal-700 rounded-full overflow-hidden">
 			<div
-				class="h-full bg-[#eab308] transition-all duration-300"
+				class="h-full bg-gold-500 transition-all duration-300"
 				style="width: {Math.min(dashboardMetrics.coveragePercentage, 100)}%;"
-			/>
+			></div>
 		</div>
 	</div>
 
 	<!-- Team Breakdown -->
-	<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
+	<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 		<div class="flex items-center justify-between mb-4">
-			<div class="text-sm font-medium text-[#f8f8f9]">Team Coverage Breakdown</div>
+			<div class="text-sm font-medium text-charcoal-50">Team Coverage Breakdown</div>
 			<div class="flex gap-2">
 				<button
 					onclick={handleExportCSV}
-					class="px-3 py-1.5 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463] transition-colors"
+					class="px-3 py-1.5 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600 transition-colors"
 				>
 					Export CSV
 				</button>
 				<button
 					onclick={handleExportJSON}
-					class="px-3 py-1.5 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463] transition-colors"
+					class="px-3 py-1.5 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600 transition-colors"
 				>
 					Export JSON
 				</button>
@@ -154,12 +154,12 @@
 				<div class="flex items-center justify-between">
 					<div class="flex items-center gap-3 flex-1 min-w-0">
 						<div class="flex items-center gap-2 flex-shrink-0">
-							<div class="w-3 h-3 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-[#eab308]' : 'bg-[#808593]'}" />
-							<div class="text-sm font-medium text-[#f8f8f9]">
+							<div class="w-3 h-3 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"></div>
+							<div class="text-sm font-medium text-charcoal-50">
 								Team {team.teamId}
 							</div>
 						</div>
-						<div class="text-xs text-[#9fa2ab]">
+						<div class="text-xs text-charcoal-300">
 							{team.coveredMatches}/{team.totalMatches} matches
 							{#if team.plannedMatches > 0}
 								• {team.plannedMatches} planned
@@ -167,13 +167,13 @@
 						</div>
 					</div>
 					<div class="flex items-center gap-2 flex-shrink-0">
-						<div class="w-24 h-2 bg-[#454654] rounded-full overflow-hidden">
-							<div
-								class="h-full transition-all duration-300 {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-[#eab308]' : 'bg-[#808593]'}"
-								style="width: {Math.min(team.coveragePercentage, 100)}%;"
-							/>
-						</div>
-						<div class="text-xs text-[#9fa2ab] w-12 text-right">
+					<div class="w-24 h-2 bg-charcoal-700 rounded-full overflow-hidden">
+						<div
+							class="h-full transition-all duration-300 {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"
+							style="width: {Math.min(team.coveragePercentage, 100)}%;"
+						></div>
+					</div>
+						<div class="text-xs text-charcoal-300 w-12 text-right">
 							{team.coveragePercentage.toFixed(0)}%
 						</div>
 					</div>

@@ -56,23 +56,23 @@
 	<!-- Header -->
 	<div class="flex items-center justify-between flex-wrap gap-4">
 		<div>
-			<h1 class="text-xl font-bold text-[#f8f8f9]">Coach View</h1>
-			<p class="text-sm text-[#9fa2ab] mt-1">
+			<h1 class="text-xl font-bold text-charcoal-50">Coach View</h1>
+			<p class="text-sm text-charcoal-300 mt-1">
 				View matches and work assignments by team
 			</p>
 		</div>
 
 		<!-- View Mode Toggle -->
-		<div class="flex items-center gap-2 bg-[#454654] rounded-lg p-1">
+		<div class="flex items-center gap-2 bg-charcoal-700 rounded-lg p-1">
 			<button
 				onclick={() => viewMode = 'matches'}
-				class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {viewMode === 'matches' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+				class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {viewMode === 'matches' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 			>
 				Matches
 			</button>
 			<button
 				onclick={() => viewMode = 'work'}
-				class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {viewMode === 'work' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+				class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {viewMode === 'work' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 			>
 				Work Assignments
 			</button>
@@ -81,13 +81,13 @@
 
 	<!-- Team Selector -->
 	{#if teams.length > 0}
-		<div class="border-b border-[#454654] pb-4">
+		<div class="border-b border-charcoal-700 pb-4">
 			<div class="flex items-center gap-2 flex-wrap">
-				<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Select Team:</span>
+				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Select Team:</span>
 				{#each sortedTeams as teamId}
 					<button
 						onclick={() => handleTeamSelect(teamId)}
-						class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {selectedTeam === teamId ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+						class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {selectedTeam === teamId ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
 					>
 						{teamId}
 						{#if matchesByTeam[teamId]}
@@ -109,7 +109,7 @@
 			<WorkAssignmentView {matches} {teamId} teamName={selectedTeam} />
 		{/if}
 	{:else}
-		<div class="text-center py-12 text-[#9fa2ab] text-sm">
+		<div class="text-center py-12 text-charcoal-300 text-sm">
 			Select a team to view matches and work assignments
 		</div>
 	{/if}

@@ -25,13 +25,13 @@
 </script>
 
 {#if liveMatches.length > 0}
-	<div class="mb-6 rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
+	<div class="mb-6 rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-lg font-semibold text-[#f8f8f9] flex items-center gap-2">
-				<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+			<h2 class="text-lg font-semibold text-charcoal-50 flex items-center gap-2">
+				<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
 				Live Now
 			</h2>
-			<span class="text-xs text-[#9fa2ab]">
+			<span class="text-xs text-charcoal-300">
 				{liveMatches.length} match{liveMatches.length !== 1 ? 'es' : ''} in progress
 			</span>
 		</div>
@@ -46,7 +46,10 @@
 				
 				<div
 					onclick={() => onMatchClick?.(match)}
-					class="px-4 py-3 rounded-lg border border-[#525463] bg-[#454654] hover:border-[#eab308] transition-colors cursor-pointer"
+					onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') onMatchClick?.(match); }}
+					role="button"
+					tabindex="0"
+					class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700 hover:border-gold-500 transition-colors cursor-pointer"
 				>
 					<!-- Match Header -->
 					<div class="flex items-center justify-between mb-2">
@@ -59,28 +62,28 @@
 								lastUpdated={score?.lastUpdated}
 							/>
 						</div>
-						<div class="text-xs text-[#9fa2ab]">
+						<div class="text-xs text-charcoal-300">
 							{formatMatchTime(match.ScheduledStartDateTime)}
 						</div>
 					</div>
 
 					<!-- Teams -->
 					<div class="space-y-1">
-						<div class="text-sm font-semibold text-[#f8f8f9]">
+						<div class="text-sm font-semibold text-charcoal-50">
 							{match.FirstTeamText}
 						</div>
-						<div class="text-xs text-[#9fa2ab]">vs</div>
-						<div class="text-sm font-semibold text-[#f8f8f9]">
+						<div class="text-xs text-charcoal-300">vs</div>
+						<div class="text-sm font-semibold text-charcoal-50">
 							{match.SecondTeamText}
 						</div>
 					</div>
 
 					<!-- Score Display -->
 					{#if score && score.status !== 'not-started' && currentSet}
-						<div class="mt-3 pt-3 border-t border-[#525463]">
+						<div class="mt-3 pt-3 border-t border-charcoal-600">
 							<div class="flex items-center justify-between">
 								{#if completedSets.length > 0}
-									<div class="text-xs text-[#9fa2ab]">
+									<div class="text-xs text-charcoal-300">
 										Sets: {team1Wins}-{team2Wins}
 									</div>
 								{/if}

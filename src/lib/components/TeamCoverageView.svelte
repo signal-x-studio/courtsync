@@ -234,31 +234,31 @@
 
 <div class="space-y-6">
 	<!-- Export/Import Section -->
-	<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
+	<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 		<div class="flex items-center justify-between mb-4">
-			<h3 class="text-sm font-semibold text-[#f8f8f9]">Share Coverage Status</h3>
+			<h3 class="text-sm font-semibold text-charcoal-50">Share Coverage Status</h3>
 			<div class="flex gap-2 flex-wrap">
 				<button
 					onclick={handleExport}
-					class="px-3 py-1.5 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463] transition-colors"
+					class="px-3 py-1.5 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600 transition-colors"
 				>
 					Export JSON
 				</button>
 				<button
 					onclick={handleGenerateLink}
-					class="px-3 py-1.5 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463] transition-colors"
+					class="px-3 py-1.5 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600 transition-colors"
 				>
 					Generate Link
 				</button>
 				<button
 					onclick={() => showImportDialog = true}
-					class="px-3 py-1.5 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463] transition-colors"
+					class="px-3 py-1.5 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600 transition-colors"
 				>
 					Import JSON
 				</button>
 			</div>
 		</div>
-		<p class="text-xs text-[#9fa2ab]">
+		<p class="text-xs text-charcoal-300">
 			Export your coverage status to share with team members, generate a shareable link, or import coverage status from others.
 		</p>
 	</div>
@@ -266,32 +266,32 @@
 	<!-- Import Dialog -->
 	{#if showImportDialog}
 		<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-			<div class="bg-[#3b3c48] border border-[#454654] rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+			<div class="bg-charcoal-800 border border-charcoal-700 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
 				<div class="flex items-center justify-between mb-4">
-					<h3 class="text-sm font-semibold text-[#f8f8f9]">Import Coverage Status</h3>
+					<h3 class="text-sm font-semibold text-charcoal-50">Import Coverage Status</h3>
 					<button
 						onclick={() => {
 							showImportDialog = false;
 							importJson = '';
 							importError = null;
 						}}
-						class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+						class="text-charcoal-300 hover:text-charcoal-50 transition-colors"
 					>
 						✕
 					</button>
 				</div>
-				<textarea
-					bind:value={importJson}
-					placeholder="Paste JSON data here..."
-					class="w-full h-64 px-3 py-2 text-sm rounded bg-[#454654] text-[#f8f8f9] border border-[#525463] focus:border-[#eab308] focus:outline-none font-mono"
-				/>
+			<textarea
+				bind:value={importJson}
+				placeholder="Paste JSON data here..."
+				class="w-full h-64 px-3 py-2 text-sm rounded bg-charcoal-700 text-charcoal-50 border border-charcoal-600 focus:border-gold-500 focus:outline-none font-mono"
+			></textarea>
 				{#if importError}
 					<div class="mt-2 text-xs text-red-400">{importError}</div>
 				{/if}
 				<div class="flex gap-2 mt-4">
 					<button
 						onclick={handleImport}
-						class="px-3 py-1.5 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+						class="px-3 py-1.5 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors"
 					>
 						Import
 					</button>
@@ -301,7 +301,7 @@
 							importJson = '';
 							importError = null;
 						}}
-						class="px-3 py-1.5 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463] transition-colors"
+						class="px-3 py-1.5 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600 transition-colors"
 					>
 						Cancel
 					</button>
@@ -312,24 +312,24 @@
 
 	<!-- Summary Statistics -->
 	<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Total Teams</div>
-			<div class="text-2xl font-bold text-[#f8f8f9]">{stats.totalTeams}</div>
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Total Teams</div>
+			<div class="text-2xl font-bold text-charcoal-50">{stats.totalTeams}</div>
 		</div>
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Assigned</div>
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Assigned</div>
 			<div class="text-2xl font-bold text-green-400">{stats.assignedTeams}</div>
 		</div>
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-1">Unassigned</div>
-			<div class="text-2xl font-bold text-[#808593]">{stats.unassignedTeams}</div>
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Unassigned</div>
+			<div class="text-2xl font-bold text-charcoal-400">{stats.unassignedTeams}</div>
 		</div>
 	</div>
 
 	<!-- Coverage by Member -->
 	{#if teamCoordination.members.length > 0}
-		<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-			<h3 class="text-sm font-semibold text-[#f8f8f9] mb-4">Coverage by Team Member</h3>
+		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+			<h3 class="text-sm font-semibold text-charcoal-50 mb-4">Coverage by Team Member</h3>
 			<div class="space-y-3">
 				{#each teamCoordination.members as member}
 					{@const memberStats = stats.coverageByMember.get(member.id) || { covered: 0, partiallyCovered: 0, planned: 0, uncovered: 0 }}
@@ -339,10 +339,10 @@
 						<div
 							class="w-4 h-4 rounded-full flex-shrink-0"
 							style="background-color: {member.color}"
-						/>
+						></div>
 						<div class="flex-1 min-w-0">
-							<div class="text-sm font-medium text-[#f8f8f9]">{member.name}</div>
-							<div class="text-xs text-[#9fa2ab]">
+							<div class="text-sm font-medium text-charcoal-50">{member.name}</div>
+							<div class="text-xs text-charcoal-300">
 								{total} team{total !== 1 ? 's' : ''} • {memberStats.covered} covered • {memberStats.planned} planned
 							</div>
 						</div>
@@ -353,22 +353,22 @@
 	{/if}
 
 	<!-- Team Assignments -->
-	<div class="rounded-lg border border-[#454654] bg-[#3b3c48] p-4">
-		<h3 class="text-sm font-semibold text-[#f8f8f9] mb-4">Team Assignments</h3>
+	<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+		<h3 class="text-sm font-semibold text-charcoal-50 mb-4">Team Assignments</h3>
 		
 		<!-- Unassigned Teams -->
 		{#if teamsByAssignment.has('unassigned')}
 			<div class="mb-6">
-				<h4 class="text-xs font-medium text-[#808593] uppercase tracking-wider mb-2">
+				<h4 class="text-xs font-medium text-charcoal-400 uppercase tracking-wider mb-2">
 					Unassigned ({teamsByAssignment.get('unassigned')!.length})
 				</h4>
 				<div class="space-y-1">
 					{#each teamsByAssignment.get('unassigned')! as team}
-						<div class="flex items-center justify-between p-2 rounded bg-[#454654] border border-[#525463]">
+						<div class="flex items-center justify-between p-2 rounded bg-charcoal-700 border border-charcoal-600">
 							<div class="flex items-center gap-2">
-								<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-[#eab308]' : 'bg-[#808593]'}" />
-								<span class="text-sm text-[#f8f8f9]">Team {team.teamId}</span>
-								<span class="text-xs text-[#9fa2ab]">({team.matches.length} matches)</span>
+								<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"></div>
+								<span class="text-sm text-charcoal-50">Team {team.teamId}</span>
+								<span class="text-xs text-charcoal-300">({team.matches.length} matches)</span>
 							</div>
 							<select
 								value=""
@@ -377,7 +377,7 @@
 										teamCoordination.assignTeam(team.teamId, e.target.value);
 									}
 								}}
-								class="px-2 py-1 text-xs rounded bg-[#3b3c48] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none"
+								class="px-2 py-1 text-xs rounded bg-charcoal-800 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
 							>
 								<option value="">Assign...</option>
 								{#each teamCoordination.members as member}
@@ -399,30 +399,30 @@
 						<div
 							class="w-3 h-3 rounded-full"
 							style="background-color: {member.color}"
-						/>
-						<h4 class="text-xs font-medium text-[#f8f8f9] uppercase tracking-wider">
+						></div>
+						<h4 class="text-xs font-medium text-charcoal-50 uppercase tracking-wider">
 							{member.name} ({memberTeams.length})
 						</h4>
 					</div>
 					<div class="space-y-1">
 						{#each memberTeams as team}
-							<div class="flex items-center justify-between p-2 rounded bg-[#454654] border border-[#525463]">
+							<div class="flex items-center justify-between p-2 rounded bg-charcoal-700 border border-charcoal-600">
 								<div class="flex items-center gap-2">
-									<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-[#eab308]' : 'bg-[#808593]'}" />
-									<span class="text-sm text-[#f8f8f9]">Team {team.teamId}</span>
-									<span class="text-xs text-[#9fa2ab]">({team.matches.length} matches)</span>
+									<div class="w-2 h-2 rounded {team.status === 'covered' ? 'bg-green-500' : team.status === 'partially-covered' ? 'bg-[#f59e0b]' : team.status === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}"></div>
+									<span class="text-sm text-charcoal-50">Team {team.teamId}</span>
+									<span class="text-xs text-charcoal-300">({team.matches.length} matches)</span>
 								</div>
 								<div class="flex items-center gap-2">
 									<button
 										onclick={() => handoffDialog = { teamId: team.teamId, fromMemberId: member.id }}
-										class="px-2 py-1 text-xs text-[#9fa2ab] hover:text-[#eab308] transition-colors"
+										class="px-2 py-1 text-xs text-charcoal-300 hover:text-gold-500 transition-colors"
 										title="Transfer to another member"
 									>
 										↪
 									</button>
 									<button
 										onclick={() => teamCoordination.unassignTeam(team.teamId)}
-										class="px-2 py-1 text-xs text-[#9fa2ab] hover:text-red-400 transition-colors"
+										class="px-2 py-1 text-xs text-charcoal-300 hover:text-red-400 transition-colors"
 										title="Unassign"
 									>
 										✕
