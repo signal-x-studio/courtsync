@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import { fetchCourtSchedule, fetchEventInfo } from '$lib/services/api';
+	import { fetchCourtSchedule, fetchEventInfo, fetchDivisionPlays, fetchPoolSheet } from '$lib/services/api';
 	import { filterClubMatches } from '$lib/utils/matchFilters';
 	import { formatMatchDate } from '$lib/utils/dateUtils';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
@@ -9,6 +9,7 @@
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import { selectedCount } from '$lib/stores/coveragePlan';
 	import type { FilteredMatch } from '$lib/types';
+	import { createPoolsheetResultsMap, mergePoolsheetResults } from '$lib/utils/poolsheetResults';
 
 	import EventInput from '$lib/components/EventInput.svelte';
 	import MatchList from '$lib/components/MatchList.svelte';
@@ -258,8 +259,20 @@
 
 			const data = await fetchCourtSchedule(newEventId, newDate, newTimeWindow);
 			const filteredMatches = filterClubMatches(data.CourtSchedules);
+			
+			// Fetch match results from poolsheets (async, non-blocking)
+			// Note: BallerTV links are now fetched from the event page, not poolsheets
+			enrichMatchesWithPoolsheetResults(newEventId, filteredMatches).then(enrichedMatches => {
+				matches = enrichedMatches;
+				matchesStore.set(enrichedMatches);
+			}).catch(err => {
+				// Use matches without results if enrichment fails
+				matches = filteredMatches;
+				matchesStore.set(filteredMatches);
+			});
+			
+			// Set matches immediately (will be updated when BallerTV links are fetched)
 			matches = filteredMatches;
-			// Update matches store for route access
 			matchesStore.set(filteredMatches);
 			eventInfoStore.set({ eventId: newEventId, clubId });
 		} catch (err) {
@@ -373,6 +386,142 @@
 		teamMatches.forEach((stats, teamId) => {
 			coverageStatus.updateFromPlan(teamId, stats.inPlan, stats.total);
 		});
+	}
+	
+	// Fetch match results from poolsheets for completed matches
+	// Note: BallerTV links are now fetched from the event page, not poolsheets
+	async function enrichMatchesWithPoolsheetResults(
+		eventId: string,
+		matches: FilteredMatch[]
+	): Promise<FilteredMatch[]> {
+		try {
+			const now = Date.now();
+			const PAST_WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours in the past
+			
+			// Fetch poolsheets for match results only (not for BallerTV links - those come from event page)
+			// Match results are for completed matches only
+			const relevantMatches = matches.filter(match => {
+				const matchEnd = match.ScheduledEndDateTime;
+				// Only fetch for completed matches within last 24h (for results/scores)
+				return matchEnd < now && matchEnd > now - PAST_WINDOW_MS;
+			});
+			
+			if (relevantMatches.length === 0) {
+				// No recently completed matches, skipping result fetch
+				return matches;
+			}
+			
+			// Fetching poolsheet results for completed matches (silent)
+			
+			// Get unique division IDs from relevant matches only
+			const divisionIds = new Set(relevantMatches.map(m => m.Division.DivisionId));
+			const resultsMap = new Map<number, any>(); // PoolsheetMatchResult
+			
+			// Fetch poolsheets for each division, but limit concurrent requests
+			// NOTE: We fetch ALL plays for divisions with completed matches, which may result in many 404s
+			// This is expected behavior - many plays don't have poolsheets yet
+			const MAX_CONCURRENT = 3; // Process 3 divisions at a time
+			const divisionArray = Array.from(divisionIds);
+			
+			let totalFetches = 0;
+			let successfulFetches = 0;
+			let failedFetches = 0;
+			
+			for (let i = 0; i < divisionArray.length; i += MAX_CONCURRENT) {
+				const divisionBatch = divisionArray.slice(i, i + MAX_CONCURRENT);
+				
+				await Promise.allSettled(
+					divisionBatch.map(async (divisionId) => {
+						try {
+							// Fetch division plays to get play IDs
+							const playsData = await fetchDivisionPlays(eventId, divisionId);
+							if (!playsData?.Plays || !Array.isArray(playsData.Plays)) {
+								return;
+							}
+							
+							// Fetch poolsheet for each play, but limit concurrent requests
+							const MAX_PLAY_CONCURRENT = 5; // Process 5 plays at a time
+							const playArray = playsData.Plays.filter((play: any) => {
+								const playId = play.PlayId || play.Play?.PlayId || 0;
+								return playId !== 0;
+							});
+							
+							for (let j = 0; j < playArray.length; j += MAX_PLAY_CONCURRENT) {
+								const playBatch = playArray.slice(j, j + MAX_PLAY_CONCURRENT);
+								
+								await Promise.allSettled(
+									playBatch.map(async (play: any) => {
+										try {
+											const playId = play.PlayId || play.Play?.PlayId || 0;
+											if (!playId) return;
+											
+											totalFetches++;
+											const poolsheet = await fetchPoolSheet(eventId, playId);
+											// Check if poolsheet is valid (not an error response)
+											if (!poolsheet || poolsheet.error) {
+												failedFetches++;
+												// Silently skip invalid poolsheets (404s are expected)
+												return;
+											}
+											
+											successfulFetches++;
+											// Extract match results (scores, win/loss) only
+											const playResultsMap = createPoolsheetResultsMap(poolsheet);
+											if (playResultsMap.size > 0) {
+												// Found match results in play (silent)
+											}
+											playResultsMap.forEach((result, matchId) => {
+												resultsMap.set(matchId, result);
+											});
+										} catch (err) {
+											failedFetches++;
+											// Silently skip failed poolsheets - many don't exist (404s are expected)
+											// Only log if it's not a 404/not found error
+											if (err instanceof Error) {
+												const status = (err as any).status;
+												const is404 = (err as any).is404 || status === 404 || 
+												             err.message.toLowerCase().includes('not found') || 
+												             err.message.toLowerCase().includes('not available');
+												if (!is404) {
+													// Failed to fetch poolsheet (silent)
+												}
+											}
+										}
+									})
+								);
+								
+								// Small delay between batches to avoid overwhelming the server
+								if (j + MAX_PLAY_CONCURRENT < playArray.length) {
+									await new Promise(resolve => setTimeout(resolve, 100));
+								}
+							}
+						} catch (err) {
+							// Failed to fetch division plays (silent)
+						}
+					})
+				);
+				
+				// Small delay between division batches
+				if (i + MAX_CONCURRENT < divisionArray.length) {
+					await new Promise(resolve => setTimeout(resolve, 200));
+				}
+			}
+			
+			// Poolsheet fetching completed (silent)
+			
+			// Merge poolsheet results into matches
+			const enrichedMatches = mergePoolsheetResults(matches, resultsMap);
+			
+			const resultsFound = enrichedMatches.filter(m => m.PoolsheetResult).length;
+			
+			if (resultsFound > 0) {
+				// Poolsheet results merged (silent)
+			}
+			return enrichedMatches;
+		} catch (error) {
+			console.error('Error enriching matches with poolsheet results:', error);
+			return matches; // Return original matches if enrichment fails
+		}
 	}
 </script>
 
@@ -606,6 +755,7 @@
 					{timeWindow}
 					onLoad={handleLoad}
 					{loading}
+					onClose={() => showConfig = false}
 				/>
 			</div>
 		</div>
@@ -706,7 +856,7 @@
 			{#if isCoachValue}
 				<CoachView {matches} {eventId} {clubId} />
 			{:else if viewMode === 'list'}
-				<MatchList {matches} {eventId} {clubId} />
+				<MatchList {matches} {eventId} {clubId} eventName={eventInfo?.name || null} />
 			{:else}
 				<TimelineView {matches} {eventId} />
 			{/if}

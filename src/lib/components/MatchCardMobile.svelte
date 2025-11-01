@@ -18,6 +18,7 @@
 	export let onTap: (match: FilteredMatch) => void;
 	export let onSwipeRight: ((match: FilteredMatch) => void) | null = null;
 	export let onSwipeLeft: ((match: FilteredMatch) => void) | null = null;
+	export let onLongPress: ((match: FilteredMatch) => void) | null = null;
 	export let scanningMode: boolean = false;
 	
 	let cardElement: HTMLDivElement;
@@ -25,6 +26,8 @@
 	let isSwiping = false;
 	let swipeDirection: 'left' | 'right' | null = null;
 	let swipeHandler: ReturnType<typeof createSwipeHandler> | null = null;
+	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+	let isLongPressing = false;
 	
 	function getTeamId(match: FilteredMatch): string {
 		const teamText = match.InvolvedTeam === 'first' 
@@ -71,6 +74,15 @@
 	$: currentSetScore = score && score.sets.length > 0 ? score.sets[score.sets.length - 1] : null;
 	$: isLive = score && score.status === 'in-progress';
 	$: showLiveScore = isLive && currentSetScore;
+	$: isBallerTVScore = score?.source === 'ballertv';
+	$: hasBallerTVLink = !!match.BallerTVLink;
+	
+	// Poolsheet results (for completed matches)
+	$: poolsheetResult = match.PoolsheetResult;
+	$: isCompleted = matchStatus === 'completed';
+	$: showResult = isCompleted && poolsheetResult && poolsheetResult.hasScores;
+	$: isWin = poolsheetResult && poolsheetResult.winner === match.InvolvedTeam;
+	$: isLoss = poolsheetResult && poolsheetResult.winner !== null && poolsheetResult.winner !== match.InvolvedTeam;
 	
 	// Compute card classes with opacity support and wave indicator
 	$: cardClasses = [
@@ -140,9 +152,65 @@
 	});
 	
 	function handleTap() {
-		if (!isSwiping) {
+		if (!isSwiping && !isLongPressing) {
 			onTap(match);
 		}
+		isLongPressing = false;
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			longPressTimer = null;
+		}
+	}
+	
+	function handleTouchStart(e: TouchEvent) {
+		if (onLongPress && teamId && match.InvolvedTeam !== 'work') {
+			longPressTimer = setTimeout(() => {
+				isLongPressing = true;
+				if (onLongPress) {
+					onLongPress(match);
+				}
+			}, 500); // 500ms for long press
+		}
+	}
+	
+	function handleTouchEnd() {
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			longPressTimer = null;
+		}
+		// Reset long press flag after a short delay
+		setTimeout(() => {
+			isLongPressing = false;
+		}, 100);
+	}
+	
+	function handleMouseDown(e: MouseEvent) {
+		if (onLongPress && teamId && match.InvolvedTeam !== 'work' && e.button === 0) {
+			longPressTimer = setTimeout(() => {
+				isLongPressing = true;
+				if (onLongPress) {
+					onLongPress(match);
+				}
+			}, 500);
+		}
+	}
+	
+	function handleMouseUp() {
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			longPressTimer = null;
+		}
+		setTimeout(() => {
+			isLongPressing = false;
+		}, 100);
+	}
+	
+	function handleMouseLeave() {
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			longPressTimer = null;
+		}
+		isLongPressing = false;
 	}
 	
 	function handleSelect(e: MouseEvent) {
@@ -158,6 +226,11 @@
 	style="transform: translateX({swipeOffset * (swipeDirection === 'left' ? -1 : swipeDirection === 'right' ? 1 : 0)}px);"
 	onclick={handleTap}
 	onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleTap(e); }}
+	ontouchstart={handleTouchStart}
+	ontouchend={handleTouchEnd}
+	onmousedown={handleMouseDown}
+	onmouseup={handleMouseUp}
+	onmouseleave={handleMouseLeave}
 	role="button"
 	tabindex="0"
 	data-match-card
@@ -231,12 +304,37 @@
 						<span class="ml-2 text-xs font-semibold text-green-400">
 							{currentSetScore.team1Score}-{currentSetScore.team2Score}
 						</span>
+						{#if isBallerTVScore}
+							<span class="ml-1 px-1 py-0.5 text-[9px] font-medium rounded bg-blue-500/20 text-blue-300 border border-blue-500/30" title="Auto-updating from BallerTV">
+								BTV
+							</span>
+						{/if}
+					{:else if showResult}
+						<!-- Completed match result -->
+						<span class="ml-2 text-xs font-semibold {isWin ? 'text-success-500' : isLoss ? 'text-charcoal-400' : 'text-charcoal-300'}">
+							{#if isWin}
+								✓ {poolsheetResult.finalScore}
+							{:else if isLoss}
+								✗ {poolsheetResult.finalScore}
+							{:else}
+								{poolsheetResult.finalScore}
+							{/if}
+						</span>
 					{/if}
 				</div>
 				
 				<!-- Division and Status -->
 				<div class="flex items-center gap-2 mt-1">
 					<span class="text-xs text-charcoal-400">{match.Division.CodeAlias}</span>
+					{#if match.BallerTVActualStartTime}
+						<span class="text-xs text-gold-400" title="Actual start time from BallerTV">
+							{formatMatchTime(match.BallerTVActualStartTime)}
+						</span>
+					{:else}
+						<span class="text-xs text-charcoal-400">
+							{formatMatchTime(match.ScheduledStartDateTime)}
+						</span>
+					{/if}
 					{#if teamCoverageStatus === 'covered'}
 						<span class="text-xs text-success-500">
 							<Check size={12} class="inline" />

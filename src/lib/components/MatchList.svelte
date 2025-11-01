@@ -14,10 +14,13 @@
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { followedTeams } from '$lib/stores/followedTeams';
 	import { tournamentDelay } from '$lib/stores/tournamentDelay';
+	import { getTeamDelay } from '$lib/stores/teamDelays';
+	import { getTeamIdentifier } from '$lib/stores/filters';
 	import { ChevronDown, ChevronRight } from 'lucide-svelte';
 	import { notifications } from '$lib/stores/notifications';
 	import { createMatchClaiming } from '$lib/stores/matchClaiming';
 	import { createMatchNotesStore } from '$lib/stores/matchNotes';
+	import { createBallerTVScoreSync } from '$lib/stores/ballertvScoreSync';
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import type { CoverageStatus } from '$lib/stores/coverageStatus';
 	import type { SetScore } from '$lib/types';
@@ -75,10 +78,12 @@
 	import MyTeamsSelector from '$lib/components/MyTeamsSelector.svelte';
 	import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
 	import MatchCardMobile from '$lib/components/MatchCardMobile.svelte';
+	import TeamDelayQuickSet from '$lib/components/TeamDelayQuickSet.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
 	export let clubId: number;
+	export let eventName: string | null = null; // Event name for BallerTV URL
 	
 	let expandedMatch: number | null = null;
 	let detailViewMatch: FilteredMatch | null = null;
@@ -87,6 +92,7 @@
 	let collapsedTimeGroups = new Set<string>(); // Track collapsed time groups
 	let liveNowExpanded = true; // Live Now starts expanded
 	let priorityMenuOpen: number | null = null;
+	let delayQuickSetMatch: FilteredMatch | null = null; // Match for quick delay set
 	let coverageStatusMenuOpen: string | null = null;
 	let scanningMode = false;
 	let showSuggestions = false;
@@ -101,6 +107,7 @@
 	
 	// Create match claiming store
 	let matchClaiming: ReturnType<typeof createMatchClaiming>;
+	let ballerTVSync: ReturnType<typeof createBallerTVScoreSync> | null = null;
 	
 	$: {
 		const isSpectatorValue = $isSpectator;
@@ -109,6 +116,54 @@
 			userId: isSpectatorValue ? 'spectator' : 'anonymous' 
 		});
 	}
+	
+	// Create BallerTV sync service when matches are available
+	$: if (matches.length > 0 && matchClaiming && eventName) {
+		const delayMinutes = $tournamentDelay;
+		if (!ballerTVSync) {
+			ballerTVSync = createBallerTVScoreSync({
+				eventId,
+				eventName,
+				matches,
+				matchClaiming,
+				clubFilter: '630',
+				tournamentDelayMinutes: delayMinutes
+			});
+		} else {
+			// Update matches, event name, and delay in sync service
+			ballerTVSync.updateMatches(matches);
+			ballerTVSync.updateEventName(eventName);
+			ballerTVSync.updateDelay(delayMinutes);
+		}
+	}
+	
+	// Get delay for a match (team-specific or global)
+	function getDelayForMatch(match: FilteredMatch): number {
+		const teamId = getTeamIdFromFilter(match);
+		const teamDelay = teamId ? getTeamDelay(teamId, match.ScheduledStartDateTime) : null;
+		
+		// Use team-specific delay if set, otherwise global delay
+		return teamDelay !== null ? teamDelay : $tournamentDelay;
+	}
+	
+	// Calculate live matches reactively (updates when delay changes)
+	$: liveMatches = sortedMatches.filter(match => {
+		const delay = getDelayForMatch(match);
+		const delayMs = delay * 60 * 1000;
+		const now = Date.now();
+		const matchStart = match.ScheduledStartDateTime;
+		const matchEnd = match.ScheduledEndDateTime || matchStart + (90 * 60 * 1000);
+		const score = matchClaiming.getScore(match.MatchId);
+		
+		// Match is live if:
+		// 1. There's an in-progress score, OR
+		// 2. Current time (accounting for delay) has passed the start time AND hasn't passed the end time
+		// If delay is 30min and match starts at 1:00pm, it should only be live at 1:30pm (current time)
+		const adjustedStartTime = matchStart + delayMs; // Add delay to match start time
+		const isLive = (score && score.status === 'in-progress') || (now >= adjustedStartTime && now <= matchEnd);
+		
+		return isLive;
+	});
 	
 	// Create match notes store
 	const matchNotes = createMatchNotesStore(eventId);
@@ -440,6 +495,11 @@
 		// Start polling for match claiming
 		matchClaiming.startPolling();
 		
+		// Start BallerTV polling if sync service is available
+		if (ballerTVSync) {
+			ballerTVSync.startPolling();
+		}
+		
 		// Check for upcoming matches and send notifications
 		if ($isSpectator) {
 			let followedTeamIds: string[] = [];
@@ -459,6 +519,9 @@
 	
 	onDestroy(() => {
 		matchClaiming.stopPolling();
+		if (ballerTVSync) {
+			ballerTVSync.stopPolling();
+		}
 	});
 	
 	// Notify on score updates
@@ -490,14 +553,6 @@
 	<div>
 		{#if $isSpectator}
 			<!-- Live Now Section - Collapsible, expanded by default -->
-			{@const liveMatches = sortedMatches.filter(match => {
-				const now = Date.now();
-				const matchStart = match.ScheduledStartDateTime;
-				const matchEnd = match.ScheduledEndDateTime || matchStart + (90 * 60 * 1000);
-				const score = matchClaiming.getScore(match.MatchId);
-				return (score && score.status === 'in-progress') || (now >= matchStart && now <= matchEnd);
-			})}
-			
 			{#if liveMatches.length > 0}
 				<div class="mb-6 rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 					<button
@@ -553,36 +608,75 @@
 											<LiveScoreIndicator
 												isLive={score?.status === 'in-progress' || false}
 												lastUpdated={score?.lastUpdated}
+												source={score?.source}
 											/>
 										</div>
 										<div class="text-xs text-charcoal-300">
-											{formatMatchTime(match.ScheduledStartDateTime)}
+											{#if match.BallerTVActualStartTime}
+												<span class="text-gold-400" title="Actual start time from BallerTV">
+													{formatMatchTime(match.BallerTVActualStartTime)}
+												</span>
+											{:else}
+												{formatMatchTime(match.ScheduledStartDateTime)}
+											{/if}
 										</div>
 									</div>
 
-									<!-- Teams -->
-									<div class="space-y-1">
-										<div class="text-sm font-semibold text-charcoal-50">
-											{match.FirstTeamText}
-										</div>
-										<div class="text-xs text-charcoal-300">vs</div>
-										<div class="text-sm font-semibold text-charcoal-50">
-											{match.SecondTeamText}
-										</div>
-									</div>
-
-									<!-- Score Display -->
-									{#if score && score.status !== 'not-started' && currentSet}
-										<div class="mt-3 pt-3 border-t border-charcoal-600">
-											<div class="flex items-center justify-between">
-												{#if completedSets.length > 0}
-													<div class="text-xs text-charcoal-300">
-														Sets: {team1Wins}-{team2Wins}
-													</div>
-												{/if}
-												<div class="text-lg font-bold text-gold-400">
-													{currentSet.team1Score}-{currentSet.team2Score}
+									<!-- Teams with Scores -->
+									<div class="space-y-2">
+										<div class="flex items-center justify-between">
+											<div class="text-sm font-semibold text-charcoal-50 truncate flex-1">
+												{match.FirstTeamText}
+											</div>
+											{#if score && score.sets.length > 0}
+												<div class="flex items-center gap-2 ml-2 flex-shrink-0">
+													{#if completedSets.length > 0}
+														<span class="text-xs font-semibold {team1Wins > team2Wins ? 'text-success-500' : 'text-charcoal-400'}">
+															{team1Wins}
+														</span>
+													{/if}
+													{#if currentSet}
+														<span class="text-base font-bold text-gold-400">
+															{currentSet.team1Score}
+														</span>
+													{/if}
 												</div>
+											{/if}
+										</div>
+										<div class="text-xs text-charcoal-400 text-center">vs</div>
+										<div class="flex items-center justify-between">
+											<div class="text-sm font-semibold text-charcoal-50 truncate flex-1">
+												{match.SecondTeamText}
+											</div>
+											{#if score && score.sets.length > 0}
+												<div class="flex items-center gap-2 ml-2 flex-shrink-0">
+													{#if completedSets.length > 0}
+														<span class="text-xs font-semibold {team2Wins > team1Wins ? 'text-success-500' : 'text-charcoal-400'}">
+															{team2Wins}
+														</span>
+													{/if}
+													{#if currentSet}
+														<span class="text-base font-bold text-gold-400">
+															{currentSet.team2Score}
+														</span>
+													{/if}
+												</div>
+											{/if}
+										</div>
+									</div>
+
+									<!-- All Sets Display -->
+									{#if score && score.sets.length > 0}
+										<div class="mt-3 pt-3 border-t border-charcoal-600">
+											<div class="flex items-center justify-between gap-2 text-xs">
+												{#each score.sets as set, index}
+													<div class="flex-1 text-center">
+														<div class="text-[10px] text-charcoal-400 mb-0.5">Set {set.setNumber}</div>
+														<div class="font-semibold {set.completedAt > 0 ? 'text-charcoal-300' : 'text-gold-400'}">
+															{set.team1Score}-{set.team2Score}
+														</div>
+													</div>
+												{/each}
 											</div>
 										</div>
 									{/if}
@@ -794,6 +888,12 @@
 										hasConflict={false}
 										scanningMode={scanningMode}
 										onTap={(m) => detailViewMatch = m}
+										onLongPress={(m) => {
+											const teamId = getTeamIdFromFilter(m);
+											if (teamId && m.InvolvedTeam !== 'work') {
+												delayQuickSetMatch = m;
+											}
+										}}
 										onSwipeRight={$isMedia ? (m) => coveragePlan.toggleMatch(m.MatchId) : null}
 										onSwipeLeft={null}
 									/>
@@ -1001,6 +1101,7 @@
 												<LiveScoreIndicator 
 													isLive={score.status === 'in-progress'}
 													lastUpdated={score.lastUpdated}
+													source={score.source}
 												/>
 											{/if}
 										{/if}
@@ -1075,6 +1176,18 @@
 					showClaimHistory = false;
 					claimHistoryMatchId = undefined;
 				}}
+			/>
+		{/if}
+		
+		<!-- Team Delay Quick Set Modal -->
+		{#if delayQuickSetMatch}
+			{@const teamId = getTeamIdFromFilter(delayQuickSetMatch)}
+			{@const teamName = delayQuickSetMatch.InvolvedTeam === 'first' ? delayQuickSetMatch.FirstTeamText : delayQuickSetMatch.SecondTeamText}
+			<TeamDelayQuickSet
+				{teamId}
+				{teamName}
+				matchStartTime={delayQuickSetMatch.ScheduledStartDateTime}
+				onClose={() => delayQuickSetMatch = null}
 			/>
 		{/if}
 

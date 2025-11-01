@@ -18,7 +18,17 @@
 			<div class="flex-1 min-w-0">
 				<div class="text-xs text-charcoal-400 mb-0.5">Date & Time</div>
 				<div class="text-sm font-medium text-charcoal-50">
-					{formatMatchDate(match.ScheduledStartDateTime)} • {formatMatchTime(match.ScheduledStartDateTime)}
+					{#if match.BallerTVActualStartTime}
+						<span class="text-gold-400" title="Actual start time from BallerTV">
+							{formatMatchDate(match.BallerTVActualStartTime)} • {formatMatchTime(match.BallerTVActualStartTime)}
+						</span>
+						<br />
+						<span class="text-xs text-charcoal-400">
+							Scheduled: {formatMatchDate(match.ScheduledStartDateTime)} • {formatMatchTime(match.ScheduledStartDateTime)}
+						</span>
+					{:else}
+						{formatMatchDate(match.ScheduledStartDateTime)} • {formatMatchTime(match.ScheduledStartDateTime)}
+					{/if}
 				</div>
 			</div>
 		</div>

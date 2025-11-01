@@ -11,6 +11,7 @@
 	import { getTeamIdentifier } from '$lib/stores/filters';
 	
 	import TeamStatsView from '$lib/components/TeamStatsView.svelte';
+	import TeamDelaySettings from '$lib/components/TeamDelaySettings.svelte';
 	
 	export let match: FilteredMatch;
 	export let eventId: string;
@@ -53,7 +54,7 @@
 	let divisionPlays: any[] = [];
 	let selectedPlayId: number | null = null;
 	let poolSheet: any | null = null;
-	let viewMode: 'schedule' | 'poolsheet' | 'stats' = 'schedule';
+	let viewMode: 'schedule' | 'poolsheet' | 'stats' | 'delay' = 'schedule';
 	let loading = true;
 	let error: string | null = null;
 	
@@ -355,6 +356,12 @@
 						>
 							Statistics
 						</button>
+						<button
+							onclick={() => viewMode = 'delay'}
+							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'delay' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+						>
+							Delay Settings
+						</button>
 					{/if}
 				</div>
 
@@ -364,6 +371,12 @@
 						{eventId}
 						{teamId}
 						{teamName}
+					/>
+				{:else if viewMode === 'delay' && teamId}
+					<TeamDelaySettings
+						{teamId}
+						{teamName}
+						{matches}
 					/>
 				{:else if viewMode === 'schedule'}
 					<!-- Full Schedule Timeline -->

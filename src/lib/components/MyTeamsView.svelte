@@ -4,9 +4,13 @@
 	import { getTeamIdentifier } from '$lib/stores/filters';
 	import { formatMatchTime, formatMatchDate } from '$lib/utils/dateUtils';
 	import { Star } from 'lucide-svelte';
+	import TeamDelayBadge from '$lib/components/TeamDelayBadge.svelte';
+	import TeamDelayQuickSet from '$lib/components/TeamDelayQuickSet.svelte';
 	
 	export let matches: FilteredMatch[] = [];
 	export let onTeamSelect: (teamId: string, teamName: string) => void;
+	
+	let delayQuickSetTeam: { teamId: string; teamName: string; matchStartTime: number } | null = null;
 	
 	// Filter matches for each followed team
 	function getTeamMatches(teamId: string): FilteredMatch[] {
@@ -62,6 +66,18 @@
 									{team.teamName}
 								</h3>
 								<Star size={16} class="text-gold-500 fill-current flex-shrink-0" />
+								{#if nextMatch}
+									<TeamDelayBadge
+										match={nextMatch}
+										onClick={() => {
+											delayQuickSetTeam = {
+												teamId: team.teamId,
+												teamName: team.teamName,
+												matchStartTime: nextMatch.ScheduledStartDateTime
+											};
+										}}
+									/>
+								{/if}
 							</div>
 							
 							<!-- Match Count -->
@@ -106,6 +122,16 @@
 				Tap the star icon on a match card to favorite a team
 			</div>
 		</div>
+	{/if}
+	
+	<!-- Team Delay Quick Set Modal -->
+	{#if delayQuickSetTeam}
+		<TeamDelayQuickSet
+			teamId={delayQuickSetTeam.teamId}
+			teamName={delayQuickSetTeam.teamName}
+			matchStartTime={delayQuickSetTeam.matchStartTime}
+			onClose={() => delayQuickSetTeam = null}
+		/>
 	{/if}
 </div>
 

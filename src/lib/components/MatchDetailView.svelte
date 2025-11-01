@@ -58,6 +58,12 @@
 		return 'upcoming';
 	})() : 'upcoming') as 'upcoming' | 'in-progress' | 'completed';
 	
+	// Poolsheet results (for completed matches)
+	$: poolsheetResult = match?.PoolsheetResult;
+	$: showResult = matchStatus === 'completed' && poolsheetResult && poolsheetResult.hasScores;
+	$: isWin = poolsheetResult && match && poolsheetResult.winner === match.InvolvedTeam;
+	$: isLoss = poolsheetResult && match && poolsheetResult.winner !== null && poolsheetResult.winner !== match.InvolvedTeam;
+	
 	onMount(() => {
 		if (!sheetElement || !scrollContainer) return;
 		
@@ -216,6 +222,48 @@
 								{match}
 							/>
 						</div>
+						
+						<!-- Match Results (from poolsheet) -->
+						{#if showResult && poolsheetResult}
+							<div class="mt-6 bg-charcoal-800 rounded-lg border border-charcoal-700 p-4">
+								<h3 class="text-sm font-semibold text-charcoal-50 mb-3">Match Results</h3>
+								<div class="space-y-2">
+									{#if poolsheetResult.sets && poolsheetResult.sets.length > 0}
+										<div class="space-y-1.5">
+											{#each poolsheetResult.sets as set}
+												<div class="flex items-center justify-between text-sm">
+													<span class="text-charcoal-300">Set {set.setNumber}</span>
+													<div class="flex items-center gap-3">
+														<span class="text-charcoal-200 font-medium">{match?.FirstTeamText}</span>
+														<span class="text-charcoal-400 font-bold min-w-[3rem] text-center">
+															{set.team1Score}-{set.team2Score}
+														</span>
+														<span class="text-charcoal-200 font-medium">{match?.SecondTeamText}</span>
+													</div>
+													{#if set.completedAt > 0}
+														<span class="text-xs text-charcoal-500">✓</span>
+													{/if}
+												</div>
+											{/each}
+										</div>
+										<div class="pt-2 mt-2 border-t border-charcoal-700">
+											<div class="flex items-center justify-between">
+												<span class="text-sm text-charcoal-300">Final Score</span>
+												<span class="text-base font-bold {isWin ? 'text-success-500' : isLoss ? 'text-charcoal-400' : 'text-charcoal-200'}">
+													{#if isWin}
+														✓ Win - {poolsheetResult.finalScore}
+													{:else if isLoss}
+														✗ Loss - {poolsheetResult.finalScore}
+													{:else}
+														{poolsheetResult.finalScore}
+													{/if}
+												</span>
+											</div>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/if}
 						
 						<!-- Link to Full Schedule - Sticky at bottom when scrolling -->
 						<div class="mt-8 mb-4">

@@ -1,4 +1,4 @@
-import type { CourtScheduleResponse } from '../types';
+import type { CourtScheduleResponse, PoolsheetResponse } from '../types';
 
 const API_BASE_URL = 'https://results.advancedeventsystems.com/api';
 const ODATA_BASE_URL = 'https://results.advancedeventsystems.com/odata';
@@ -79,11 +79,32 @@ export const fetchDivisionPlays = async (
 export const fetchPoolSheet = async (
   eventId: string,
   playId: number
-) => {
-  const url = `${API_BASE_URL}/event/${eventId}/poolsheet/${playId}`;
+): Promise<PoolsheetResponse> => {
+  // Use server-side endpoint to avoid CORS issues
+  // Note: playId can be negative (e.g., -54617), keep it as-is
+  const url = `/api/poolsheet/${eventId}/${playId}`;
   const response = await fetch(url);
+  
   if (!response.ok) {
+    // For 404s, throw a specific error that can be caught upstream
+    if (response.status === 404) {
+      const error = new Error('Poolsheet not available');
+      (error as any).status = 404;
+      (error as any).is404 = true;
+      throw error;
+    }
     throw new Error(`Failed to fetch pool sheet: ${response.statusText}`);
   }
-  return response.json();
+  
+  const data = await response.json();
+  
+  // Check if response has error field (from our server endpoint)
+  if (data.error) {
+    const error = new Error(data.error);
+    (error as any).status = response.status || 404;
+    (error as any).is404 = true;
+    throw error;
+  }
+  
+  return data;
 };

@@ -269,18 +269,32 @@ export function createMatchClaiming({ eventId, userId = 'anonymous' }: MatchClai
 			})();
 			return isOwner;
 		},
-		updateScore: (matchId: number, sets: SetScore[], status: 'not-started' | 'in-progress' | 'completed') => {
+		updateScore: (matchId: number, sets: SetScore[], status: 'not-started' | 'in-progress' | 'completed', source: 'ballertv' | 'manual' = 'manual') => {
 			const score: MatchScore = {
 				matchId,
 				eventId,
 				sets,
 				status,
 				lastUpdated: Date.now(),
-				lastUpdatedBy: userId
+				lastUpdatedBy: userId,
+				source
 			};
 
 			updateScores((scores) => {
 				const next = new Map(scores);
+				const existingScore = scores.get(matchId);
+				
+				// If updating from BallerTV and manual score exists, preserve manual score if it's more recent
+				// Otherwise, update with new score
+				if (source === 'ballertv' && existingScore && existingScore.source === 'manual') {
+					// Only update if BallerTV score is newer or if manual score is older than 5 minutes
+					const manualScoreAge = Date.now() - existingScore.lastUpdated;
+					if (manualScoreAge < 5 * 60 * 1000) {
+						// Keep manual score if it's recent
+						return scores;
+					}
+				}
+				
 				next.set(matchId, score);
 				saveScores(next);
 				return next;
@@ -288,7 +302,10 @@ export function createMatchClaiming({ eventId, userId = 'anonymous' }: MatchClai
 
 			if (browser) {
 				broadcastScoreUpdate(eventId, matchId, score);
-				addScoreHistory(matchId, score, userId);
+				// Only add to history if manual update (BallerTV updates are automatic)
+				if (source === 'manual') {
+					addScoreHistory(matchId, score, userId);
+				}
 			}
 		},
 		getScore: (matchId: number): MatchScore | null => {

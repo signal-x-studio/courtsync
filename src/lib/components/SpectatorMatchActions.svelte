@@ -130,6 +130,7 @@
 						<LiveScoreIndicator
 							isLive={currentScore.status === 'in-progress'}
 							lastUpdated={currentScore.lastUpdated}
+							source={currentScore.source}
 						/>
 					</div>
 				{/if}
