@@ -13,6 +13,8 @@
 	import { priority } from '$lib/stores/priority';
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { followedTeams } from '$lib/stores/followedTeams';
+	import { tournamentDelay } from '$lib/stores/tournamentDelay';
+	import { ChevronDown, ChevronRight } from 'lucide-svelte';
 	import { notifications } from '$lib/stores/notifications';
 	import { createMatchClaiming } from '$lib/stores/matchClaiming';
 	import { createMatchNotesStore } from '$lib/stores/matchNotes';
@@ -42,6 +44,8 @@
 	let detailViewMatch: FilteredMatch | null = null;
 	let detailSheetMatch: FilteredMatch | null = null;
 	let matchToOpenInSheet: FilteredMatch | null = null; // Temporary storage for transition
+	let collapsedTimeGroups = new Set<string>(); // Track collapsed time groups
+	let liveNowExpanded = true; // Live Now starts expanded
 	let priorityMenuOpen: number | null = null;
 	let coverageStatusMenuOpen: string | null = null;
 	let scanningMode = false;
@@ -281,6 +285,44 @@
 		});
 	})();
 	
+	// Determine if a time group is in the past (considering tournament delay)
+	$: delayOffset = $tournamentDelay;
+	function isTimeGroupPast(startTime: string): boolean {
+		const now = Date.now();
+		const delayMs = delayOffset * 60 * 1000; // Convert minutes to ms
+		const adjustedNow = now - delayMs; // Subtract delay to account for schedule running behind
+		
+		// Find the earliest match in this time group to determine if it's past
+		const timeMatches = matchesByStartTime[startTime];
+		if (!timeMatches || timeMatches.length === 0) return false;
+		
+		// Get the earliest match time from this group
+		const earliestMatch = timeMatches.reduce((earliest, match) => 
+			match.ScheduledStartDateTime < earliest.ScheduledStartDateTime ? match : earliest
+		);
+		
+		// If match time is before adjusted now, it's in the past
+		return earliestMatch.ScheduledStartDateTime < adjustedNow;
+	}
+	
+	function toggleTimeGroup(startTime: string) {
+		const newSet = new Set(collapsedTimeGroups);
+		if (newSet.has(startTime)) {
+			newSet.delete(startTime);
+		} else {
+			newSet.add(startTime);
+		}
+		collapsedTimeGroups = newSet; // Trigger reactivity
+	}
+	
+	// Initialize all time groups as collapsed by default (except Live Now)
+	$: {
+		if (collapsedTimeGroups.size === 0 && startTimes.length > 0) {
+			// On first render, collapse all time groups
+			collapsedTimeGroups = new Set(startTimes);
+		}
+	}
+	
 	// Handle score export
 	function handleExportScores() {
 		const jsonData = exportScoresToJSON(eventId);
@@ -407,12 +449,49 @@
 {:else}
 	<div>
 		{#if $isSpectator}
-			<LiveMatchDashboard 
-				matches={filteredMatches} 
-				{eventId} 
-				userId={$isSpectator ? 'spectator' : 'anonymous'}
-				onMatchClick={(m) => detailViewMatch = m}
-			/>
+			<!-- Live Now Section - Collapsible, expanded by default -->
+			{@const liveMatches = sortedMatches.filter(match => {
+				const now = Date.now();
+				const matchStart = match.ScheduledStartDateTime;
+				const matchEnd = match.ScheduledEndDateTime || matchStart + (90 * 60 * 1000);
+				const score = matchClaiming.getScore(match.MatchId);
+				return (score && score.status === 'in-progress') || (now >= matchStart && now <= matchEnd);
+			})}
+			
+			{#if liveMatches.length > 0}
+				<div class="mb-6 rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
+					<button
+						type="button"
+						onclick={() => liveNowExpanded = !liveNowExpanded}
+						class="flex items-center justify-between w-full mb-4"
+						aria-expanded={liveNowExpanded}
+					>
+						<h2 class="text-lg font-semibold text-charcoal-50 flex items-center gap-2">
+							<span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+							Live Now
+						</h2>
+						<div class="flex items-center gap-2">
+							<span class="text-xs text-charcoal-300">
+								{liveMatches.length} match{liveMatches.length !== 1 ? 'es' : ''} in progress
+							</span>
+							{#if liveNowExpanded}
+								<ChevronDown size={16} class="text-charcoal-400" />
+							{:else}
+								<ChevronRight size={16} class="text-charcoal-400" />
+							{/if}
+						</div>
+					</button>
+					
+					{#if liveNowExpanded}
+						<LiveMatchDashboard 
+							matches={liveMatches} 
+							{eventId} 
+							userId={$isSpectator ? 'spectator' : 'anonymous'}
+							onMatchClick={(m) => detailViewMatch = m}
+						/>
+					{/if}
+				</div>
+			{/if}
 		{/if}
 		
 		<!-- Coverage Statistics Header - Media Only -->
@@ -565,19 +644,32 @@
 			{:else}
 				{#each startTimes as startTime}
 					{@const timeMatches = matchesByStartTime[startTime]}
+					{@const isCollapsed = collapsedTimeGroups.has(startTime)}
+					{@const isPast = isTimeGroupPast(startTime)}
 					
 					<div class="space-y-2">
-						<!-- Time Header - Clean -->
-						<div class="flex items-center gap-2 mb-2">
-							<h3 class="text-base font-bold text-charcoal-50">{startTime}</h3>
-							<span class="text-xs text-charcoal-300">
+						<!-- Time Header - Collapsible -->
+						<button
+							type="button"
+							onclick={() => toggleTimeGroup(startTime)}
+							class="flex items-center gap-2 mb-2 w-full text-left"
+							aria-expanded={!isCollapsed}
+						>
+							{#if isCollapsed}
+								<ChevronRight size={16} class="text-charcoal-400 flex-shrink-0" />
+							{:else}
+								<ChevronDown size={16} class="text-charcoal-400 flex-shrink-0" />
+							{/if}
+							<h3 class="text-base font-bold {isPast ? 'text-charcoal-400 opacity-60' : 'text-charcoal-50'}">{startTime}</h3>
+							<span class="text-xs {isPast ? 'text-charcoal-500 opacity-60' : 'text-charcoal-300'}">
 								{timeMatches.length} match{timeMatches.length !== 1 ? 'es' : ''}
 							</span>
-						</div>
+						</button>
 						
 						<!-- Matches at this time -->
-						<div class="space-y-1">
-						{#each timeMatches as match, index}
+						{#if !isCollapsed}
+							<div class="space-y-1 {isPast ? 'opacity-50' : ''}">
+							{#each timeMatches as match, index}
 							{@const teamId = getTeamIdFromFilter(match)}
 							{@const opponent = getOpponent(match)}
 							{@const isExpanded = expandedMatch === match.MatchId}
@@ -826,8 +918,9 @@
 								</div>
 							{/if}
 							</div>
-						{/each}
-						</div>
+							{/each}
+							</div>
+						{/if}
 					</div>
 				{/each}
 			{/if}
