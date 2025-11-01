@@ -31,6 +31,7 @@
 	}
 	
 	let activeTab: 'plan' | 'analytics' | 'stats' | 'coordination' = 'plan';
+	let selectedDate: string | null = null;
 	let coverageStatusFilter: 'all' | 'not-covered' | 'planned' | 'covered' = 'all';
 	let coverageStatusMenuOpen: string | null = null;
 	let currentConflictIndex = 0;
@@ -58,12 +59,51 @@
 		});
 	}
 	
-	// Get selected matches with full details, filtered by coverage status if needed
-	$: selectedMatchesList = (() => {
+	// Get all selected matches (unfiltered) for date grouping
+	$: allSelectedMatches = (() => {
 		const currentPlan = get(coveragePlan);
-		let filtered = matches
+		return matches
 			.filter(m => currentPlan.has(m.MatchId))
 			.sort((a, b) => a.ScheduledStartDateTime - b.ScheduledStartDateTime);
+	})();
+	
+	// Group by date (from unfiltered matches)
+	$: matchesByDate = (() => {
+		const grouped: Record<string, FilteredMatch[]> = {};
+		allSelectedMatches.forEach(match => {
+			const dateKey = formatMatchDate(match.ScheduledStartDateTime);
+			if (!grouped[dateKey]) {
+				grouped[dateKey] = [];
+			}
+			grouped[dateKey].push(match);
+		});
+		return grouped;
+	})();
+
+	$: sortedDates = (() => {
+		return Object.keys(matchesByDate).sort((a, b) => {
+			const dateA = new Date(a).getTime();
+			const dateB = new Date(b).getTime();
+			return dateA - dateB;
+		});
+	})();
+	
+	// Set default selected date to first date if available
+	$: if (sortedDates.length > 0 && !selectedDate) {
+		selectedDate = sortedDates[0];
+	}
+	
+	// Get selected matches with full details, filtered by coverage status if needed
+	$: selectedMatchesList = (() => {
+		let filtered = allSelectedMatches;
+		
+		// Apply date filter
+		if (selectedDate) {
+			filtered = filtered.filter(match => {
+				const matchDate = formatMatchDate(match.ScheduledStartDateTime);
+				return matchDate === selectedDate;
+			});
+		}
 		
 		// Apply coverage status filter
 		if (coverageStatusFilter !== 'all') {
@@ -241,27 +281,6 @@
 		const earliest = Math.min(...selectedMatchesList.map(m => m.ScheduledStartDateTime));
 		const latest = Math.max(...selectedMatchesList.map(m => m.ScheduledEndDateTime));
 		return Math.floor((latest - earliest) / 60000); // minutes
-	})();
-	
-	// Group by date
-	$: matchesByDate = (() => {
-		const grouped: Record<string, FilteredMatch[]> = {};
-		selectedMatchesList.forEach(match => {
-			const dateKey = formatMatchDate(match.ScheduledStartDateTime);
-			if (!grouped[dateKey]) {
-				grouped[dateKey] = [];
-			}
-			grouped[dateKey].push(match);
-		});
-		return grouped;
-	})();
-	
-	$: sortedDates = (() => {
-		return Object.keys(matchesByDate).sort((a, b) => {
-			const dateA = new Date(a).getTime();
-			const dateB = new Date(b).getTime();
-			return dateA - dateB;
-		});
 	})();
 	
 	// Export handlers
@@ -536,8 +555,52 @@
 						</p>
 					</div>
 				{:else}
-					<div class="space-y-4">
-						<!-- Conflict Resolution Section -->
+					{#key selectedMatchesList.length}
+						{@const totalTeams = new Set(matches.map(m => {
+							const teamText = m.InvolvedTeam === 'first' ? m.FirstTeamText : m.SecondTeamText;
+							const matchResult = teamText.match(/(\d+-\d+)/);
+							return matchResult ? matchResult[1] : '';
+						}).filter(Boolean)).size}
+						{@const coveredTeams = new Set(Array.from(coverageStatus['_status'] || new Map()).filter(([_, status]) => status === 'covered' || status === 'partially-covered').map(([teamId]) => teamId)).size}
+						{@const coveragePercent = totalTeams > 0 ? Math.round((coveredTeams / totalTeams) * 100) : 0}
+
+						<div class="space-y-4">
+							<!-- Progress Bar Visualization -->
+							<div class="border border-charcoal-700 rounded-lg bg-charcoal-800/50 p-4">
+								<div class="flex items-center justify-between mb-2">
+									<h4 class="text-sm font-semibold text-charcoal-50">Coverage Progress</h4>
+									<span class="text-lg font-bold text-brand-400">{coveragePercent}%</span>
+								</div>
+								<div class="w-full bg-charcoal-700 rounded-full h-3 overflow-hidden">
+									<div
+										class="h-full bg-gradient-to-r from-brand-500 to-brand-400 transition-all duration-500 rounded-full"
+										style="width: {coveragePercent}%"
+									></div>
+								</div>
+								<div class="flex items-center justify-between mt-2 text-xs text-charcoal-400">
+									<span>{coveredTeams} of {totalTeams} teams covered</span>
+									<span>{selectedMatchesList.length} matches selected</span>
+								</div>
+								</div>
+
+							<!-- Date Selector -->
+							{#if sortedDates.length > 0}
+								<div class="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
+									{#each sortedDates as dateKey}
+										<button
+											type="button"
+											onclick={() => selectedDate = dateKey}
+											class="px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 min-h-[40px] {selectedDate === dateKey ? 'bg-brand-500 text-white' : 'bg-charcoal-800 text-charcoal-300 border border-charcoal-600 hover:bg-charcoal-700 hover:text-charcoal-50'}"
+											aria-label={`View matches for ${dateKey}`}
+											aria-pressed={selectedDate === dateKey}
+										>
+											{dateKey}
+										</button>
+									{/each}
+								</div>
+							{/if}
+
+							<!-- Conflict Resolution Section -->
 						{#if conflictGroups.length > 0}
 							<div class="border border-warning-500/50 rounded-lg bg-warning-500/10 p-4">
 								<div class="flex items-center justify-between mb-3">
@@ -707,216 +770,91 @@
 							</div>
 						{/if}
 						
-						<!-- Matches List -->
-						<div class="space-y-4">
-							{#each sortedDates as dateKey}
-								{@const dateMatches = matchesByDate[dateKey]}
-								<div class="space-y-2">
-									<div class="flex items-center gap-2 pb-2 border-b border-charcoal-700">
-										<h4 class="text-sm font-semibold text-charcoal-50">{dateKey}</h4>
-										<span class="text-xs text-charcoal-400">
-											({dateMatches.length} match{dateMatches.length !== 1 ? 'es' : ''})
-										</span>
-									</div>
-									
-									{#each dateMatches as match}
+						<!-- Timeline Visualization with Matches -->
+						<div class="border border-charcoal-700 rounded-lg bg-charcoal-800/50 p-4">
+								<h4 class="text-sm font-semibold text-charcoal-50 mb-4">Upcoming Matches</h4>
+								<div class="relative pl-6">
+									<!-- Vertical timeline line -->
+									<div class="absolute left-2 top-0 bottom-0 w-0.5 bg-charcoal-600"></div>
+
+									{#each selectedMatchesList as match, index}
 										{@const teamId = getTeamIdentifier(match)}
-										{@const opponent = getOpponent(match)}
 										{@const hasConflict = planConflicts.has(match.MatchId)}
+										{@const teamCoverageStatus = teamId ? coverageStatus.getTeamStatus(teamId) : 'not-covered'}
+										{@const matchDate = formatMatchDate(match.ScheduledStartDateTime)}
+										{@const isFirstOfDay = index === 0 || formatMatchDate(selectedMatchesList[index - 1].ScheduledStartDateTime) !== matchDate}
 										
-										<div class="flex items-center gap-3 px-3 py-2.5 rounded border {hasConflict ? 'border-warning-500/50 bg-warning-500/10' : 'border-gold-500/50 bg-gold-500/5'}">
-											<button
-												onclick={() => coveragePlan.toggleMatch(match.MatchId)}
-												class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors {hasConflict ? 'border-warning-500/50 bg-warning-500/20' : 'border-gold-500 bg-gold-500/20'}"
-												aria-label="Remove from plan"
-											>
-												<svg class="w-3 h-3 {hasConflict ? 'text-warning-500' : 'text-[#facc15]'}" fill="currentColor" viewBox="0 0 20 20">
-													<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-												</svg>
-											</button>
-											
-											{#if hasConflict}
-												<div class="flex-shrink-0 text-[10px] font-semibold text-warning-500 px-1.5 py-0.5 rounded bg-warning-500/20">
-													CONFLICT
-												</div>
-											{/if}
-											
-											<div class="flex-shrink-0 w-20 text-sm font-semibold text-charcoal-50">
-												{formatMatchTime(match.ScheduledStartDateTime)}
+										{#if isFirstOfDay && index > 0}
+											<div class="mb-4"></div>
+										{/if}
+										
+										{#if isFirstOfDay}
+											<!-- Date marker -->
+											<div class="relative flex items-center gap-3 mb-3">
+												<div class="absolute left-[-22px] w-4 h-4 rounded-full bg-brand-500 border-2 border-charcoal-950 z-10"></div>
+												<h5 class="text-xs font-bold text-charcoal-300 uppercase tracking-wide">{matchDate}</h5>
 											</div>
-											
-											<div class="flex-shrink-0 w-24 text-sm font-bold text-[#facc15]">
-												{match.CourtName}
-											</div>
-											
-											<div class="flex-1 min-w-0">
-												<div class="flex items-center gap-2">
-													<div class="text-sm font-bold text-charcoal-50">
-														{teamId || match.Division.CodeAlias}
-													</div>
-							{#if teamId}
-								{@const teamStatus = coverageStatus.getTeamStatus(teamId)}
-								<div class="w-2 h-2 rounded {teamStatus === 'covered' ? 'bg-green-500' : teamStatus === 'partially-covered' ? 'bg-[#f59e0b]' : teamStatus === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" title="Status: {teamStatus}"></div>
-							{/if}
-												</div>
-												<div class="text-xs text-charcoal-200 truncate">
-													vs {opponent}
-												</div>
-											</div>
-											
-											{#if teamId}
-												<div class="relative flex-shrink-0">
-													<button
-														onclick={(e) => {
-															e.stopPropagation();
-															coverageStatusMenuOpen = coverageStatusMenuOpen === teamId ? null : teamId;
-														}}
-														class="px-2 py-1 text-xs rounded transition-colors {coverageStatusMenuOpen === teamId ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600'}"
-														title="Set coverage status"
-													>
-														{#if coverageStatus.getTeamStatus(teamId) === 'covered'}
-															<svelte:component this={Check} size={14} />
-														{:else if coverageStatus.getTeamStatus(teamId) === 'partially-covered'}
-															<svelte:component this={Circle} size={14} class="text-[#f59e0b]" fill="currentColor" />
-														{:else if coverageStatus.getTeamStatus(teamId) === 'planned'}
-															<svelte:component this={ClipboardList} size={14} />
-														{:else}
-															<svelte:component this={Circle} size={14} />
-														{/if}
-													</button>
-													{#if coverageStatusMenuOpen === teamId}
-														<div
-															class="fixed inset-0 z-40"
-															role="button"
-															onclick={() => coverageStatusMenuOpen = null}
-															onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') coverageStatusMenuOpen = null; }}
-															tabindex="0"
-														></div>
-														<div class="absolute right-0 top-full mt-1 z-50">
-															<CoverageStatusSelector
-																{teamId}
-																currentStatus={coverageStatus.getTeamStatus(teamId)}
-																onStatusChange={(status) => {
-																	coverageStatus.setTeamStatus(teamId, status as any);
-																	coverageStatusMenuOpen = null;
-																}}
-																onClose={() => coverageStatusMenuOpen = null}
-															/>
+										{/if}
+
+										<!-- Match card -->
+										<div class="relative mb-4 last:mb-0">
+											<div class="absolute left-[-26px] w-3 h-3 rounded-full z-10 border-2 border-charcoal-950 {hasConflict ? 'bg-warning-500' : teamCoverageStatus === 'covered' ? 'bg-success-500' : teamCoverageStatus === 'planned' ? 'bg-gold-500' : 'bg-charcoal-400'}"></div>
+											<div class="ml-2 p-3 rounded-lg border border-charcoal-700 bg-charcoal-900">
+												<div class="flex items-start justify-between gap-2">
+													<div class="flex-1 min-w-0">
+														<div class="flex items-center gap-2 mb-1">
+															<span class="text-sm font-bold text-charcoal-50">{formatMatchTime(match.ScheduledStartDateTime)}</span>
+															<span class="text-xs text-charcoal-500">•</span>
+															<span class="text-xs font-medium text-brand-400">{match.CourtName}</span>
 														</div>
-													{/if}
+														<div class="text-xs text-charcoal-300 mb-1">
+															Division: {match.Division.CodeAlias}
+														</div>
+														<div class="text-sm text-charcoal-50">
+															{teamId || match.Division.CodeAlias}
+														</div>
+														<div class="text-sm text-charcoal-300">
+															{getOpponent(match)}
+														</div>
+													</div>
+													<div class="flex flex-col items-center gap-1 flex-shrink-0">
+														{#if teamCoverageStatus === 'covered'}
+															<div class="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center" title="Covered">
+																<Check size={12} class="text-white" />
+															</div>
+														{:else if teamCoverageStatus === 'planned'}
+															<div class="w-5 h-5 rounded-full bg-gold-500/20 border border-gold-500/50 flex items-center justify-center" title="Planned">
+																<ClipboardList size={12} class="text-gold-400" />
+															</div>
+														{:else}
+															<div class="w-5 h-5 rounded-full bg-charcoal-700 border border-charcoal-600 flex items-center justify-center" title="Uncovered">
+																<Circle size={12} class="text-charcoal-400" />
+															</div>
+														{/if}
+														{#if hasConflict}
+															<div class="w-5 h-5 rounded-full bg-warning-500 flex items-center justify-center" title="Conflict">
+																<AlertTriangle size={12} class="text-charcoal-950" />
+															</div>
+														{/if}
+													</div>
 												</div>
-											{/if}
-											
-											<div class="flex-shrink-0">
-												<span
-													class="px-2 py-0.5 text-[10px] font-semibold rounded"
-													style="background-color: {match.Division.ColorHex}20; color: {match.Division.ColorHex}; border: 1px solid {match.Division.ColorHex}40;"
-												>
-													{match.Division.CodeAlias}
-												</span>
 											</div>
 										</div>
 									{/each}
 								</div>
-							{/each}
+							</div>
+
 						</div>
-					</div>
+					{/key}
 				{/if}
 			{:else if activeTab === 'analytics'}
-				<CoverageAnalytics {matches} />
-			{:else if activeTab === 'stats'}
-				<CoverageStats {matches} />
-			{:else}
-				<div class="space-y-4">
-					<TeamMemberSelector />
+					<CoverageAnalytics {matches} />
+				{:else if activeTab === 'stats'}
+					<CoverageStats {matches} />
+				{:else if activeTab === 'coordination'}
 					<TeamCoverageView {matches} />
-				</div>
-			{/if}
+				{/if}
 		</div>
-
-		<!-- Footer Actions -->
-		{#if selectedMatchesList.length > 0 && activeTab === 'plan'}
-			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t border-charcoal-700 bg-charcoal-700/50">
-				<div class="flex items-center gap-2 flex-wrap">
-					<button
-						onclick={() => {
-							selectedMatchesList.forEach(match => {
-								const teamId = getTeamIdentifier(match);
-								if (teamId) {
-									coverageStatus.setTeamStatus(teamId, 'planned');
-								}
-							});
-							alert('All matches marked as Planned');
-						}}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600"
-					>
-						Mark All as Planned
-					</button>
-					<button
-						onclick={() => {
-							selectedMatchesList.forEach(match => {
-								const teamId = getTeamIdentifier(match);
-								if (teamId) {
-									coverageStatus.setTeamStatus(teamId, 'covered');
-								}
-							});
-							alert('All matches marked as Covered');
-						}}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600"
-					>
-						Mark All as Covered
-					</button>
-					<button
-						onclick={() => coveragePlan.clearPlan()}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-700"
-					>
-						Clear Plan
-					</button>
-				</div>
-				
-				<div class="flex items-center gap-2 flex-wrap">
-					<button
-						onclick={handleCopyToClipboard}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600"
-						title="Copy plan to clipboard"
-					>
-						Copy
-					</button>
-					
-					<div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700">
-						<button
-							onclick={handleExportJSON}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
-							title="Export as JSON"
-						>
-							JSON
-						</button>
-						<button
-							onclick={handleExportCSV}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
-							title="Export as CSV"
-						>
-							CSV
-						</button>
-						<button
-							onclick={handleExportText}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
-							title="Export as Text"
-						>
-							TXT
-						</button>
-						<button
-							onclick={handleExportICS}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
-							title="Export as Calendar (ICS)"
-						>
-							<Calendar size={14} class="inline" />
-							ICS
-						</button>
-					</div>
-				</div>
-			</div>
-		{/if}
 	</div>
 </div>
 
@@ -930,4 +868,3 @@
 		display: none;
 	}
 </style>
-

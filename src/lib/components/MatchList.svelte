@@ -9,6 +9,7 @@
 	import { exportScoresToJSON, importScoresFromJSON, generateScoreShareUrl, extractScoresFromUrl, hasShareableScoresInUrl } from '$lib/utils/scoreShare';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
 	import { filters, applyFilters, updateFilter, resetFilters, getUniqueDivisions, getUniqueTeams, getTeamIdentifier as getTeamIdFromFilter } from '$lib/stores/filters';
+	import { sort } from '$lib/stores/sort';
 	import { priority } from '$lib/stores/priority';
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { followedTeams } from '$lib/stores/followedTeams';
@@ -36,9 +37,6 @@
 	export let eventId: string;
 	export let clubId: number;
 	
-	type SortMode = 'team' | 'court' | 'time' | 'priority';
-	
-	let sortMode: SortMode = 'team';
 	let expandedMatch: number | null = null;
 	let detailSheetMatch: FilteredMatch | null = null;
 	let priorityMenuOpen: number | null = null;
@@ -222,7 +220,7 @@
 	$: sortedMatches = (() => {
 		let sorted = [...filteredMatches];
 		
-		if (sortMode === 'priority') {
+		if ($sort === 'priority') {
 			sorted.sort((a, b) => {
 				const priorityA = priority.getPriority(a.MatchId);
 				const priorityB = priority.getPriority(b.MatchId);
@@ -243,19 +241,16 @@
 				
 				return a.ScheduledStartDateTime - b.ScheduledStartDateTime;
 			});
-		} else if (sortMode === 'team') {
-			sorted.sort((a, b) => {
-				const teamA = getTeamIdFromFilter(a);
-				const teamB = getTeamIdFromFilter(b);
-				return teamA.localeCompare(teamB);
-			});
-		} else if (sortMode === 'court') {
+		} else if ($sort === 'court') {
 			sorted.sort((a, b) => {
 				return a.CourtName.localeCompare(b.CourtName);
 			});
 		} else {
+			// Default: sort by team (alphabetical)
 			sorted.sort((a, b) => {
-				return a.ScheduledStartDateTime - b.ScheduledStartDateTime;
+				const teamA = getTeamIdFromFilter(a);
+				const teamB = getTeamIdFromFilter(b);
+				return teamA.localeCompare(teamB);
 			});
 		}
 		
@@ -507,10 +502,6 @@
 						<Check size={12} class="text-success-500" />
 						<span class="text-xs">Covered</span>
 					</div>
-					<div class="flex items-center gap-1.5">
-						<AlertTriangle size={12} class="text-warning-500" />
-						<span class="text-xs">Conflict</span>
-					</div>
 				</div>
 			</div>
 		{/if}
@@ -519,30 +510,6 @@
 		<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
 			<!-- Desktop: Inline Filters (Hidden when sidebar is available) -->
 			<div class="hidden sm:flex lg:hidden flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-				<div class="flex items-center gap-2">
-					<span class="text-xs text-charcoal-300 uppercase tracking-wider">Sort:</span>
-					<div class="flex gap-1 bg-charcoal-700 rounded-lg p-1">
-						<button
-							onclick={() => sortMode = 'team'}
-							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {sortMode === 'team' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-						>
-							Team
-						</button>
-						<button
-							onclick={() => sortMode = 'court'}
-							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {sortMode === 'court' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-						>
-							Court
-						</button>
-						<button
-							onclick={() => sortMode = 'time'}
-							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {sortMode === 'time' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-						>
-							Time
-						</button>
-					</div>
-				</div>
-				
 				<!-- Wave Filter -->
 				<div class="flex items-center gap-2">
 					<span class="text-xs text-charcoal-300 uppercase tracking-wider">Wave:</span>
@@ -576,30 +543,6 @@
 				{/if}
 			</div>
 			
-			<!-- Mobile: Sort Only (Filters in bottom sheet) -->
-			<div class="flex items-center gap-2 sm:hidden">
-				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Sort:</span>
-				<div class="flex gap-1 bg-charcoal-700 rounded-lg p-1">
-					<button
-						onclick={() => sortMode = 'team'}
-						class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {sortMode === 'team' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-					>
-						Team
-					</button>
-					<button
-						onclick={() => sortMode = 'court'}
-						class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {sortMode === 'court' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-					>
-						Court
-					</button>
-					<button
-						onclick={() => sortMode = 'time'}
-						class="px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] {sortMode === 'time' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
-					>
-						Time
-					</button>
-				</div>
-			</div>
 			
 			<!-- TODO: Add remaining filter controls and match list rendering -->
 			<!-- This is a partial migration - remaining sections will be added incrementally -->
@@ -614,30 +557,19 @@
 			{:else}
 				{#each startTimes as startTime}
 					{@const timeMatches = matchesByStartTime[startTime]}
-					{@const timeConflicts = timeMatches.filter(m => conflicts.has(m.MatchId)).length}
-					{@const hasAnyConflict = timeConflicts > 0}
-					{@const allHaveConflicts = timeConflicts === timeMatches.length}
 					
 					<div class="space-y-2">
-						<!-- Time Header - Compact -->
-						<div class="flex items-center justify-between mb-2">
-							<div class="flex items-center gap-2">
-								<h3 class="text-base font-bold text-charcoal-50">{startTime}</h3>
-								<span class="text-xs text-charcoal-300">
-									{timeMatches.length} match{timeMatches.length !== 1 ? 'es' : ''}
-								</span>
-							</div>
-							{#if hasAnyConflict}
-								<span class="text-xs font-medium text-warning-500">
-									{timeConflicts} conflict{timeConflicts !== 1 ? 's' : ''}
-								</span>
-							{/if}
+						<!-- Time Header - Clean -->
+						<div class="flex items-center gap-2 mb-2">
+							<h3 class="text-base font-bold text-charcoal-50">{startTime}</h3>
+							<span class="text-xs text-charcoal-300">
+								{timeMatches.length} match{timeMatches.length !== 1 ? 'es' : ''}
+							</span>
 						</div>
 						
 						<!-- Matches at this time -->
 						<div class="space-y-1">
 						{#each timeMatches as match, index}
-							{@const hasConflict = conflicts.has(match.MatchId)}
 							{@const teamId = getTeamIdFromFilter(match)}
 							{@const opponent = getOpponent(match)}
 							{@const isExpanded = expandedMatch === match.MatchId}
@@ -650,14 +582,14 @@
 							{@const shouldDim = scanningMode && isCovered}
 							{@const currentPlan = get(coveragePlan)}
 							{@const isSelected = currentPlan.has(match.MatchId)}
-							{@const showConflictStyling = hasConflict && !allHaveConflicts}
 							
 							<div>
 								<!-- Mobile: Touch-Optimized Card Layout (<1024px) -->
 								<div class="lg:hidden">
 									<MatchCardMobile
 										{match}
-										{hasConflict}
+										{matchClaiming}
+										hasConflict={false}
 										scanningMode={scanningMode}
 										onTap={(m) => detailSheetMatch = m}
 										onSwipeRight={$isMedia ? (m) => coveragePlan.toggleMatch(m.MatchId) : null}
@@ -707,9 +639,6 @@
 											<div class="text-sm text-charcoal-200 truncate">
 												vs {opponent}
 											</div>
-											{#if hasConflict}
-												<AlertTriangle size={14} class="text-warning-500 flex-shrink-0" />
-											{/if}
 										</div>
 									</div>
 									

@@ -7,12 +7,14 @@
 	import { coveragePlan } from '$lib/stores/coveragePlan';
 	import { priority } from '$lib/stores/priority';
 	import { coverageStatus } from '$lib/stores/coverageStatus';
-	import { userRole, isMedia, isSpectator } from '$lib/stores/userRole';
+	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import { followedTeams } from '$lib/stores/followedTeams';
-	import { Star, AlertTriangle, ClipboardList, Check, Circle } from 'lucide-svelte';
+	import type { createMatchClaiming } from '$lib/stores/matchClaiming';
+	import { Star, AlertTriangle, ClipboardList, Check, Circle, X } from 'lucide-svelte';
 	
 	export let match: FilteredMatch;
 	export let hasConflict: boolean = false;
+	export let matchClaiming: ReturnType<typeof createMatchClaiming> | null = null;
 	export let onTap: (match: FilteredMatch) => void;
 	export let onSwipeRight: ((match: FilteredMatch) => void) | null = null;
 	export let onSwipeLeft: ((match: FilteredMatch) => void) | null = null;
@@ -50,6 +52,24 @@
 	$: isSelected = currentPlan.has(match.MatchId);
 	$: isMediaValue = $isMedia;
 	$: isSpectatorValue = $isSpectator;
+	$: isCoachValue = $isCoach;
+	$: followedTeamsList = $followedTeams || [];
+	$: isFollowingTeam = teamId ? followedTeamsList.some(t => t.teamId === teamId) : false;
+	
+	// Match status calculation
+	$: now = typeof window !== 'undefined' ? Date.now() : 0;
+	$: matchStatus = (() => {
+		if (match.HasOutcome) return 'completed';
+		if (now >= match.ScheduledStartDateTime && now <= match.ScheduledEndDateTime) return 'in-progress';
+		if (now > match.ScheduledEndDateTime) return 'completed';
+		return 'upcoming';
+	})();
+	
+	// Live score data
+	$: score = matchClaiming ? matchClaiming.getScore(match.MatchId) : null;
+	$: currentSetScore = score && score.sets.length > 0 ? score.sets[score.sets.length - 1] : null;
+	$: isLive = score && score.status === 'in-progress';
+	$: showLiveScore = isLive && currentSetScore;
 	
 	// Compute card classes with opacity support
 	$: cardClasses = [
@@ -152,36 +172,60 @@
 	<!-- Card Content -->
 	<div class={cardClasses}>
 		<div class="flex items-start gap-3">
-			<!-- Time Badge -->
-			<div class="flex-shrink-0">
-				<div class="px-2 py-1 rounded-lg bg-charcoal-700 text-charcoal-200 border border-charcoal-600 text-xs font-bold">
-					{formatMatchTime(match.ScheduledStartDateTime)}
-				</div>
-			</div>
-			
 			<!-- Main Content -->
 			<div class="flex-1 min-w-0">
-				<!-- Team and Opponent -->
+				<!-- Team Name and Court - Most Prominent -->
 				<div class="flex items-center gap-2 mb-1">
-					<div class="text-base font-bold text-charcoal-50 truncate">
-						{teamId || match.Division.CodeAlias}
-					</div>
+					{#if match.InvolvedTeam === 'work'}
+						<!-- Work Assignment Indicator -->
+						<span class="text-xs font-semibold px-1.5 py-0.5 rounded bg-charcoal-700 text-charcoal-300 border border-charcoal-600">
+							WORK
+						</span>
+					{:else}
+						<div class="text-base font-bold text-charcoal-50 truncate">
+							{teamId || match.Division.CodeAlias}
+						</div>
+					{/if}
+					<span class="text-base font-bold text-gold-500 flex-shrink-0">
+						{match.CourtName}
+					</span>
+					{#if isSpectatorValue && match.ScoreKioskCode}
+						<!-- ScoreKioskCode Badge -->
+						<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-charcoal-700 text-charcoal-300 border border-charcoal-600">
+							{match.ScoreKioskCode}
+						</span>
+					{/if}
 					{#if hasConflict}
 						<AlertTriangle size={14} class="text-warning-500 flex-shrink-0" />
 					{/if}
 					{#if matchPriority === 'must-cover'}
 						<Star size={14} class="text-gold-500 flex-shrink-0" />
 					{/if}
+					{#if matchStatus === 'completed'}
+						<!-- Completed Match Indicator -->
+						<div class="w-2 h-2 rounded-full bg-charcoal-600 flex-shrink-0" title="Match completed"></div>
+					{:else if matchStatus === 'in-progress'}
+						<!-- In Progress Indicator -->
+						<div class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 animate-pulse" title="Match in progress"></div>
+					{/if}
 				</div>
 				
+				<!-- Opponent -->
 				<div class="text-sm text-charcoal-300 truncate mb-1">
-					vs {opponent}
+					{#if match.InvolvedTeam === 'work'}
+						{match.WorkTeamText || match.Division.CompleteShortName}
+					{:else}
+						vs {opponent}
+					{/if}
+					{#if showLiveScore}
+						<span class="ml-2 text-xs font-semibold text-green-400">
+							{currentSetScore.team1Score}-{currentSetScore.team2Score}
+						</span>
+					{/if}
 				</div>
 				
-				<!-- Court and Status -->
+				<!-- Division and Status -->
 				<div class="flex items-center gap-2 mt-1">
-					<span class="text-xs font-semibold text-charcoal-300">{match.CourtName}</span>
-					<span class="text-xs text-charcoal-400">•</span>
 					<span class="text-xs text-charcoal-400">{match.Division.CodeAlias}</span>
 					{#if teamCoverageStatus === 'covered'}
 						<span class="text-xs text-success-500">
@@ -196,6 +240,11 @@
 							Planned
 						</span>
 					{/if}
+					{#if isLive}
+						<span class="px-1.5 py-0.5 text-[10px] font-medium rounded border bg-green-500/20 text-green-400 border-green-500/30">
+							LIVE
+						</span>
+					{/if}
 				</div>
 			</div>
 			
@@ -206,7 +255,7 @@
 					<button
 						type="button"
 						onclick={handleSelect}
-					class="w-6 h-6 rounded border-2 flex items-center justify-center transition-colors touch-target {isSelected ? 'border-gold-500 bg-gold-500/20' : 'border-charcoal-600 hover:bg-charcoal-700'}"
+						class="w-6 h-6 rounded border-2 flex items-center justify-center transition-colors touch-target {isSelected ? 'border-gold-500 bg-gold-500/20' : 'border-charcoal-600 hover:border-charcoal-700'}"
 						aria-label={isSelected ? 'Remove from plan' : 'Add to plan'}
 					>
 						{#if isSelected}
@@ -217,33 +266,27 @@
 							<span class="text-xs text-charcoal-400">+</span>
 						{/if}
 					</button>
-				{:else if isSpectatorValue}
-					<!-- Follow Button -->
-					{#if teamId}
-						<button
-							type="button"
-							onclick={(e) => {
-								e.stopPropagation();
-								if (followedTeams.isFollowing(teamId)) {
-									followedTeams.unfollowTeam(teamId);
-								} else {
-									followedTeams.followTeam(teamId, teamId);
-								}
-							}}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors touch-target"
-							class:bg-gold-500={followedTeams.isFollowing(teamId)}
-							class:text-charcoal-950={followedTeams.isFollowing(teamId)}
-							class:bg-charcoal-700={!followedTeams.isFollowing(teamId)}
-							class:text-charcoal-200={!followedTeams.isFollowing(teamId)}
-							title={followedTeams.isFollowing(teamId) ? 'Unfollow team' : 'Follow team'}
-						>
-							{#if followedTeams.isFollowing(teamId)}
-								<Check size={14} />
-							{:else}
-								+
-							{/if}
-						</button>
-					{/if}
+				{:else if isSpectatorValue && teamId}
+					<!-- Favorite/Follow Button -->
+					<button
+						type="button"
+						onclick={(e) => {
+							e.stopPropagation();
+							if (isFollowingTeam) {
+								followedTeams.unfollowTeam(teamId);
+							} else {
+								followedTeams.followTeam(teamId, teamId);
+							}
+						}}
+						class="w-6 h-6 flex items-center justify-center transition-colors touch-target"
+						class:text-gold-500={isFollowingTeam}
+						class:text-charcoal-400={!isFollowingTeam}
+						class:hover:text-gold-400={!isFollowingTeam}
+						aria-label={isFollowingTeam ? 'Unfollow team' : 'Follow team'}
+						title={isFollowingTeam ? 'Unfollow team' : 'Follow team'}
+					>
+						<Star size={16} class={isFollowingTeam ? 'fill-current' : ''} />
+					</button>
 				{/if}
 			</div>
 		</div>

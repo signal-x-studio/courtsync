@@ -20,8 +20,12 @@
 	import MobileBottomNav from '$lib/components/MobileBottomNav.svelte';
 	import FilterBottomSheet from '$lib/components/FilterBottomSheet.svelte';
 	import MobileFilterBar from '$lib/components/MobileFilterBar.svelte';
+	import ViewPlanButton from '$lib/components/ViewPlanButton.svelte';
 	import OnboardingModal from '$lib/components/OnboardingModal.svelte';
+	import MyTeamsView from '$lib/components/MyTeamsView.svelte';
+	import TeamDetailView from '$lib/components/TeamDetailView.svelte';
 	import { getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
+	import { followedTeams } from '$lib/stores/followedTeams';
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
 	let date = '2025-11-01';
@@ -38,16 +42,27 @@
 	let headerCollapsed = false; // Desktop: start expanded
 	let lastScrollY = 0;
 	let sidebarCollapsed = false; // Desktop: start expanded
-	let activeTab: 'matches' | 'plan' | 'filters' | 'more' = 'matches';
+	let activeTab: 'matches' | 'plan' | 'filters' | 'more' | 'myTeams' = 'matches';
 	let showFilterSheet = false;
 	let showMoreMenu = false;
 	let showOnboarding = false;
+	let selectedTeamId: string | null = null;
+	let selectedTeamName: string | null = null;
 	
 	// Get unique divisions and teams for filter sheet
 	$: divisions = getUniqueDivisions(matches);
 	$: teams = getUniqueTeams(matches);
+	$: followedTeamsList = $followedTeams || [];
+	$: hasFollowedTeams = followedTeamsList.length > 0;
+	$: singleTeam = followedTeamsList.length === 1 ? followedTeamsList[0] : null;
 	
-	function handleTabChange(tab: 'matches' | 'plan' | 'filters' | 'more') {
+	// Auto-navigate to team detail if only one team is favorited
+	$: if (activeTab === 'myTeams' && singleTeam && !selectedTeamId && !selectedTeamName) {
+		selectedTeamId = singleTeam.teamId;
+		selectedTeamName = singleTeam.teamName;
+	}
+	
+	function handleTabChange(tab: 'matches' | 'plan' | 'filters' | 'more' | 'myTeams') {
 		// If clicking same tab, close it
 		if (activeTab === tab) {
 			if (tab === 'filters') {
@@ -56,6 +71,9 @@
 				showCoveragePlan = false;
 			} else if (tab === 'more') {
 				showMoreMenu = false;
+			} else if (tab === 'myTeams') {
+				selectedTeamId = null;
+				selectedTeamName = null;
 			}
 			activeTab = 'matches';
 		} else {
@@ -64,18 +82,32 @@
 				showFilterSheet = true;
 				showCoveragePlan = false;
 				showMoreMenu = false;
+				selectedTeamId = null;
+				selectedTeamName = null;
 			} else if (tab === 'plan') {
 				showCoveragePlan = true;
 				showFilterSheet = false;
 				showMoreMenu = false;
+				selectedTeamId = null;
+				selectedTeamName = null;
 			} else if (tab === 'more') {
 				showMoreMenu = true;
 				showFilterSheet = false;
 				showCoveragePlan = false;
+				selectedTeamId = null;
+				selectedTeamName = null;
+			} else if (tab === 'myTeams') {
+				showFilterSheet = false;
+				showMoreMenu = false;
+				showCoveragePlan = false;
+				selectedTeamId = null;
+				selectedTeamName = null;
 			} else {
 				showFilterSheet = false;
 				showMoreMenu = false;
 				showCoveragePlan = false;
+				selectedTeamId = null;
+				selectedTeamName = null;
 			}
 		}
 	}
@@ -90,9 +122,14 @@
 		activeTab = 'matches';
 	}
 	
-	function closeMoreMenu() {
-		showMoreMenu = false;
-		activeTab = 'matches';
+	function handleTeamSelect(teamId: string, teamName: string) {
+		selectedTeamId = teamId;
+		selectedTeamName = teamName;
+	}
+	
+	function handleBackToMyTeams() {
+		selectedTeamId = null;
+		selectedTeamName = null;
 	}
 	
 	// Auto-collapse header on scroll (desktop only)
@@ -317,11 +354,9 @@
 
 <div class="min-h-screen bg-charcoal-950 pb-20">
 	<!-- Mobile Header -->
-	<MobileHeader
-		eventName={eventInfo?.name || null}
-		matchCount={matches.length}
-		conflictCount={conflictCount}
-	/>
+		<MobileHeader
+			eventName={eventInfo?.name || null}
+		/>
 	
 	<!-- Desktop Header (hidden on mobile) -->
 	<header 
@@ -577,14 +612,34 @@
 		
         <!-- Main Content Area -->
         <main class="flex-1 w-full lg:container lg:mx-auto lg:px-6 lg:py-6">
-		<!-- Mobile Filter Bar - Hidden by default, accessible via bottom nav -->
-		<div class="lg:hidden">
-			{#if activeTab === 'filters'}
-				<MobileFilterBar onOpenFullFilters={() => { showFilterSheet = true; activeTab = 'filters'; }} />
-			{/if}
-		</div>
+		<!-- Mobile Filter Bar - Always visible on mobile (hide for My Teams view) -->
+		{#if activeTab !== 'myTeams'}
+			<div class="lg:hidden">
+				<MobileFilterBar 
+					onOpenFullFilters={() => { showFilterSheet = true; activeTab = 'filters'; }} 
+				/>
+			</div>
+		{/if}
 		
-		<div class="px-4 py-4 pb-24 lg:px-0 lg:py-0">
+		<!-- My Teams View -->
+		{#if activeTab === 'myTeams'}
+			{#if selectedTeamId && selectedTeamName}
+				<TeamDetailView
+					teamId={selectedTeamId}
+					teamName={selectedTeamName}
+					{matches}
+					{eventId}
+					{clubId}
+					onBack={handleBackToMyTeams}
+				/>
+			{:else}
+				<MyTeamsView
+					{matches}
+					onTeamSelect={handleTeamSelect}
+				/>
+			{/if}
+		{:else}
+			<div class="px-4 py-4 pb-24 lg:px-0 lg:py-0">
 		{#if loading}
 			<div class="text-center py-12">
 				<div class="inline-block animate-pulse text-charcoal-300">
@@ -637,7 +692,19 @@
 			<CoveragePlanPanel {matches} onClose={closeCoveragePlan} />
 		{/if}
 		</div>
+		{/if}
 		</main>
+	</div>
+	
+	<!-- View Plan Button (Mobile) -->
+	<div class="lg:hidden">
+		<ViewPlanButton
+			selectedCount={selectedCountValue}
+			onClick={() => {
+				showCoveragePlan = true;
+				activeTab = 'plan';
+			}}
+		/>
 	</div>
 	
 	<!-- Mobile Bottom Navigation -->

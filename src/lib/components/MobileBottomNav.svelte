@@ -2,10 +2,11 @@
 	import { userRole, isMedia, isCoach } from '$lib/stores/userRole';
 	import { selectedCount } from '$lib/stores/coveragePlan';
 	import { filters } from '$lib/stores/filters';
-	import { ClipboardList, Calendar, CalendarDays, Search, Settings } from 'lucide-svelte';
+	import { followedTeams } from '$lib/stores/followedTeams';
+	import { ClipboardList, Calendar, CalendarDays, Search, Settings, Star } from 'lucide-svelte';
 	
-	export let activeTab: 'matches' | 'plan' | 'filters' | 'more' = 'matches';
-	export let onTabChange: (tab: 'matches' | 'plan' | 'filters' | 'more') => void;
+	export let activeTab: 'matches' | 'plan' | 'filters' | 'more' | 'myTeams' = 'matches';
+	export let onTabChange: (tab: 'matches' | 'plan' | 'filters' | 'more' | 'myTeams') => void;
 	
 	let activeFilterCount = 0;
 	
@@ -13,12 +14,15 @@
 		let count = 0;
 		if ($filters.wave !== 'all') count++;
 		if ($filters.division) count++;
+		if ($filters.court) count++;
 		if ($filters.teams.length > 0) count++;
 		if ($filters.timeRange.start || $filters.timeRange.end) count++;
 		if ($filters.priority && $filters.priority !== 'all') count++;
 		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
 		if ($filters.conflictsOnly) count++;
-		if ($filters.myTeamsOnly) count++;
+		// Only count myTeamsOnly if there are actually favorited teams
+		if ($filters.myTeamsOnly && followedTeamsCount > 0) count++;
+		if ($filters.searchQuery) count++;
 		return count;
 	}
 	
@@ -26,6 +30,8 @@
 	$: isMediaValue = $isMedia;
 	$: isCoachValue = $isCoach;
 	$: selectedCountValue = $selectedCount;
+	$: followedTeamsCount = $followedTeams?.length || 0;
+	$: showMyTeamsTab = $userRole === 'spectator' && followedTeamsCount > 0;
 	
 	// Role-based navigation tabs
 	$: tabs = isMediaValue
@@ -38,6 +44,13 @@
 		: isCoachValue
 		? [
 				{ id: 'matches' as const, label: 'Schedule', icon: Calendar },
+				{ id: 'more' as const, label: 'More', icon: Settings }
+		  ]
+		: showMyTeamsTab
+		? [
+				{ id: 'matches' as const, label: 'Matches', icon: ClipboardList },
+				{ id: 'myTeams' as const, label: 'My Teams', icon: Star },
+				{ id: 'filters' as const, label: 'Filters', icon: Search, badge: activeFilterCount > 0 ? activeFilterCount : undefined },
 				{ id: 'more' as const, label: 'More', icon: Settings }
 		  ]
 		: [

@@ -292,8 +292,24 @@
 				{/if}
 			</div>
 			<button
-				onclick={onClose}
-				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+				type="button"
+				onclick={(e) => {
+					e.stopPropagation();
+					e.preventDefault();
+					if (onClose) {
+						onClose();
+					}
+				}}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault();
+						e.stopPropagation();
+						if (onClose) {
+							onClose();
+						}
+					}
+				}}
+				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center cursor-pointer"
 				aria-label="Close panel"
 			>
 				<svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,67 +389,67 @@
 											{@const previousMatch = index > 0 ? renderMatch(dateMatches[index - 1], dateMatches[index - 1].type === 'work') : null}
 											{@const showDate = !previousMatch || previousMatch.matchDate !== matchData.matchDate}
 											<div
-												class="flex items-center gap-4 px-4 py-3 rounded border {matchData.isWork ? 'border-charcoal-600 bg-charcoal-700/30' : matchData.isPlaying ? 'border-[#eab308]/50 bg-gold-500/5' : 'border-charcoal-700 bg-charcoal-800/30'}"
+												class="flex items-center gap-3 px-4 py-3 rounded border {matchData.isWork ? 'border-charcoal-600 bg-charcoal-700/30' : matchData.isPlaying ? 'border-[#eab308]/50 bg-gold-500/5' : 'border-charcoal-700 bg-charcoal-800/30'}"
 											>
 											<!-- Status Indicator -->
 											<div class="flex-shrink-0 w-1 h-full rounded-full {matchData.isWork ? 'bg-[#808593]' : matchData.isPlaying ? 'bg-gold-500' : 'bg-[#525463]'}"></div>
 												
 												<!-- Date (only show if different from previous) -->
 												{#if showDate}
-													<div class="flex-shrink-0 w-16 text-xs font-medium text-charcoal-300">
+													<div class="flex-shrink-0 w-20 text-xs font-medium text-charcoal-300 whitespace-nowrap">
 														{matchData.matchDate}
 													</div>
 												{:else}
-													<div class="flex-shrink-0 w-16"></div>
+													<div class="flex-shrink-0 w-20"></div>
 												{/if}
 												
-												<!-- Scheduled Start Time - BOLD and PROMINENT, LEFT ALIGNED -->
-												<div class="flex-shrink-0 w-24 text-base font-bold text-charcoal-50 text-left">
+												<!-- Scheduled Start Time -->
+												<div class="flex-shrink-0 w-20 text-sm font-bold text-charcoal-50 whitespace-nowrap">
 													{matchData.startTimeDisplay}
 												</div>
 												
-												<!-- Court - Right aligned -->
+												<!-- Court -->
 												{#if matchData.scheduleMatch.Court}
-													<div class="flex-shrink-0 w-24 text-xs text-[#facc15] font-semibold text-right">
+													<div class="flex-shrink-0 w-24 text-xs text-[#facc15] font-semibold whitespace-nowrap">
 														{matchData.scheduleMatch.Court.Name}
 													</div>
 												{/if}
 												
-												<!-- Match Info - Right aligned -->
-												<div class="flex-1 min-w-0 pr-2 text-right">
+												<!-- Match Info - Flexible width with proper truncation -->
+												<div class="flex-1 min-w-0">
 													{#if matchData.isWork}
 														<div class="text-xs space-y-0.5">
-															<div>
-																<span class="text-[#808593] font-medium">WORK</span>
-																<span class="text-[#808593] ml-2">
+															<div class="flex items-center gap-2">
+																<span class="text-[#808593] font-medium whitespace-nowrap">WORK</span>
+																<span class="text-[#808593] truncate">
 																	{matchData.scheduleMatch.Division?.CompleteShortName || matchData.scheduleMatch.Division?.FullName || matchData.scheduleMatch.FirstTeamText}
 																</span>
 															</div>
 														</div>
 													{:else if matchData.isPlaying}
 														<div class="text-xs space-y-0.5">
-															<div>
-																<span class="text-gold-500 font-semibold">PLAY</span>
-																<span class="text-charcoal-200 ml-2">
+															<div class="flex items-center gap-2 min-w-0">
+																<span class="text-gold-500 font-semibold whitespace-nowrap flex-shrink-0">PLAY</span>
+																<span class="text-charcoal-200 truncate min-w-0">
 																	{matchData.scheduleMatch.FirstTeamText}
 																</span>
 															</div>
 															{#if matchData.scheduleMatch.SecondTeamText}
-																<div class="text-[#808593] ml-8">
+																<div class="text-[#808593] ml-8 truncate">
 																	vs {matchData.scheduleMatch.SecondTeamText}
 																</div>
 															{/if}
 														</div>
 													{:else}
 														<div class="text-xs space-y-0.5">
-															<div>
-																<span class="text-[#808593] font-medium">WATCH</span>
-																<span class="text-[#808593] ml-2">
+															<div class="flex items-center gap-2 min-w-0">
+																<span class="text-[#808593] font-medium whitespace-nowrap flex-shrink-0">WATCH</span>
+																<span class="text-[#808593] truncate min-w-0">
 																	{matchData.scheduleMatch.FirstTeamText}
 																</span>
 															</div>
 															{#if matchData.scheduleMatch.SecondTeamText}
-																<div class="text-[#808593] ml-8">
+																<div class="text-[#808593] ml-8 truncate">
 																	vs {matchData.scheduleMatch.SecondTeamText}
 																</div>
 															{/if}
@@ -443,9 +459,9 @@
 												
 												<!-- Division Badge -->
 												{#if matchData.scheduleMatch.Division}
-													<div class="flex-shrink-0">
+													<div class="flex-shrink-0 ml-2">
 														<span
-															class="px-2 py-0.5 text-xs font-semibold rounded"
+															class="px-2 py-0.5 text-xs font-semibold rounded whitespace-nowrap"
 															style="background-color: {matchData.scheduleMatch.Division.ColorHex}20; color: {matchData.scheduleMatch.Division.ColorHex}; border: 1px solid {matchData.scheduleMatch.Division.ColorHex}40;"
 														>
 															{matchData.scheduleMatch.Division.CodeAlias}

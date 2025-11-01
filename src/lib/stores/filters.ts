@@ -4,6 +4,7 @@ import type { FilteredMatch } from '$lib/types';
 
 export interface FilterState {
 	division: string | null;
+	court: string | null;
 	wave: 'all' | 'morning' | 'afternoon';
 	teams: string[];
 	timeRange: {
@@ -14,10 +15,12 @@ export interface FilterState {
 	coverageStatus: 'all' | 'covered' | 'uncovered' | 'planned';
 	priority: 'all' | 'must-cover' | 'priority' | 'optional' | null;
 	myTeamsOnly: boolean; // For spectators: filter to only followed teams
+	searchQuery: string | null; // Search by team or court name
 }
 
 const DEFAULT_FILTERS: FilterState = {
 	division: null,
+	court: null,
 	wave: 'all',
 	teams: [],
 	timeRange: {
@@ -27,7 +30,8 @@ const DEFAULT_FILTERS: FilterState = {
 	conflictsOnly: false,
 	coverageStatus: 'all',
 	priority: 'all',
-	myTeamsOnly: false // Default to false - don't auto-filter by followed teams
+	myTeamsOnly: false, // Default to false - don't auto-filter by followed teams
+	searchQuery: null
 };
 
 const STORAGE_KEY = 'matchFilters';
@@ -114,6 +118,11 @@ export function getTeamIdentifier(match: FilteredMatch): string {
 	return matchResult ? matchResult[1] : '';
 }
 
+export function getUniqueCourts(matches: FilteredMatch[]): string[] {
+	const courtSet = new Set(matches.map(m => m.CourtName).filter(Boolean));
+	return Array.from(courtSet).sort();
+}
+
 export function getUniqueDivisions(matches: FilteredMatch[]): string[] {
 	const divSet = new Set(matches.map(m => m.Division.CodeAlias));
 	return Array.from(divSet).sort();
@@ -139,6 +148,11 @@ export function applyFilters(matches: FilteredMatch[]): FilteredMatch[] {
 	return matches.filter(match => {
 		// Division filter
 		if (currentFilters.division && match.Division.CodeAlias !== currentFilters.division) {
+			return false;
+		}
+
+		// Court filter
+		if (currentFilters.court && match.CourtName !== currentFilters.court) {
 			return false;
 		}
 
@@ -189,6 +203,27 @@ export function applyFilters(matches: FilteredMatch[]): FilteredMatch[] {
 				if (matchTimeMinutes > endFilterMinutes) {
 					return false;
 				}
+			}
+		}
+
+		// Search query filter (team or court name)
+		if (currentFilters.searchQuery && currentFilters.searchQuery.trim()) {
+			const query = currentFilters.searchQuery.toLowerCase().trim();
+			const teamId = getTeamIdentifier(match);
+			const firstTeam = match.FirstTeamText?.toLowerCase() || '';
+			const secondTeam = match.SecondTeamText?.toLowerCase() || '';
+			const courtName = match.CourtName?.toLowerCase() || '';
+			const divisionName = match.Division?.CodeAlias?.toLowerCase() || '';
+
+			const matchesQuery =
+				teamId.toLowerCase().includes(query) ||
+				firstTeam.includes(query) ||
+				secondTeam.includes(query) ||
+				courtName.includes(query) ||
+				divisionName.includes(query);
+
+			if (!matchesQuery) {
+				return false;
 			}
 		}
 

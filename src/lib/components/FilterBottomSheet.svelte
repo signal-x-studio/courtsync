@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { filters, updateFilter, resetFilters, getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
+	import { filters, updateFilter, resetFilters, getUniqueDivisions, getUniqueCourts } from '$lib/stores/filters';
 	import { userRole } from '$lib/stores/userRole';
 	import { createSwipeHandler } from '$lib/utils/gestures';
+	import type { FilteredMatch } from '$lib/types';
 	
-	export let divisions: string[];
-	export let teams: string[];
+	export let divisions: string[] = [];
+	export let teams: string[] = [];
+	export let matches: FilteredMatch[] = [];
 	export let open: boolean = false;
 	export let onClose: () => void;
+
+	$: courts = getUniqueCourts(matches);
 	
 	let sheetElement: HTMLDivElement;
 	let swipeHandler: ReturnType<typeof createSwipeHandler> | null = null;
@@ -16,8 +20,10 @@
 	
 	function getActiveFilterCount(): number {
 		let count = 0;
+		if ($filters.searchQuery) count++;
 		if ($filters.wave !== 'all') count++;
 		if ($filters.division) count++;
+		if ($filters.court) count++;
 		if ($filters.teams.length > 0) count++;
 		if ($filters.priority && $filters.priority !== 'all') count++;
 		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
@@ -95,7 +101,7 @@
 			<div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10">
 				<!-- Drag Handle -->
 				<div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div>
-				<h2 class="text-lg font-semibold text-charcoal-50 ml-auto">Filters</h2>
+				<h2 class="text-lg font-semibold text-charcoal-50 ml-auto">Search & Filters</h2>
 				<div class="flex items-center gap-2 ml-auto">
 					{#if activeFilterCount > 0}
 						<span class="px-2 py-1 rounded-full bg-gold-500 text-charcoal-950 text-xs font-medium">
@@ -115,6 +121,41 @@
 			
 			<!-- Filter Content -->
 			<div class="p-4 space-y-4">
+				<!-- Search Filter -->
+				<div>
+					<label for="search-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
+						Search
+					</label>
+					<div class="relative">
+						<div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+							<svg class="w-4 h-4 text-charcoal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+							</svg>
+						</div>
+						<input
+							id="search-filter"
+							type="text"
+							value={$filters.searchQuery || ''}
+							oninput={(e) => updateFilter('searchQuery', e.currentTarget.value)}
+							placeholder="Search by team or court"
+							class="w-full pl-10 pr-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700 placeholder:text-charcoal-400"
+							autofocus
+						/>
+						{#if $filters.searchQuery}
+							<button
+								type="button"
+								onclick={() => updateFilter('searchQuery', '')}
+								class="absolute inset-y-0 right-0 flex items-center pr-3 text-charcoal-400 hover:text-charcoal-200 transition-colors"
+								aria-label="Clear search"
+							>
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+								</svg>
+							</button>
+						{/if}
+					</div>
+				</div>
+				
 			<!-- Wave Filter -->
 			<div>
 				<label for="wave-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
@@ -156,6 +197,24 @@
 						<option value="">All Divisions</option>
 						{#each divisions as division}
 							<option value={division}>{division}</option>
+						{/each}
+					</select>
+				</div>
+				
+				<!-- Court Filter -->
+				<div>
+					<label for="court-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
+						Court
+					</label>
+					<select
+						id="court-filter"
+						value={$filters.court || ''}
+						onchange={(e) => updateFilter('court', e.target.value || null)}
+						class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
+					>
+						<option value="">All Courts</option>
+						{#each courts as court}
+							<option value={court}>{court}</option>
 						{/each}
 					</select>
 				</div>

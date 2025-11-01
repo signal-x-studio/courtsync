@@ -1,31 +1,66 @@
 <script lang="ts">
 	import { filters, updateFilter, resetFilters } from '$lib/stores/filters';
+	import { sort } from '$lib/stores/sort';
 	import { userRole } from '$lib/stores/userRole';
-	import { Star, AlertTriangle, Search } from 'lucide-svelte';
+	import { followedTeams } from '$lib/stores/followedTeams';
+	import { Clock, Flag, Search, ArrowUp, Star } from 'lucide-svelte';
+	
+	$: isMediaValue = $userRole === 'media';
+	$: isSpectatorValue = $userRole === 'spectator';
+	$: followedTeamsCount = $followedTeams?.length || 0;
+	$: hasSearchQuery = !!($filters.searchQuery);
+	
+	// Auto-disable myTeamsOnly filter if no teams are favorited
+	$: if ($filters.myTeamsOnly && followedTeamsCount === 0) {
+		updateFilter('myTeamsOnly', false);
+	}
 	
 	export let onOpenFullFilters: () => void;
 	
-	function getActiveFilters(): Array<{ key: string; label: string; value: string }> {
+	// Reactive computation for active filters - ensures proper reactivity tracking
+	$: activeFilters = (() => {
 		const active: Array<{ key: string; label: string; value: string }> = [];
 		
-		if ($filters.wave !== 'all') {
+		// Access stores directly for proper reactivity
+		const currentFilters = $filters;
+		const currentFollowedTeamsCount = $followedTeams?.length || 0;
+		
+		// Note: Wave filter is not included here - its state is shown directly on the button
+		
+		if (currentFilters.searchQuery) {
 			active.push({
-				key: 'wave',
-				label: 'Wave',
-				value: $filters.wave === 'morning' ? 'Morning' : 'Afternoon'
+				key: 'searchQuery',
+				label: 'Search',
+				value: currentFilters.searchQuery
 			});
 		}
 		
-		if ($filters.division) {
+		if (currentFilters.division) {
 			active.push({
 				key: 'division',
 				label: 'Division',
-				value: $filters.division
+				value: currentFilters.division
 			});
 		}
 		
-		if ($filters.teams.length > 0) {
-			$filters.teams.forEach(team => {
+		if (currentFilters.court) {
+			active.push({
+				key: 'court',
+				label: 'Court',
+				value: currentFilters.court
+			});
+		}
+		
+		if (currentFilters.priority && currentFilters.priority !== 'all' && currentFilters.priority !== null) {
+			active.push({
+				key: 'priority',
+				label: 'Priority',
+				value: currentFilters.priority === 'must-cover' ? 'Must Cover' : currentFilters.priority === 'priority' ? 'Priority' : 'Optional'
+			});
+		}
+		
+		if (currentFilters.teams.length > 0) {
+			currentFilters.teams.forEach(team => {
 				active.push({
 					key: 'team',
 					label: 'Team',
@@ -34,23 +69,15 @@
 			});
 		}
 		
-		if ($filters.priority && $filters.priority !== 'all') {
-			active.push({
-				key: 'priority',
-				label: 'Priority',
-				value: $filters.priority === 'must-cover' ? 'Must Cover' : $filters.priority === 'priority' ? 'Priority' : 'Optional'
-			});
-		}
-		
-		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') {
+		if (currentFilters.coverageStatus && currentFilters.coverageStatus !== 'all') {
 			active.push({
 				key: 'coverageStatus',
 				label: 'Status',
-				value: $filters.coverageStatus === 'uncovered' ? 'Uncovered' : $filters.coverageStatus === 'planned' ? 'Planned' : 'Covered'
+				value: currentFilters.coverageStatus === 'uncovered' ? 'Uncovered' : currentFilters.coverageStatus === 'planned' ? 'Planned' : 'Covered'
 			});
 		}
 		
-		if ($filters.conflictsOnly) {
+		if (currentFilters.conflictsOnly) {
 			active.push({
 				key: 'conflictsOnly',
 				label: 'Conflicts',
@@ -58,17 +85,25 @@
 			});
 		}
 		
+		// Only show myTeamsOnly filter tag if filter is actually enabled AND there are favorited teams
+		if (currentFilters.myTeamsOnly === true && currentFollowedTeamsCount > 0) {
+			active.push({
+				key: 'myTeamsOnly',
+				label: 'My Teams',
+				value: 'Only'
+			});
+		}
+		
 		return active;
-	}
-	
-	$: activeFilters = getActiveFilters();
-	$: isMediaValue = $userRole === 'media';
+	})();
 	
 	function removeFilter(key: string, value?: string) {
-		if (key === 'wave') {
-			updateFilter('wave', 'all');
+		if (key === 'searchQuery') {
+			updateFilter('searchQuery', '');
 		} else if (key === 'division') {
 			updateFilter('division', null);
+		} else if (key === 'court') {
+			updateFilter('court', null);
 		} else if (key === 'team') {
 			if (value) {
 				const newTeams = $filters.teams.filter(t => t !== value);
@@ -82,6 +117,8 @@
 			updateFilter('coverageStatus', 'all');
 		} else if (key === 'conflictsOnly') {
 			updateFilter('conflictsOnly', false);
+		} else if (key === 'myTeamsOnly') {
+			updateFilter('myTeamsOnly', false);
 		}
 	}
 	
@@ -90,95 +127,165 @@
 	}
 </script>
 
-<div class="sticky top-0 z-30 bg-charcoal-950 border-b border-charcoal-700 py-2 px-3">
-	<div class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-		<!-- Quick Filter Buttons -->
-		<div class="flex items-center gap-2 flex-shrink-0">
-			<!-- Wave Quick Filters -->
-			<button
-				type="button"
-				onclick={() => updateFilter('wave', $filters.wave === 'morning' ? 'all' : 'morning')}
-				class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center"
-				class:bg-gold-500={$filters.wave === 'morning'}
-				class:text-charcoal-950={$filters.wave === 'morning'}
-				class:bg-charcoal-800={$filters.wave !== 'morning'}
-				class:text-charcoal-300={$filters.wave !== 'morning'}
-				class:hover:bg-charcoal-700={$filters.wave !== 'morning'}
-			>
-				AM
-			</button>
-			<button
-				type="button"
-				onclick={() => updateFilter('wave', $filters.wave === 'afternoon' ? 'all' : 'afternoon')}
-				class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center"
-				class:bg-gold-500={$filters.wave === 'afternoon'}
-				class:text-charcoal-950={$filters.wave === 'afternoon'}
-				class:bg-charcoal-800={$filters.wave !== 'afternoon'}
-				class:text-charcoal-300={$filters.wave !== 'afternoon'}
-				class:hover:bg-charcoal-700={$filters.wave !== 'afternoon'}
-			>
-				PM
-			</button>
-			
+<div class="sticky top-0 z-30 bg-charcoal-950 border-b border-charcoal-700">
+	<!-- Quick Filters & Sort -->
+	<div class="px-4 py-2.5">
+		<div class="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+			<!-- Wave Filter -->
+			<div class="relative flex-shrink-0">
+				<button
+					type="button"
+					onclick={() => {
+						if ($filters.wave === 'all') {
+							updateFilter('wave', 'morning');
+						} else if ($filters.wave === 'morning') {
+							updateFilter('wave', 'afternoon');
+						} else {
+							updateFilter('wave', 'all');
+						}
+					}}
+					class="px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 min-h-[40px] flex items-center justify-center border shadow-sm"
+					class:bg-brand-500={$filters.wave !== 'all'}
+					class:text-white={$filters.wave !== 'all'}
+					class:border-brand-500={$filters.wave !== 'all'}
+					class:bg-charcoal-800={$filters.wave === 'all'}
+					class:text-charcoal-300={$filters.wave === 'all'}
+					class:border-charcoal-600={$filters.wave === 'all'}
+					class:hover:bg-charcoal-700={$filters.wave === 'all'}
+					class:hover:text-charcoal-50={$filters.wave === 'all'}
+					aria-label={$filters.wave === 'all' ? 'Filter by wave' : $filters.wave === 'morning' ? 'Wave: Morning (AM)' : 'Wave: Afternoon (PM)'}
+					title={$filters.wave === 'all' ? 'Filter by wave' : $filters.wave === 'morning' ? 'Wave: Morning (AM)' : 'Wave: Afternoon (PM)'}
+				>
+					<Clock size={16} />
+				</button>
+			</div>
+
 			{#if isMediaValue}
-				<!-- Priority Quick Filter -->
-				<button
-					type="button"
-					onclick={() => updateFilter('priority', $filters.priority === 'must-cover' ? null : 'must-cover')}
-					class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1"
-					class:bg-gold-500={$filters.priority === 'must-cover'}
-					class:text-charcoal-950={$filters.priority === 'must-cover'}
-					class:bg-charcoal-800={$filters.priority !== 'must-cover'}
-					class:text-charcoal-300={$filters.priority !== 'must-cover'}
-					class:hover:bg-charcoal-700={$filters.priority !== 'must-cover'}
-				>
-					<Star size={12} class="inline" />
-					<span class="hidden sm:inline">Must Cover</span>
-				</button>
-				
-				<!-- Conflicts Only Filter -->
-				<button
-					type="button"
-					onclick={() => updateFilter('conflictsOnly', !$filters.conflictsOnly)}
-					class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1"
-					class:bg-warning-500={$filters.conflictsOnly}
-					class:text-charcoal-950={$filters.conflictsOnly}
-					class:bg-charcoal-800={!$filters.conflictsOnly}
-					class:text-charcoal-300={!$filters.conflictsOnly}
-					class:hover:bg-charcoal-700={!$filters.conflictsOnly}
-				>
-					<AlertTriangle size={12} class="inline" />
-					<span class="hidden sm:inline">Conflicts</span>
-				</button>
+				<!-- Priority Filter -->
+				<div class="relative flex-shrink-0">
+					<button
+						type="button"
+						onclick={() => updateFilter('priority', $filters.priority === 'must-cover' ? null : 'must-cover')}
+						class="px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap min-h-[40px] flex items-center gap-1.5 border shadow-sm"
+						class:bg-brand-500={$filters.priority === 'must-cover'}
+						class:text-white={$filters.priority === 'must-cover'}
+						class:border-brand-500={$filters.priority === 'must-cover'}
+						class:bg-charcoal-800={$filters.priority !== 'must-cover'}
+						class:text-charcoal-300={$filters.priority !== 'must-cover'}
+						class:border-charcoal-600={$filters.priority !== 'must-cover'}
+						class:hover:bg-charcoal-700={$filters.priority !== 'must-cover'}
+						class:hover:text-charcoal-50={$filters.priority !== 'must-cover'}
+						aria-label="Filter by priority"
+					>
+						<Flag size={14} />
+						<span>Priority</span>
+					</button>
+				</div>
 			{/if}
+
+			{#if isSpectatorValue && followedTeamsCount > 0}
+				<!-- My Teams Filter -->
+				<div class="relative flex-shrink-0">
+					<button
+						type="button"
+						onclick={() => updateFilter('myTeamsOnly', !$filters.myTeamsOnly)}
+						class="px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 min-h-[40px] flex items-center justify-center border shadow-sm"
+						class:bg-brand-500={$filters.myTeamsOnly}
+						class:text-white={$filters.myTeamsOnly}
+						class:border-brand-500={$filters.myTeamsOnly}
+						class:bg-charcoal-800={!$filters.myTeamsOnly}
+						class:text-charcoal-300={!$filters.myTeamsOnly}
+						class:border-charcoal-600={!$filters.myTeamsOnly}
+						class:hover:bg-charcoal-700={!$filters.myTeamsOnly}
+						class:hover:text-charcoal-50={!$filters.myTeamsOnly}
+						aria-label={$filters.myTeamsOnly ? 'Filter to my teams only (active)' : 'Filter to my teams only'}
+						title={$filters.myTeamsOnly ? 'Filter to my teams only (active)' : 'Filter to my teams only'}
+					>
+						<Star size={16} class={$filters.myTeamsOnly ? 'fill-current' : ''} />
+					</button>
+				</div>
+			{/if}
+
+			<!-- Sort Separator -->
+			<div class="flex-shrink-0 h-6 w-px bg-charcoal-700 mx-1"></div>
+
+			<!-- Sort: Team -->
+			<button
+				type="button"
+				onclick={() => sort.setSortMode('team')}
+				class="px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap min-h-[40px] flex items-center gap-1.5 border shadow-sm"
+				class:bg-gold-500={$sort === 'team'}
+				class:text-charcoal-950={$sort === 'team'}
+				class:border-gold-500={$sort === 'team'}
+				class:bg-charcoal-800={$sort !== 'team'}
+				class:text-charcoal-300={$sort !== 'team'}
+				class:border-charcoal-600={$sort !== 'team'}
+				class:hover:bg-charcoal-700={$sort !== 'team'}
+				class:hover:text-charcoal-50={$sort !== 'team'}
+				aria-label="Sort by team"
+			>
+				<span>Team</span>
+				<ArrowUp size={14} />
+			</button>
+
+			<!-- Sort: Court -->
+			<button
+				type="button"
+				onclick={() => sort.setSortMode('court')}
+				class="px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap min-h-[40px] flex items-center gap-1.5 border shadow-sm"
+				class:bg-gold-500={$sort === 'court'}
+				class:text-charcoal-950={$sort === 'court'}
+				class:border-gold-500={$sort === 'court'}
+				class:bg-charcoal-800={$sort !== 'court'}
+				class:text-charcoal-300={$sort !== 'court'}
+				class:border-charcoal-600={$sort !== 'court'}
+				class:hover:bg-charcoal-700={$sort !== 'court'}
+				class:hover:text-charcoal-50={$sort !== 'court'}
+				aria-label="Sort by court"
+			>
+				<span>Court</span>
+				<ArrowUp size={14} />
+			</button>
+
+			<!-- Search & Filters Button -->
+			<button
+				type="button"
+				onclick={onOpenFullFilters}
+				class="ml-auto px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 min-h-[40px] flex items-center justify-center flex-shrink-0 border shadow-sm"
+				class:bg-brand-500={hasSearchQuery}
+				class:text-white={hasSearchQuery}
+				class:border-brand-500={hasSearchQuery}
+				class:bg-charcoal-800={!hasSearchQuery}
+				class:text-charcoal-300={!hasSearchQuery}
+				class:border-charcoal-600={!hasSearchQuery}
+				class:hover:bg-charcoal-700={!hasSearchQuery}
+				class:hover:text-charcoal-50={!hasSearchQuery}
+				aria-label={hasSearchQuery ? 'Search' : 'More filters'}
+				title={hasSearchQuery ? 'Search' : 'More filters'}
+			>
+				<Search size={16} />
+			</button>
 		</div>
-		
-		<!-- Active Filter Chips -->
-		{#if activeFilters.length > 0}
-			<div class="flex items-center gap-2 flex-shrink-0">
+	</div>
+	
+	<!-- Active Filter Tags -->
+	{#if activeFilters.length > 0}
+		<div class="px-4 pb-2.5">
+			<div class="flex items-center gap-2 flex-wrap">
 				{#each activeFilters as filter}
 					<button
 						type="button"
 						onclick={() => removeFilter(filter.key, filter.key === 'team' ? filter.value : undefined)}
-						class="group px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1.5 bg-gold-500/20 text-gold-400 border border-gold-500/50 hover:bg-gold-500/30"
+						class="px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1.5 bg-gold-500/20 text-gold-400 border border-gold-500/50 hover:bg-gold-500/30"
+						aria-label={`Remove ${filter.label} filter`}
 					>
 						<span>{filter.label}: {filter.value}</span>
-						<span class="text-gold-500 group-hover:text-gold-300">×</span>
+						<span class="text-gold-500">×</span>
 					</button>
 				{/each}
 			</div>
-		{/if}
-		
-		<!-- More Filters Button -->
-		<button
-			type="button"
-			onclick={onOpenFullFilters}
-			class="ml-auto px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1.5 flex-shrink-0 bg-charcoal-800 text-charcoal-300 border border-charcoal-700 hover:bg-charcoal-700 hover:text-charcoal-200"
-		>
-			<Search size={12} class="inline" />
-			More
-		</button>
-	</div>
+		</div>
+	{/if}
 </div>
 
 <style>
