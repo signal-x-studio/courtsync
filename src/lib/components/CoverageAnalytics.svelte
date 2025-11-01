@@ -59,7 +59,7 @@
 		<!-- Conflicts in Plan -->
 		<div class="rounded-lg border border-charcoal-700 bg-charcoal-800 p-4">
 			<div class="text-xs text-charcoal-300 uppercase tracking-wider mb-1">Conflicts</div>
-			<div class="text-2xl font-bold mb-1 {metrics.conflictsInPlan > 0 ? 'text-red-400' : 'text-charcoal-50'}">
+			<div class="text-2xl font-bold mb-1 {metrics.conflictsInPlan > 0 ? 'text-warning-500' : 'text-charcoal-50'}">
 				{metrics.conflictsInPlan}
 			</div>
 			<div class="text-xs text-charcoal-300">

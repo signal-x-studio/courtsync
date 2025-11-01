@@ -171,6 +171,65 @@ async function runAudit(page: any) {
 			}
 		}
 
+		// Semantic Color Audit
+		const primaryActionButtons = document.querySelectorAll('button:not([class*="view"]):not([class*="tab"]):not([class*="sort"]):not([class*="filter"]):not([class*="wave"])');
+		const goldButtons: any[] = [];
+		const conflictWarnings: any[] = [];
+		
+		primaryActionButtons.forEach((btn: any) => {
+			const classList = btn.className || '';
+			// Check if it has gold background but shouldn't (primary actions should be blue)
+			if (classList.includes('bg-gold-500') && btn.textContent) {
+				const text = btn.textContent.trim();
+				// Skip if it's a filter/tab/selection button (these should be gold)
+				if (!text.match(/^(List|Timeline|Team|Court|Time|Morning|Afternoon|All|AM|PM)$/i) && 
+				    !classList.includes('border-gold') && 
+				    !classList.includes('checkbox')) {
+					goldButtons.push({
+						text: text.substring(0, 30),
+						classes: classList
+					});
+				}
+			}
+		});
+		
+		// Check for conflict warnings using wrong colors
+		const conflictElements = document.querySelectorAll('[class*="conflict" i], [class*="⚠"]');
+		conflictElements.forEach((el: any) => {
+			const classList = el.className || '';
+			const style = window.getComputedStyle(el);
+			const color = style.color || '';
+			const bgColor = style.backgroundColor || '';
+			
+			// Check if using gold for conflicts (should be warning)
+			if (classList.includes('gold') || color.includes('234, 179, 8') || bgColor.includes('234, 179, 8')) {
+				conflictWarnings.push({
+					text: el.textContent?.substring(0, 30) || 'conflict element',
+					classes: classList
+				});
+			}
+		});
+		
+		if (goldButtons.length > 0) {
+			audit.violations.push({
+				type: 'Semantic color violation - Gold used for primary actions',
+				severity: 'P1',
+				value: `${goldButtons.length} button(s) using gold instead of brand-500`,
+				fix: 'Change bg-gold-500 to bg-brand-500 for primary action buttons',
+				examples: goldButtons.slice(0, 3)
+			});
+		}
+		
+		if (conflictWarnings.length > 0) {
+			audit.violations.push({
+				type: 'Semantic color violation - Wrong color for conflicts',
+				severity: 'P1',
+				value: `${conflictWarnings.length} conflict warning(s) using wrong color`,
+				fix: 'Change to warning-500 for conflicts, NOT gold or red',
+				examples: conflictWarnings.slice(0, 3)
+			});
+		}
+
 		// Overall pass/fail
 		audit.pass = audit.violations.filter((v: any) => v.severity === 'P0').length === 0;
 		audit.grade = audit.pass ? (audit.violations.length === 0 ? 'A' : 'B') : 'F';

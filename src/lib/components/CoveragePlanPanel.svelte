@@ -538,10 +538,10 @@
 					<div class="space-y-4">
 						<!-- Conflict Resolution Section -->
 						{#if conflictGroups.length > 0}
-							<div class="border border-red-800/50 rounded-lg bg-red-950/10 p-4">
+							<div class="border border-warning-500/50 rounded-lg bg-warning-500/10 p-4">
 								<div class="flex items-center justify-between mb-3">
 									<div>
-										<h4 class="text-sm font-semibold text-red-400">
+										<h4 class="text-sm font-semibold text-warning-500">
 											⚠️ Conflicts Detected
 										</h4>
 										<p class="text-xs text-charcoal-300 mt-0.5">
@@ -578,7 +578,7 @@
 													});
 												});
 											}}
-											class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors"
+											class="px-3 py-1.5 text-xs font-medium rounded-lg bg-warning-500/20 text-warning-500 border border-warning-500/50 hover:bg-warning-500/30 transition-colors"
 										>
 											Auto-Resolve
 										</button>
@@ -636,7 +636,7 @@
 														{#if !isFirstMatch}
 															<button
 																onclick={() => coveragePlan.deselectMatch(match.MatchId)}
-																class="px-2 py-1 text-[10px] font-medium rounded bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors"
+																class="px-2 py-1 text-[10px] font-medium rounded bg-warning-500/20 text-warning-500 border border-warning-500/50 hover:bg-warning-500/30 transition-colors"
 															>
 																Remove
 															</button>
@@ -722,19 +722,19 @@
 										{@const opponent = getOpponent(match)}
 										{@const hasConflict = planConflicts.has(match.MatchId)}
 										
-										<div class="flex items-center gap-3 px-3 py-2.5 rounded border {hasConflict ? 'border-red-800/50 bg-red-950/10' : 'border-gold-500/50 bg-gold-500/5'}">
+										<div class="flex items-center gap-3 px-3 py-2.5 rounded border {hasConflict ? 'border-warning-500/50 bg-warning-500/10' : 'border-gold-500/50 bg-gold-500/5'}">
 											<button
 												onclick={() => coveragePlan.toggleMatch(match.MatchId)}
-												class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors {hasConflict ? 'border-red-800/50 bg-red-950/20' : 'border-gold-500 bg-gold-500/20'}"
+												class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors {hasConflict ? 'border-warning-500/50 bg-warning-500/20' : 'border-gold-500 bg-gold-500/20'}"
 												aria-label="Remove from plan"
 											>
-												<svg class="w-3 h-3 {hasConflict ? 'text-red-400' : 'text-[#facc15]'}" fill="currentColor" viewBox="0 0 20 20">
+												<svg class="w-3 h-3 {hasConflict ? 'text-warning-500' : 'text-[#facc15]'}" fill="currentColor" viewBox="0 0 20 20">
 													<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
 												</svg>
 											</button>
 											
 											{#if hasConflict}
-												<div class="flex-shrink-0 text-[10px] font-semibold text-red-400 px-1.5 py-0.5 rounded bg-red-950/50">
+												<div class="flex-shrink-0 text-[10px] font-semibold text-warning-500 px-1.5 py-0.5 rounded bg-warning-500/20">
 													CONFLICT
 												</div>
 											{/if}

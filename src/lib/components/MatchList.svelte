@@ -525,15 +525,15 @@
 		
 		<!-- Sort & Filter Controls -->
 		<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
-			<!-- Mobile: Floating Filter Button -->
-			<button
-				onclick={() => showFilterSheet = true}
-				class="fixed bottom-4 right-4 w-14 h-14 rounded-full bg-gold-500 text-charcoal-950 shadow-lg flex items-center justify-center font-semibold z-40 sm:hidden"
-				aria-label="Open filters"
-			>
+		<!-- Mobile: Floating Filter Button -->
+		<button
+			onclick={() => showFilterSheet = true}
+			class="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center font-semibold z-[60] sm:hidden hover:bg-brand-600 transition-colors"
+			aria-label="Open filters"
+		>
 				Filters
 				{#if activeFilterCount > 0}
-					<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-charcoal-50 text-xs flex items-center justify-center">
+					<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error-500 text-charcoal-50 text-xs flex items-center justify-center">
 						{activeFilterCount}
 					</span>
 				{/if}
@@ -659,7 +659,7 @@
 								</span>
 							</div>
 							{#if hasAnyConflict}
-								<span class="text-xs font-medium text-[#ef4444]">
+								<span class="text-xs font-medium text-warning-500">
 									{timeConflicts} conflict{timeConflicts !== 1 ? 's' : ''}
 								</span>
 							{/if}
@@ -740,7 +740,7 @@
 												vs {opponent}
 											</div>
 											{#if hasConflict}
-												<span class="text-xs text-[#ef4444] flex-shrink-0">⚠️</span>
+												<span class="text-xs text-warning-500 flex-shrink-0">⚠️</span>
 											{/if}
 										</div>
 									</div>
@@ -881,7 +881,7 @@
 														e.stopPropagation();
 														scorekeeperMatch = match;
 													}}
-													class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors border border-gold-500 whitespace-nowrap"
+													class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-brand-500 text-white hover:bg-brand-600 transition-colors whitespace-nowrap"
 													title="Start keeping score for this match"
 												>
 													{score ? 'Update Score' : 'Start Scoring'}
@@ -959,7 +959,7 @@
 				<div class="relative">
 					<button
 						onclick={() => showScoreExportMenu = !showScoreExportMenu}
-						class="px-4 py-2 text-sm font-medium rounded-lg bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors shadow-lg flex items-center gap-2"
+						class="px-4 py-2 text-sm font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 hover:text-charcoal-50 transition-colors shadow-lg flex items-center gap-2 border border-charcoal-600"
 						title="Score sharing & sync options"
 					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

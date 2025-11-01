@@ -3,5 +3,9 @@
 		"src/routes/+page.ts",
 		"src/routes/+layout.ts",
 		"src/routes/+layout.ts"
+	],
+	"/style-guide": [
+		"src/routes/style-guide/+page.ts",
+		"src/routes/+layout.ts"
 	]
 }

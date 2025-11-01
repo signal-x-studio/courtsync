@@ -1,4 +1,4 @@
-import { b as bind_props, e as ensure_array_like, a as attr_class, c as stringify, d as attr, f as store_get, u as unsubscribe_stores, g as attr_style } from "../../chunks/index2.js";
+import { b as bind_props, a as attr_class, c as attr_style, d as stringify, e as ensure_array_like, f as attr, g as store_get, u as unsubscribe_stores, h as clsx } from "../../chunks/index2.js";
 import { d as derived, w as writable, g as get } from "../../chunks/index.js";
 import { Y as ssr_context, Z as fallback, X as escape_html } from "../../chunks/context.js";
 import { format } from "date-fns";
@@ -266,7 +266,9 @@ const DEFAULT_FILTERS = {
   },
   conflictsOnly: false,
   coverageStatus: "all",
-  priority: "all"
+  priority: "all",
+  myTeamsOnly: false
+  // Default to false - don't auto-filter by followed teams
 };
 function createFilters() {
   const { subscribe, set, update } = writable(DEFAULT_FILTERS);
@@ -382,6 +384,9 @@ function applyFilters(matches) {
     }
     return true;
   });
+}
+function updateFilter(key, value) {
+  filters.updateFilter(key, value);
 }
 function createPriority() {
   const { subscribe, set, update } = writable({});
@@ -841,10 +846,17 @@ function TeamDetailPanel($$renderer, $$props) {
         return dateA - dateB;
       });
     })();
-    $$renderer2.push(`<div class="mt-2 border border-[#454654] rounded-lg bg-[#3b3c48] overflow-hidden"><div class="p-3 sm:p-4"><div class="flex items-center justify-between mb-3 sm:mb-4"><h4 class="text-xs sm:text-sm font-semibold text-[#f8f8f9] truncate pr-2">${escape_html(teamName)} - Full Schedule</h4> <button class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center" aria-label="Close panel"><svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> `);
+    $$renderer2.push(`<div class="mt-8 border border-charcoal-700 rounded-lg bg-charcoal-800 overflow-hidden"><div class="p-4"><div class="flex items-center justify-between mb-6"><div><h4 class="text-sm sm:text-base font-semibold text-charcoal-50 truncate pr-2">Full Schedule</h4> `);
+    if (teamName) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="text-xs text-charcoal-300 mt-1">${escape_html(teamName)}</div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div> <button class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center" aria-label="Close panel"><svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> `);
     {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-8 text-[#9fa2ab] text-sm">Loading schedule...</div>`);
+      $$renderer2.push(`<div class="text-center py-8 text-charcoal-300 text-sm">Loading schedule...</div>`);
     }
     $$renderer2.push(`<!--]--> `);
     {
@@ -856,6 +868,61 @@ function TeamDetailPanel($$renderer, $$props) {
     }
     $$renderer2.push(`<!--]--></div></div>`);
     bind_props($$props, { match, eventId, clubId, onClose, matches });
+  });
+}
+function MatchDetailSheet($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let match = fallback($$props["match"], null);
+    let eventId = $$props["eventId"];
+    let clubId = $$props["clubId"];
+    let matches = fallback($$props["matches"], () => [], true);
+    let onClose = $$props["onClose"];
+    let swipeOffset = 0;
+    let isVisible = false;
+    function handleClose() {
+      isVisible = false;
+      setTimeout(
+        () => {
+          onClose();
+        },
+        300
+      );
+    }
+    onDestroy(() => {
+      document.body.style.overflow = "";
+    });
+    if (match) {
+      setTimeout(
+        () => {
+          isVisible = true;
+        },
+        10
+      );
+    } else {
+      isVisible = false;
+    }
+    if (
+      // Wait for animation before actually closing
+      // Swipe down to dismiss
+      // Reset swipe state
+      // Max 200px swipe
+      // Prevent body scroll when sheet is open
+      match
+    ) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div${attr_class("fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity", void 0, { "opacity-0": !isVisible, "opacity-100": isVisible })} role="dialog" aria-modal="true" aria-label="Match details" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 top-0 bg-charcoal-950 overflow-y-auto transition-transform duration-300"${attr_style(`transform: translateY(${stringify(isVisible ? swipeOffset : "100%")}%);`)} role="dialog"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10 shadow-lg" style="padding-top: max(1rem, env(safe-area-inset-top));"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div> <button type="button" class="ml-auto w-10 h-10 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-800 transition-colors min-h-[44px]" aria-label="Close match details"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> <div class="pb-8" style="padding-bottom: max(2rem, env(safe-area-inset-bottom));">`);
+      if (match) {
+        $$renderer2.push("<!--[-->");
+        TeamDetailPanel($$renderer2, { match, eventId, clubId, onClose: handleClose, matches });
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]-->`);
+    bind_props($$props, { match, eventId, clubId, matches, onClose });
   });
 }
 function PrioritySelector($$renderer, $$props) {
@@ -886,13 +953,13 @@ function PrioritySelector($$renderer, $$props) {
       },
       { value: null, label: "Clear", color: "#9fa2ab", icon: "✕" }
     ];
-    $$renderer2.push(`<div class="bg-[#3b3c48] border border-[#454654] rounded-lg p-2 shadow-lg min-w-[160px]"><div class="text-xs font-medium text-[#9fa2ab] uppercase tracking-wider mb-2 px-1">Set Priority</div> <div class="space-y-1"><!--[-->`);
+    $$renderer2.push(`<div class="bg-charcoal-800 border border-charcoal-700 rounded-lg p-2 shadow-lg min-w-[160px]"><div class="text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2 px-1">Set Priority</div> <div class="space-y-1"><!--[-->`);
     const each_array = ensure_array_like(priorityOptions);
     for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
       let option = each_array[$$index];
       const isSelected = currentPriority === option.value;
       const isHovered = hoveredPriority === option.value;
-      $$renderer2.push(`<button${attr_class(`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 ${stringify(isSelected ? "bg-[#eab308]/20 text-[#facc15] border border-[#eab308]/50" : isHovered ? "bg-[#454654] text-[#f8f8f9]" : "text-[#c0c2c8] hover:bg-[#454654]")}`)}><span>${escape_html(option.icon)}</span> <span>${escape_html(option.label)}</span></button>`);
+      $$renderer2.push(`<button${attr_class(`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 ${stringify(isSelected ? "bg-gold-500/20 text-[#facc15] border border-[#eab308]/50" : isHovered ? "bg-charcoal-700 text-charcoal-50" : "text-charcoal-200 hover:bg-charcoal-700")}`)}><span>${escape_html(option.icon)}</span> <span>${escape_html(option.label)}</span></button>`);
     }
     $$renderer2.push(`<!--]--></div></div>`);
     bind_props($$props, { matchId, currentPriority, onPriorityChange, onClose });
@@ -931,13 +998,13 @@ function CoverageStatusSelector($$renderer, $$props) {
         icon: "📋"
       }
     ];
-    $$renderer2.push(`<div class="bg-[#3b3c48] border border-[#454654] rounded-lg p-2 shadow-lg min-w-[180px]"><div class="text-xs font-medium text-[#9fa2ab] uppercase tracking-wider mb-2 px-1">Coverage Status</div> <div class="text-xs text-[#c0c2c8] mb-2 px-1">Team ${escape_html(teamId)}</div> <div class="space-y-1"><!--[-->`);
+    $$renderer2.push(`<div class="bg-charcoal-800 border border-charcoal-700 rounded-lg p-2 shadow-lg min-w-[180px]"><div class="text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2 px-1">Coverage Status</div> <div class="text-xs text-charcoal-200 mb-2 px-1">Team ${escape_html(teamId)}</div> <div class="space-y-1"><!--[-->`);
     const each_array = ensure_array_like(statusOptions);
     for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
       let option = each_array[$$index];
       const isSelected = currentStatus === option.value;
       const isHovered = hoveredStatus === option.value;
-      $$renderer2.push(`<button${attr_class(`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 ${stringify(isSelected ? option.value === "covered" ? "bg-green-500/20 text-green-400 border border-green-500/50" : option.value === "planned" ? "bg-[#eab308]/20 text-[#facc15] border border-[#eab308]/50" : option.value === "partially-covered" ? "bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]/50" : "bg-[#454654] text-[#9fa2ab] border border-[#525463]" : isHovered ? "bg-[#454654] text-[#f8f8f9]" : "text-[#c0c2c8] hover:bg-[#454654]")}`)}><span>${escape_html(option.icon)}</span> <span>${escape_html(option.label)}</span></button>`);
+      $$renderer2.push(`<button${attr_class(`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 ${stringify(isSelected ? option.value === "covered" ? "bg-green-500/20 text-green-400 border border-green-500/50" : option.value === "planned" ? "bg-gold-500/20 text-[#facc15] border border-[#eab308]/50" : option.value === "partially-covered" ? "bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]/50" : "bg-charcoal-700 text-charcoal-300 border border-charcoal-600" : isHovered ? "bg-charcoal-700 text-charcoal-50" : "text-charcoal-200 hover:bg-charcoal-700")}`)}><span>${escape_html(option.icon)}</span> <span>${escape_html(option.label)}</span></button>`);
     }
     $$renderer2.push(`<!--]--></div></div>`);
     bind_props($$props, { teamId, currentStatus, onStatusChange, onClose });
@@ -956,12 +1023,12 @@ function MatchClaimButton($$renderer, $$props) {
     isOwner = matchClaiming.isClaimOwner(match.MatchId);
     if (claimStatus === "locked") {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#9fa2ab] border border-[#525463]">Claimed by ${escape_html(claimer)}</div>`);
+      $$renderer2.push(`<div class="px-2 py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-300 border border-charcoal-600">Claimed by ${escape_html(claimer)}</div>`);
     } else {
       $$renderer2.push("<!--[!-->");
       if (claimStatus === "claimed" && isOwner) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="flex items-center gap-1"><button class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]" title="Release claim">Release</button> <button class="px-2 py-1 text-xs font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors border border-[#525463]" title="Transfer claim to another scorer">Transfer</button></div> `);
+        $$renderer2.push(`<div class="flex items-center gap-1"><button class="px-2 py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors border border-charcoal-600" title="Release claim">Release</button> <button class="px-2 py-1 text-xs font-medium rounded bg-charcoal-600 text-charcoal-200 hover:bg-charcoal-700 transition-colors border border-charcoal-600" title="Transfer claim to another scorer">Transfer</button></div> `);
         {
           $$renderer2.push("<!--[!-->");
         }
@@ -970,7 +1037,7 @@ function MatchClaimButton($$renderer, $$props) {
         $$renderer2.push("<!--[!-->");
         if (claimStatus === "available") {
           $$renderer2.push("<!--[-->");
-          $$renderer2.push(`<button class="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors" title="Claim this match for scoring">Claim Match</button>`);
+          $$renderer2.push(`<button class="px-2 py-1 text-xs font-medium rounded bg-brand-500 text-white hover:bg-brand-600 transition-colors whitespace-nowrap" title="Claim this match for scoring">Claim Match</button>`);
         } else {
           $$renderer2.push("<!--[!-->");
         }
@@ -990,10 +1057,10 @@ function ScoreHistory($$renderer, $$props) {
     });
     if (history.length === 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-8 text-[#9fa2ab] text-sm">No score history available</div>`);
+      $$renderer2.push(`<div class="text-center py-8 text-charcoal-300 text-sm">No score history available</div>`);
     } else {
       $$renderer2.push("<!--[!-->");
-      $$renderer2.push(`<div class="space-y-2"><h3 class="text-sm font-semibold text-[#f8f8f9] mb-3">Score History</h3> <div class="space-y-2 max-h-64 overflow-y-auto"><!--[-->`);
+      $$renderer2.push(`<div class="space-y-2"><h3 class="text-sm font-semibold text-charcoal-50 mb-3">Score History</h3> <div class="space-y-2 max-h-64 overflow-y-auto"><!--[-->`);
       const each_array = ensure_array_like(history.slice().reverse());
       for (let index = 0, $$length = each_array.length; index < $$length; index++) {
         let entry = each_array[index];
@@ -1001,14 +1068,14 @@ function ScoreHistory($$renderer, $$props) {
         const team1SetsWon = completedSets.filter((s) => s.team1Score > s.team2Score).length;
         const team2SetsWon = completedSets.filter((s) => s.team2Score > s.team1Score).length;
         const currentSet = entry.sets.find((s) => s.completedAt === 0) || entry.sets[entry.sets.length - 1];
-        $$renderer2.push(`<div class="px-3 py-2 rounded-lg border border-[#454654] bg-[#3b3c48] text-xs"><div class="flex items-center justify-between mb-1"><div class="text-[#9fa2ab]">${escape_html(new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }))}</div> <div${attr_class(`px-2 py-0.5 rounded text-[10px] font-medium ${stringify(entry.status === "completed" ? "bg-green-500/20 text-green-400" : entry.status === "in-progress" ? "bg-[#eab308]/20 text-[#facc15]" : "bg-[#454654] text-[#9fa2ab]")}`)}>${escape_html(entry.status)}</div></div> `);
+        $$renderer2.push(`<div class="px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs"><div class="flex items-center justify-between mb-1"><div class="text-charcoal-300">${escape_html(new Date(entry.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }))}</div> <div${attr_class(`px-2 py-0.5 rounded text-[10px] font-medium ${stringify(entry.status === "completed" ? "bg-green-500/20 text-green-400" : entry.status === "in-progress" ? "bg-gold-500/20 text-[#facc15]" : "bg-charcoal-700 text-charcoal-300")}`)}>${escape_html(entry.status)}</div></div> `);
         if (completedSets.length > 0) {
           $$renderer2.push("<!--[-->");
-          $$renderer2.push(`<div class="text-[#c0c2c8] mb-1">Sets: ${escape_html(team1SetsWon)}-${escape_html(team2SetsWon)}</div>`);
+          $$renderer2.push(`<div class="text-charcoal-200 mb-1">Sets: ${escape_html(team1SetsWon)}-${escape_html(team2SetsWon)}</div>`);
         } else {
           $$renderer2.push("<!--[!-->");
         }
-        $$renderer2.push(`<!--]--> <div class="text-[#f8f8f9] font-semibold">Current: ${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> <div class="text-[10px] text-[#808593] mt-1">Updated by ${escape_html(entry.updatedBy)}</div></div>`);
+        $$renderer2.push(`<!--]--> <div class="text-charcoal-50 font-semibold">Current: ${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> <div class="text-[10px] text-charcoal-400 mt-1">Updated by ${escape_html(entry.updatedBy)}</div></div>`);
       }
       $$renderer2.push(`<!--]--></div></div>`);
     }
@@ -1037,11 +1104,11 @@ function Scorekeeper($$renderer, $$props) {
     }
     currentSet = sets.find((s) => s.completedAt === 0) || sets[sets.length - 1];
     completedSets = sets.filter((s) => s.completedAt > 0);
-    $$renderer2.push(`<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div class="bg-[#3b3c48] rounded-lg border border-[#454654] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"><div class="sticky top-0 bg-[#3b3c48] border-b border-[#454654] px-4 py-3 flex items-center justify-between"><div><h2 class="text-lg font-semibold text-[#f8f8f9]">Scorekeeper</h2> <p class="text-sm text-[#9fa2ab]">${escape_html(team1Name)} vs ${escape_html(team2Name)}</p></div> <button class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors" aria-label="Close scorekeeper">✕</button></div> <div class="p-4 space-y-4"><div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Status:</span> `);
+    $$renderer2.push(`<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"><div class="bg-charcoal-800 rounded-lg border border-charcoal-700 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"><div class="sticky top-0 bg-charcoal-800 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between"><div><h2 class="text-lg font-semibold text-charcoal-50">Scorekeeper</h2> <p class="text-sm text-charcoal-300">${escape_html(team1Name)} vs ${escape_html(team2Name)}</p></div> <button class="text-charcoal-300 hover:text-charcoal-50 transition-colors" aria-label="Close scorekeeper">✕</button></div> <div class="p-4 space-y-4"><div class="flex items-center gap-2"><span class="text-xs text-charcoal-300 uppercase tracking-wider">Status:</span> `);
     $$renderer2.select(
       {
         value: status,
-        class: "px-3 py-1 text-sm font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none"
+        class: "px-3 py-1 text-sm font-medium rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
       },
       ($$renderer3) => {
         $$renderer3.option({ value: "not-started" }, ($$renderer4) => {
@@ -1058,7 +1125,7 @@ function Scorekeeper($$renderer, $$props) {
     $$renderer2.push(`</div> `);
     if (status === "not-started") {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<button class="w-full px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors">Start Match</button>`);
+      $$renderer2.push(`<button class="w-full px-4 py-2 text-sm font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors">Start Match</button>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -1069,10 +1136,10 @@ function Scorekeeper($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (status === "in-progress" && currentSet) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="bg-[#454654] rounded-lg border border-[#525463] p-4"><div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">Set ${escape_html(currentSet.setNumber)}</div> <div class="grid grid-cols-2 gap-4"><div class="text-center"><div class="text-xs text-[#9fa2ab] mb-1">${escape_html(team1Name)}</div> <div class="flex items-center justify-center gap-2"><button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">−</button> <div class="text-3xl font-bold text-[#f8f8f9] w-12 text-center">${escape_html(currentSet.team1Score)}</div> <button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">+</button></div></div> <div class="text-center"><div class="text-xs text-[#9fa2ab] mb-1">${escape_html(team2Name)}</div> <div class="flex items-center justify-center gap-2"><button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">−</button> <div class="text-3xl font-bold text-[#f8f8f9] w-12 text-center">${escape_html(currentSet.team2Score)}</div> <button class="w-8 h-8 rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors font-bold">+</button></div></div></div> <div class="flex gap-2 mt-4"><button class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors">Complete Set</button> `);
+      $$renderer2.push(`<div class="bg-charcoal-700 rounded-lg border border-charcoal-600 p-4"><div class="text-xs text-charcoal-300 uppercase tracking-wider mb-2">Set ${escape_html(currentSet.setNumber)}</div> <div class="grid grid-cols-2 gap-4"><div class="text-center"><div class="text-xs text-charcoal-300 mb-1">${escape_html(team1Name)}</div> <div class="flex items-center justify-center gap-2"><button class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold">−</button> <div class="text-3xl font-bold text-charcoal-50 w-12 text-center">${escape_html(currentSet.team1Score)}</div> <button class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold">+</button></div></div> <div class="text-center"><div class="text-xs text-charcoal-300 mb-1">${escape_html(team2Name)}</div> <div class="flex items-center justify-center gap-2"><button class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold">−</button> <div class="text-3xl font-bold text-charcoal-50 w-12 text-center">${escape_html(currentSet.team2Score)}</div> <button class="w-8 h-8 rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors font-bold">+</button></div></div></div> <div class="flex gap-2 mt-4"><button class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors">Complete Set</button> `);
       if (sets.length < 5) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<button class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-[#c0c2c8] hover:bg-[#454654] transition-colors">Add Set</button>`);
+        $$renderer2.push(`<button class="flex-1 px-4 py-2 text-sm font-medium rounded bg-[#525463] text-charcoal-200 hover:bg-charcoal-700 transition-colors">Add Set</button>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -1083,11 +1150,11 @@ function Scorekeeper($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (completedSets.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div><div class="text-xs text-[#9fa2ab] uppercase tracking-wider mb-2">Completed Sets</div> <div class="space-y-2"><!--[-->`);
+      $$renderer2.push(`<div><div class="text-xs text-charcoal-300 uppercase tracking-wider mb-2">Completed Sets</div> <div class="space-y-2"><!--[-->`);
       const each_array = ensure_array_like(completedSets);
       for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
         let set = each_array[$$index];
-        $$renderer2.push(`<div class="flex items-center justify-between px-3 py-2 bg-[#454654] rounded border border-[#525463]"><span class="text-sm text-[#9fa2ab]">Set ${escape_html(set.setNumber)}</span> <div class="flex items-center gap-4"><span class="text-sm font-medium text-[#f8f8f9]">${escape_html(team1Name)}: ${escape_html(set.team1Score)}</span> <span class="text-sm text-[#9fa2ab]">vs</span> <span class="text-sm font-medium text-[#f8f8f9]">${escape_html(team2Name)}: ${escape_html(set.team2Score)}</span></div></div>`);
+        $$renderer2.push(`<div class="flex items-center justify-between px-3 py-2 bg-charcoal-700 rounded border border-charcoal-600"><span class="text-sm text-charcoal-300">Set ${escape_html(set.setNumber)}</span> <div class="flex items-center gap-4"><span class="text-sm font-medium text-charcoal-50">${escape_html(team1Name)}: ${escape_html(set.team1Score)}</span> <span class="text-sm text-charcoal-300">vs</span> <span class="text-sm font-medium text-charcoal-50">${escape_html(team2Name)}: ${escape_html(set.team2Score)}</span></div></div>`);
       }
       $$renderer2.push(`<!--]--></div></div>`);
     } else {
@@ -1096,21 +1163,21 @@ function Scorekeeper($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (status === "in-progress" && completedSets.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<button class="w-full px-4 py-2 text-sm font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors">Complete Match</button>`);
+      $$renderer2.push(`<button class="w-full px-4 py-2 text-sm font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors">Complete Match</button>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--> <button${attr("disabled", isSaving, true)}${attr_class(`w-full px-4 py-2 text-sm font-medium rounded transition-colors border ${stringify("bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border-[#525463]")}`)}>${escape_html("Save Score")}</button> `);
+    $$renderer2.push(`<!--]--> <button${attr("disabled", isSaving, true)}${attr_class(`w-full px-4 py-2 text-sm font-medium rounded transition-colors border ${stringify("bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border-charcoal-600")}`)}>${escape_html("Save Score")}</button> `);
     if (status === "in-progress") {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-xs text-[#9fa2ab] text-center">${escape_html("✓ Auto-save enabled")}</div>`);
+      $$renderer2.push(`<div class="text-xs text-charcoal-300 text-center">${escape_html("✓ Auto-save enabled")}</div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--> `);
     if (currentScore) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="border-t border-[#454654] pt-4">`);
+      $$renderer2.push(`<div class="border-t border-charcoal-700 pt-4">`);
       ScoreHistory($$renderer2, { matchId });
       $$renderer2.push(`<!----></div>`);
     } else {
@@ -1178,7 +1245,7 @@ function MyTeamsSelector($$renderer, $$props) {
       });
       return Array.from(teamMap.entries()).map(([id, name]) => ({ id, name }));
     })();
-    $$renderer2.push(`<div class="relative"><button class="px-3 py-2 text-sm font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463] hover:border-[#eab308] transition-colors">My Teams (${escape_html(
+    $$renderer2.push(`<div class="relative"><button class="px-3 py-2 text-sm font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600 hover:border-[#eab308] transition-colors">My Teams (${escape_html(
       // Available colors for team customization
       // Gold
       // Blue
@@ -1188,7 +1255,7 @@ function MyTeamsSelector($$renderer, $$props) {
       // Purple
       // Pink
       // Cyan
-      store_get($$store_subs ??= {}, "$followedTeams", followedTeams).followedTeams.length
+      store_get($$store_subs ??= {}, "$followedTeams", followedTeams)?.length || 0
     )})</button> `);
     {
       $$renderer2.push("<!--[!-->");
@@ -1217,7 +1284,7 @@ function LiveMatchDashboard($$renderer, $$props) {
     })();
     if (liveMatches.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="mb-6 rounded-lg border border-[#454654] bg-[#3b3c48] p-4"><div class="flex items-center justify-between mb-4"><h2 class="text-lg font-semibold text-[#f8f8f9] flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Live Now</h2> <span class="text-xs text-[#9fa2ab]">${escape_html(liveMatches.length)} match${escape_html(liveMatches.length !== 1 ? "es" : "")} in progress</span></div> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"><!--[-->`);
+      $$renderer2.push(`<div class="mb-6 rounded-lg border border-charcoal-700 bg-charcoal-800 p-4"><div class="flex items-center justify-between mb-4"><h2 class="text-lg font-semibold text-charcoal-50 flex items-center gap-2"><span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> Live Now</h2> <span class="text-xs text-charcoal-300">${escape_html(liveMatches.length)} match${escape_html(liveMatches.length !== 1 ? "es" : "")} in progress</span></div> <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"><!--[-->`);
       const each_array = ensure_array_like(liveMatches);
       for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
         let match = each_array[$$index];
@@ -1226,18 +1293,18 @@ function LiveMatchDashboard($$renderer, $$props) {
         const completedSets = score?.sets.filter((s) => s.completedAt > 0) || [];
         const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
         const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
-        $$renderer2.push(`<div class="px-4 py-3 rounded-lg border border-[#525463] bg-[#454654] hover:border-[#eab308] transition-colors cursor-pointer"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span class="text-xs font-medium text-[#facc15]">${escape_html(match.CourtName)}</span> `);
+        $$renderer2.push(`<div class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700 hover:border-gold-500 transition-colors cursor-pointer"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><span class="text-xs font-medium text-[#facc15]">${escape_html(match.CourtName)}</span> `);
         LiveScoreIndicator($$renderer2, {
           isLive: score?.status === "in-progress" || false,
           lastUpdated: score?.lastUpdated
         });
-        $$renderer2.push(`<!----></div> <div class="text-xs text-[#9fa2ab]">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div></div> <div class="space-y-1"><div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(match.FirstTeamText)}</div> <div class="text-xs text-[#9fa2ab]">vs</div> <div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(match.SecondTeamText)}</div></div> `);
+        $$renderer2.push(`<!----></div> <div class="text-xs text-charcoal-300">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div></div> <div class="space-y-1"><div class="text-sm font-semibold text-charcoal-50">${escape_html(match.FirstTeamText)}</div> <div class="text-xs text-charcoal-300">vs</div> <div class="text-sm font-semibold text-charcoal-50">${escape_html(match.SecondTeamText)}</div></div> `);
         if (score && score.status !== "not-started" && currentSet) {
           $$renderer2.push("<!--[-->");
-          $$renderer2.push(`<div class="mt-3 pt-3 border-t border-[#525463]"><div class="flex items-center justify-between">`);
+          $$renderer2.push(`<div class="mt-3 pt-3 border-t border-charcoal-600"><div class="flex items-center justify-between">`);
           if (completedSets.length > 0) {
             $$renderer2.push("<!--[-->");
-            $$renderer2.push(`<div class="text-xs text-[#9fa2ab]">Sets: ${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
+            $$renderer2.push(`<div class="text-xs text-charcoal-300">Sets: ${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
           } else {
             $$renderer2.push("<!--[!-->");
           }
@@ -1255,19 +1322,316 @@ function LiveMatchDashboard($$renderer, $$props) {
     bind_props($$props, { matches, eventId, userId, onMatchClick });
   });
 }
+function FilterBottomSheet($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    let activeFilterCount;
+    let matches = $$props["matches"];
+    let divisions = $$props["divisions"];
+    let teams = $$props["teams"];
+    let open = fallback($$props["open"], false);
+    let onClose = $$props["onClose"];
+    let swipeOffset = 0;
+    function getActiveFilterCount() {
+      let count = 0;
+      if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).myTeamsOnly) count++;
+      return count;
+    }
+    activeFilterCount = getActiveFilterCount();
+    if (open) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-label="Filter matches"><div class="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto transform transition-transform backdrop-blur-sm"${attr_style(`backdrop-filter: blur(8px); transform: translateY(${stringify(swipeOffset)}px);`)}><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full"></div> <h2 class="text-lg font-semibold text-charcoal-50 ml-auto">Filters</h2> <div class="flex items-center gap-2 ml-auto">`);
+      if (activeFilterCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="px-2 py-1 rounded-full bg-gold-500 text-charcoal-950 text-xs font-medium">${escape_html(activeFilterCount)}</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]" aria-label="Close filters">×</button></div></div> <div class="p-4 space-y-4"><div><label for="wave-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Wave</label> <div class="flex gap-2"><button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-gold-500 text-charcoal-950" : "bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700")}`)}>All</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-gold-500 text-charcoal-950" : "bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700")}`)}>Morning</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-gold-500 text-charcoal-950" : "bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700")}`)}>Afternoon</button></div></div> <div><label for="division-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Division</label> `);
+      $$renderer2.select(
+        {
+          id: "division-filter",
+          value: store_get($$store_subs ??= {}, "$filters", filters).division || "",
+          onchange: (e) => updateFilter("division", e.target.value || null),
+          class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
+        },
+        ($$renderer3) => {
+          $$renderer3.option({ value: "" }, ($$renderer4) => {
+            $$renderer4.push(`All Divisions`);
+          });
+          $$renderer3.push(`<!--[-->`);
+          const each_array = ensure_array_like(divisions);
+          for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+            let division = each_array[$$index];
+            $$renderer3.option({ value: division }, ($$renderer4) => {
+              $$renderer4.push(`${escape_html(division)}`);
+            });
+          }
+          $$renderer3.push(`<!--]-->`);
+        }
+      );
+      $$renderer2.push(`</div> <div><label for="team-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Team</label> `);
+      $$renderer2.select(
+        {
+          id: "team-filter",
+          value: store_get($$store_subs ??= {}, "$filters", filters).teams[0] || "",
+          onchange: (e) => updateFilter("teams", e.target.value ? [e.target.value] : []),
+          class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
+        },
+        ($$renderer3) => {
+          $$renderer3.option({ value: "" }, ($$renderer4) => {
+            $$renderer4.push(`All Teams`);
+          });
+          $$renderer3.push(`<!--[-->`);
+          const each_array_1 = ensure_array_like(teams);
+          for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+            let team = each_array_1[$$index_1];
+            $$renderer3.option({ value: team }, ($$renderer4) => {
+              $$renderer4.push(`${escape_html(team)}`);
+            });
+          }
+          $$renderer3.push(`<!--]-->`);
+        }
+      );
+      $$renderer2.push(`</div> <div><label for="time-range-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Time Range</label> <div class="grid grid-cols-2 gap-2"><div><label for="time-start" class="block text-xs text-charcoal-500 mb-1">Start</label> <input id="time-start" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || "")} class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"/></div> <div><label for="time-end" class="block text-xs text-charcoal-500 mb-1">End</label> <input id="time-end" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.end || "")} class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"/></div></div></div> `);
+      if (store_get($$store_subs ??= {}, "$userRole", userRole) === "media") {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div><label for="priority-filter-sheet" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Priority</label> `);
+        $$renderer2.select(
+          {
+            id: "priority-filter-sheet",
+            value: store_get($$store_subs ??= {}, "$filters", filters).priority || "all",
+            onchange: (e) => updateFilter("priority", e.target.value === "all" ? null : e.target.value),
+            class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
+          },
+          ($$renderer3) => {
+            $$renderer3.option({ value: "all" }, ($$renderer4) => {
+              $$renderer4.push(`All Priorities`);
+            });
+            $$renderer3.option({ value: "must-cover" }, ($$renderer4) => {
+              $$renderer4.push(`Must Cover`);
+            });
+            $$renderer3.option({ value: "priority" }, ($$renderer4) => {
+              $$renderer4.push(`Priority`);
+            });
+            $$renderer3.option({ value: "optional" }, ($$renderer4) => {
+              $$renderer4.push(`Optional`);
+            });
+          }
+        );
+        $$renderer2.push(`</div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> `);
+      if (store_get($$store_subs ??= {}, "$userRole", userRole) === "media") {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div><label for="coverage-status-filter-sheet" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Coverage Status</label> `);
+        $$renderer2.select(
+          {
+            id: "coverage-status-filter-sheet",
+            value: store_get($$store_subs ??= {}, "$filters", filters).coverageStatus || "all",
+            onchange: (e) => updateFilter("coverageStatus", e.target.value === "all" ? null : e.target.value),
+            class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
+          },
+          ($$renderer3) => {
+            $$renderer3.option({ value: "all" }, ($$renderer4) => {
+              $$renderer4.push(`All Status`);
+            });
+            $$renderer3.option({ value: "uncovered" }, ($$renderer4) => {
+              $$renderer4.push(`Uncovered`);
+            });
+            $$renderer3.option({ value: "planned" }, ($$renderer4) => {
+              $$renderer4.push(`Planned`);
+            });
+            $$renderer3.option({ value: "covered" }, ($$renderer4) => {
+              $$renderer4.push(`Covered`);
+            });
+          }
+        );
+        $$renderer2.push(`</div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> `);
+      if (store_get($$store_subs ??= {}, "$userRole", userRole) === "media") {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div><label class="flex items-center gap-2 cursor-pointer"><input type="checkbox"${attr("checked", store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly, true)} class="w-5 h-5 rounded border-charcoal-600 bg-charcoal-800 text-brand-500 focus:ring-brand-500 focus:ring-offset-charcoal-950"/> <span class="text-sm text-charcoal-50">Show conflicts only</span></label></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div> <div class="sticky bottom-0 bg-charcoal-950 border-t border-charcoal-900 px-4 py-3 flex gap-3"><button class="flex-1 px-4 py-2 rounded-lg bg-charcoal-800 text-charcoal-50 border border-charcoal-700 font-medium transition-colors hover:bg-charcoal-700 min-h-[44px]">Clear Filters</button> <button class="flex-1 px-4 py-2 rounded-lg bg-brand-500 text-white font-medium transition-colors hover:bg-brand-600 min-h-[44px]">Apply Filters</button></div></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]-->`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
+    bind_props($$props, { matches, divisions, teams, open, onClose });
+  });
+}
+function MatchCardMobile($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    let teamId, opponent, matchPriority, teamCoverageStatus, isCovered, isPlanned, isUncovered, shouldDim, currentPlan, isSelected, isMediaValue, isSpectatorValue, cardClasses;
+    let match = $$props["match"];
+    let hasConflict = fallback($$props["hasConflict"], false);
+    let onTap = $$props["onTap"];
+    let onSwipeRight = fallback($$props["onSwipeRight"], null);
+    let onSwipeLeft = fallback($$props["onSwipeLeft"], null);
+    let scanningMode = fallback($$props["scanningMode"], false);
+    let conflicts = $$props["conflicts"];
+    let swipeOffset = 0;
+    function getTeamId(match2) {
+      const teamText = match2.InvolvedTeam === "first" ? match2.FirstTeamText : match2.SecondTeamText;
+      const matchResult = teamText.match(/(\d+-\d+)/);
+      return matchResult ? matchResult[1] : "";
+    }
+    function getOpponent(match2) {
+      if (match2.InvolvedTeam === "first") return match2.SecondTeamText;
+      if (match2.InvolvedTeam === "second") return match2.FirstTeamText;
+      return `${match2.FirstTeamText} vs ${match2.SecondTeamText}`;
+    }
+    teamId = getTeamId(match);
+    opponent = getOpponent(match);
+    matchPriority = priority.getPriority(match.MatchId);
+    teamCoverageStatus = teamId ? coverageStatus.getTeamStatus(teamId) : "not-covered";
+    isCovered = teamCoverageStatus === "covered" || teamCoverageStatus === "partially-covered";
+    isPlanned = teamCoverageStatus === "planned";
+    isUncovered = teamCoverageStatus === "not-covered";
+    shouldDim = scanningMode && isCovered;
+    currentPlan = get(coveragePlan);
+    isSelected = currentPlan.has(match.MatchId);
+    isMediaValue = store_get($$store_subs ??= {}, "$isMedia", isMedia);
+    isSpectatorValue = store_get($$store_subs ??= {}, "$isSpectator", isSpectator);
+    cardClasses = [
+      "relative rounded-xl px-4 py-3 min-h-[44px] transition-colors",
+      hasConflict || matchPriority === "must-cover" ? "border-2" : "border",
+      hasConflict ? "border-warning-500 bg-warning-500/10" : "",
+      matchPriority === "must-cover" && !hasConflict ? "border-gold-500 bg-gold-500/10" : "",
+      isPlanned && !hasConflict && matchPriority !== "must-cover" ? "border-gold-500/50 bg-gold-500/10" : "",
+      isCovered && !hasConflict && !isPlanned && matchPriority !== "must-cover" ? "border-success-500/30 bg-success-500/5" : "",
+      isUncovered && !hasConflict && !isPlanned && matchPriority !== "must-cover" && isSelected ? "border-gold-500 bg-gold-500/5" : "",
+      !hasConflict && !isCovered && !isPlanned && !isSelected && matchPriority !== "must-cover" ? "border-charcoal-700 bg-charcoal-900" : "",
+      "hover:border-charcoal-600 hover:bg-charcoal-800"
+    ].filter(Boolean).join(" ");
+    $$renderer2.push(`<div${attr_class("relative w-full rounded-xl transition-all duration-200 cursor-pointer touch-pan-y svelte-xjb0a1", void 0, { "opacity-30": shouldDim })}${attr_style(`transform: translateX(${stringify(swipeOffset * 0)}px);`)} data-match-card=""${attr("data-match-id", match.MatchId)}>`);
+    {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> <div${attr_class(clsx(cardClasses))}><div class="flex items-start gap-3"><div class="flex-shrink-0"><div class="px-2 py-1 rounded-lg bg-charcoal-700 text-charcoal-200 border border-charcoal-600 text-xs font-bold">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div></div> <div class="flex-1 min-w-0"><div class="flex items-center gap-2 mb-1"><div class="text-base font-bold text-charcoal-50 truncate">${escape_html(teamId || match.Division.CodeAlias)}</div> `);
+    if (hasConflict) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<span class="text-xs text-warning-500 flex-shrink-0">⚠️</span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (matchPriority === "must-cover") {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<span class="text-xs text-gold-500 flex-shrink-0">⭐</span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div> <div class="text-sm text-charcoal-300 truncate mb-1">vs ${escape_html(opponent)}</div> <div class="flex items-center gap-2 mt-1"><span class="text-xs font-semibold text-charcoal-300">${escape_html(match.CourtName)}</span> <span class="text-xs text-charcoal-400">•</span> <span class="text-xs text-charcoal-400">${escape_html(match.Division.CodeAlias)}</span> `);
+    if (teamCoverageStatus === "covered") {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<span class="text-xs text-success-500">✓ Covered</span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      if (teamCoverageStatus === "partially-covered") {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="text-xs text-warning-500">◐ Partial</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+        if (teamCoverageStatus === "planned") {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<span class="text-xs text-gold-500">📋 Planned</span>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]-->`);
+      }
+      $$renderer2.push(`<!--]-->`);
+    }
+    $$renderer2.push(`<!--]--></div></div> <div class="flex-shrink-0 flex flex-col items-center gap-1">`);
+    if (isMediaValue) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<button type="button"${attr_class(`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors min-h-[44px] sm:min-h-0 ${stringify(isSelected ? "border-gold-500 bg-gold-500/20" : "border-charcoal-600 hover:bg-charcoal-700")}`)}${attr("aria-label", isSelected ? "Remove from plan" : "Add to plan")}>`);
+      if (isSelected) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<svg class="w-4 h-4 text-gold-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+        $$renderer2.push(`<span class="text-xs text-charcoal-400">+</span>`);
+      }
+      $$renderer2.push(`<!--]--></button>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      if (isSpectatorValue) {
+        $$renderer2.push("<!--[-->");
+        if (teamId) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<button type="button"${attr_class("px-2 py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0", void 0, {
+            "bg-gold-500": followedTeams.isFollowing(teamId),
+            "text-charcoal-950": followedTeams.isFollowing(teamId),
+            "bg-charcoal-700": !followedTeams.isFollowing(teamId),
+            "text-charcoal-200": !followedTeams.isFollowing(teamId)
+          })}${attr("title", followedTeams.isFollowing(teamId) ? "Unfollow team" : "Follow team")}>${escape_html(followedTeams.isFollowing(teamId) ? "✓" : "+")}</button>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]-->`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]-->`);
+    }
+    $$renderer2.push(`<!--]--></div></div></div></div>`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
+    bind_props($$props, {
+      match,
+      hasConflict,
+      onTap,
+      onSwipeRight,
+      onSwipeLeft,
+      scanningMode,
+      conflicts
+    });
+  });
+}
 function MatchList($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
-    let conflicts, coverageStatusMap, coverageSuggestions, filteredMatches, opportunities, opportunityMatchIds, coverageStats, sortedMatches, matchesByStartTime, startTimes;
+    let activeFilterCount, conflicts, divisions, teams, coverageStatusMap, filteredMatches, opportunities, opportunityMatchIds, coverageStats, sortedMatches, matchesByStartTime, startTimes;
     let matches = $$props["matches"];
     let eventId = $$props["eventId"];
     let clubId = $$props["clubId"];
     let expandedMatch = null;
+    let detailSheetMatch = null;
     let priorityMenuOpen = null;
     let coverageStatusMenuOpen = null;
+    let scanningMode = false;
     let showSuggestions = false;
     let scorekeeperMatch = null;
     let previousClaimedMatchIds = /* @__PURE__ */ new Set();
+    let showFilterSheet = false;
+    function getActiveFilterCount() {
+      let count = 0;
+      if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
+      return count;
+    }
     let matchClaiming;
     createMatchNotesStore(eventId);
     function getOpponent(match) {
@@ -1278,6 +1642,7 @@ function MatchList($$renderer, $$props) {
     onDestroy(() => {
       matchClaiming.stopPolling();
     });
+    activeFilterCount = getActiveFilterCount();
     {
       const isSpectatorValue = store_get($$store_subs ??= {}, "$isSpectator", isSpectator);
       matchClaiming = createMatchClaiming({
@@ -1286,7 +1651,7 @@ function MatchList($$renderer, $$props) {
       });
     }
     conflicts = detectConflicts(matches);
-    (() => {
+    divisions = (() => {
       if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") {
         const waveStart = store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "08:00" : "14:30";
         const waveEnd = store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "14:30" : "23:59";
@@ -1300,7 +1665,7 @@ function MatchList($$renderer, $$props) {
       }
       return getUniqueDivisions(matches);
     })();
-    getUniqueTeams(matches);
+    teams = getUniqueTeams(matches);
     coverageStatusMap = (() => {
       const map = /* @__PURE__ */ new Map();
       matches.forEach((match) => {
@@ -1311,7 +1676,7 @@ function MatchList($$renderer, $$props) {
       });
       return map;
     })();
-    coverageSuggestions = (() => {
+    (() => {
       const selectedSet = get(coveragePlan);
       return generateCoverageSuggestions(matches, selectedSet, conflicts, coverageStatusMap, getTeamIdentifier, {
         excludeSelected: true,
@@ -1344,10 +1709,10 @@ function MatchList($$renderer, $$props) {
           return true;
         });
       }
-      if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
+      if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator) && store_get($$store_subs ??= {}, "$filters", filters).myTeamsOnly) {
         let followedTeamIds = [];
-        followedTeams.subscribe((teams) => {
-          followedTeamIds = teams.map((t) => t.teamId);
+        followedTeams.subscribe((teams2) => {
+          followedTeamIds = teams2.map((t) => t.teamId);
         })();
         if (followedTeamIds.length > 0) {
           filtered = filtered.filter((m) => {
@@ -1439,8 +1804,8 @@ function MatchList($$renderer, $$props) {
     }
     if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator) && matches.length > 0) {
       let followedTeamIds = [];
-      followedTeams.subscribe((teams) => {
-        followedTeamIds = teams.map((t) => t.teamId);
+      followedTeams.subscribe((teams2) => {
+        followedTeamIds = teams2.map((t) => t.teamId);
       })();
       matches.forEach((match) => {
         const teamId = getTeamIdentifier(match);
@@ -1454,7 +1819,7 @@ function MatchList($$renderer, $$props) {
     }
     if (filteredMatches.length === 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-12 text-[#9fa2ab] text-sm">${escape_html(store_get($$store_subs ??= {}, "$filters", filters).division || store_get($$store_subs ??= {}, "$filters", filters).wave !== "all" || store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0 || store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end ? "No matches found for selected filters" : "No matches found")}</div>`);
+      $$renderer2.push(`<div class="text-center py-12 text-charcoal-300 text-sm">${escape_html(store_get($$store_subs ??= {}, "$filters", filters).division || store_get($$store_subs ??= {}, "$filters", filters).wave !== "all" || store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0 || store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end ? "No matches found for selected filters" : "No matches found")}</div>`);
     } else {
       $$renderer2.push("<!--[!-->");
       $$renderer2.push(`<div>`);
@@ -1471,14 +1836,14 @@ function MatchList($$renderer, $$props) {
       $$renderer2.push(`<!--]--> `);
       if (store_get($$store_subs ??= {}, "$isMedia", isMedia) && coverageStats.totalTeams > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="mb-4 px-4 py-2 rounded-lg border border-[#454654] bg-[#3b3c48] flex items-center justify-between flex-wrap gap-2"><div class="flex items-center gap-4 flex-wrap"><div class="text-xs text-[#9fa2ab]"><span class="font-semibold text-[#f8f8f9]">${escape_html(coverageStats.coveragePercentage.toFixed(0))}%</span> Coverage</div> <div class="flex items-center gap-2 text-xs"><span class="text-green-400">✓ ${escape_html(coverageStats.coveredTeams)}</span> <span class="text-[#9fa2ab]">/</span> <span class="text-[#f59e0b]">◐ ${escape_html(coverageStats.partiallyCoveredTeams)}</span> <span class="text-[#9fa2ab]">/</span> <span class="text-[#eab308]">📋 ${escape_html(coverageStats.plannedTeams)}</span> <span class="text-[#9fa2ab]">/</span> <span class="text-[#808593]">○ ${escape_html(coverageStats.uncoveredTeams)}</span></div></div> <div class="flex items-center gap-2 flex-wrap"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]")}`)} title="Dim covered teams to focus on uncovered">${escape_html("Scanning Mode")}</button> `);
-        if (coverageSuggestions.length > 0) {
+        $$renderer2.push(`<div class="mb-4 px-4 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 flex items-center justify-between flex-wrap gap-2"><div class="flex items-center gap-4 flex-wrap"><div class="text-xs text-charcoal-300"><span class="font-semibold text-charcoal-50">${escape_html(coverageStats.coveragePercentage.toFixed(0))}%</span> Coverage</div> <div class="flex items-center gap-2 text-xs"><span class="text-green-400">✓ ${escape_html(coverageStats.coveredTeams)}</span> <span class="text-charcoal-300">/</span> <span class="text-[#f59e0b]">◐ ${escape_html(coverageStats.partiallyCoveredTeams)}</span> <span class="text-charcoal-300">/</span> <span class="text-gold-500">📋 ${escape_html(coverageStats.plannedTeams)}</span> <span class="text-charcoal-300">/</span> <span class="text-charcoal-400">○ ${escape_html(coverageStats.uncoveredTeams)}</span></div></div> `);
+        if (store_get($$store_subs ??= {}, "$isMedia", isMedia)) {
           $$renderer2.push("<!--[-->");
-          $$renderer2.push(`<button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]")}`)}${attr("title", `${stringify(coverageSuggestions.length)} coverage suggestions`)}>💡 Suggestions (${escape_html(coverageSuggestions.length)})</button>`);
+          $$renderer2.push(`<div class="mt-8 pt-6 border-t border-charcoal-700"><button${attr_class(`w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors min-h-[44px] ${stringify("bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600")}`)} title="Dim covered teams to focus on uncovered">${escape_html("Scanning Mode")}</button></div>`);
         } else {
           $$renderer2.push("<!--[!-->");
         }
-        $$renderer2.push(`<!--]--></div></div>`);
+        $$renderer2.push(`<!--]--></div>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -1490,13 +1855,20 @@ function MatchList($$renderer, $$props) {
       $$renderer2.push(`<!--]--> `);
       if (store_get($$store_subs ??= {}, "$isMedia", isMedia)) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="mb-4 px-3 py-2 rounded-lg border border-[#454654] bg-[#3b3c48] text-xs"><div class="font-medium text-[#9fa2ab] uppercase tracking-wider mb-2">Coverage Status Legend</div> <div class="flex flex-wrap gap-4 text-[#c0c2c8]"><div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-[#eab308] bg-[#eab308]/5"></div> <span>Uncovered</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-[#eab308]/50 bg-[#eab308]/10"></div> <span>Planned</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5"></div> <span>Covered</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-red-800/50 bg-red-950/10"></div> <span>Conflict</span></div></div></div>`);
+        $$renderer2.push(`<div class="mb-4 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs"><div class="font-medium text-charcoal-300 uppercase tracking-wider mb-2">Coverage Status Legend</div> <div class="flex flex-wrap gap-4 text-charcoal-200"><div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-gold-500 bg-gold-500/5"></div> <span>Uncovered</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-gold-500/50 bg-gold-500/10"></div> <span>Planned</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5"></div> <span>Covered</span></div> <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded border border-red-800/50 bg-red-950/10"></div> <span>Conflict</span></div></div></div>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
-      $$renderer2.push(`<!--]--> <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4"><div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Sort:</span> <div class="flex gap-1 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(
-        "bg-[#eab308] text-[#18181b]"
-      )}`)}>Team</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Court</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Time</button></div></div> <div class="flex items-center gap-2"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Wave:</span> <div class="flex gap-1 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>All</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Morning</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-[#eab308] text-[#18181b]" : "text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Afternoon</button></div></div> `);
+      $$renderer2.push(`<!--]--> <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4"><button class="fixed bottom-4 right-4 w-14 h-14 rounded-full bg-gold-500 text-charcoal-950 shadow-lg flex items-center justify-center font-semibold z-40 sm:hidden" aria-label="Open filters">Filters `);
+      if (activeFilterCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#ef4444] text-charcoal-50 text-xs flex items-center justify-center">${escape_html(activeFilterCount)}</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></button> <div class="hidden sm:flex lg:hidden flex-col sm:flex-row sm:items-center gap-2 sm:gap-4"><div class="flex items-center gap-2"><span class="text-xs text-charcoal-300 uppercase tracking-wider">Sort:</span> <div class="flex gap-1 bg-charcoal-700 rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(
+        "bg-gold-500 text-charcoal-950"
+      )}`)}>Team</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Court</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Time</button></div></div> <div class="flex items-center gap-2"><span class="text-xs text-charcoal-300 uppercase tracking-wider">Wave:</span> <div class="flex gap-1 bg-charcoal-700 rounded-lg p-1"><button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-gold-500 text-charcoal-950" : "text-charcoal-200 hover:text-charcoal-50")}`)}>All</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-gold-500 text-charcoal-950" : "text-charcoal-200 hover:text-charcoal-50")}`)}>Morning</button> <button${attr_class(`px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-gold-500 text-charcoal-950" : "text-charcoal-200 hover:text-charcoal-50")}`)}>Afternoon</button></div></div> `);
       if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
         $$renderer2.push("<!--[-->");
         $$renderer2.push(`<div class="flex items-center gap-2">`);
@@ -1505,10 +1877,20 @@ function MatchList($$renderer, $$props) {
       } else {
         $$renderer2.push("<!--[!-->");
       }
-      $$renderer2.push(`<!--]--></div> <div class="space-y-4">`);
+      $$renderer2.push(`<!--]--></div> <div class="flex items-center gap-2 sm:hidden"><span class="text-xs text-charcoal-300 uppercase tracking-wider">Sort:</span> <div class="flex gap-1 bg-charcoal-700 rounded-lg p-1"><button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(
+        "bg-gold-500 text-charcoal-950"
+      )}`)}>Team</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Court</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Time</button></div></div></div> `);
+      FilterBottomSheet($$renderer2, {
+        matches,
+        divisions,
+        teams,
+        open: showFilterSheet,
+        onClose: () => showFilterSheet = false
+      });
+      $$renderer2.push(`<!----> <div data-match-list="" class="space-y-4">`);
       if (startTimes.length === 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="text-center py-12 text-[#9fa2ab] text-sm">No matches found</div>`);
+        $$renderer2.push(`<div class="text-center py-12 text-charcoal-300 text-sm">No matches found</div>`);
       } else {
         $$renderer2.push("<!--[!-->");
         $$renderer2.push(`<!--[-->`);
@@ -1518,15 +1900,15 @@ function MatchList($$renderer, $$props) {
           const timeMatches = matchesByStartTime[startTime];
           const timeConflicts = timeMatches.filter((m) => conflicts.has(m.MatchId)).length;
           const hasAnyConflict = timeConflicts > 0;
-          const allHaveConflicts = timeConflicts === timeMatches.length;
-          $$renderer2.push(`<div class="space-y-1.5"><div class="flex items-center justify-between mb-2 pb-1 border-b border-[#454654]"><div class="flex items-center gap-2"><h3 class="text-base font-semibold text-[#f8f8f9]">${escape_html(startTime)}</h3> <span class="text-xs text-[#9fa2ab]">${escape_html(timeMatches.length)} match${escape_html(timeMatches.length !== 1 ? "es" : "")}</span></div> `);
+          timeConflicts === timeMatches.length;
+          $$renderer2.push(`<div class="space-y-2"><div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2"><h3 class="text-base font-bold text-charcoal-50">${escape_html(startTime)}</h3> <span class="text-xs text-charcoal-300">${escape_html(timeMatches.length)} match${escape_html(timeMatches.length !== 1 ? "es" : "")}</span></div> `);
           if (hasAnyConflict) {
             $$renderer2.push("<!--[-->");
-            $$renderer2.push(`<span${attr_class(`text-xs font-medium ${stringify(allHaveConflicts ? "text-[#808593]" : "text-red-400")}`)}>${escape_html(timeConflicts)} conflict${escape_html(timeConflicts !== 1 ? "s" : "")}</span>`);
+            $$renderer2.push(`<span class="text-xs font-medium text-[#ef4444]">${escape_html(timeConflicts)} conflict${escape_html(timeConflicts !== 1 ? "s" : "")}</span>`);
           } else {
             $$renderer2.push("<!--[!-->");
           }
-          $$renderer2.push(`<!--]--></div> <!--[-->`);
+          $$renderer2.push(`<!--]--></div> <div class="space-y-1"><!--[-->`);
           const each_array_2 = ensure_array_like(timeMatches);
           for (let index = 0, $$length2 = each_array_2.length; index < $$length2; index++) {
             let match = each_array_2[index];
@@ -1535,34 +1917,62 @@ function MatchList($$renderer, $$props) {
             const opponent = getOpponent(match);
             const isExpanded = expandedMatch === match.MatchId;
             const matchPriority = priority.getPriority(match.MatchId);
-            const isOpportunity = opportunityMatchIds.has(match.MatchId);
+            opportunityMatchIds.has(match.MatchId);
             const teamCoverageStatus = teamId ? coverageStatus.getTeamStatus(teamId) : "not-covered";
-            const isCovered = teamCoverageStatus === "covered" || teamCoverageStatus === "partially-covered";
-            const isPlanned = teamCoverageStatus === "planned";
-            const isUncovered = teamCoverageStatus === "not-covered";
             const currentPlan = get(coveragePlan);
             const isSelected = currentPlan.has(match.MatchId);
-            const showConflictStyling = hasConflict && !allHaveConflicts;
-            $$renderer2.push(`<div><div${attr_class(`group relative rounded transition-all flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 py-2.5 sm:py-2 cursor-pointer match-card min-h-[44px] sm:min-h-0 ${stringify(showConflictStyling ? "border border-red-800/50 bg-red-950/10" : matchPriority === "must-cover" ? "border-2 border-[#eab308] bg-[#eab308]/10" : matchPriority === "priority" ? "border border-[#f59e0b] bg-[#f59e0b]/10" : isUncovered && !isSelected ? "border border-[#eab308] bg-[#eab308]/5" : isPlanned ? "border border-[#eab308]/50 bg-[#eab308]/10" : isCovered ? "border border-green-500/30 bg-green-950/5" : isOpportunity && !isSelected ? "border border-green-500/50 bg-green-950/10" : isSelected ? "border border-[#eab308]/50 bg-[#eab308]/10" : "border border-[#454654] bg-[#3b3c48]")} ${stringify("")} hover:border-[#525463] hover:bg-[#3b3c48]/80`)}>`);
+            $$renderer2.push(`<div><div class="lg:hidden">`);
+            MatchCardMobile($$renderer2, {
+              match,
+              hasConflict,
+              conflicts,
+              scanningMode,
+              onTap: (m) => detailSheetMatch = m,
+              onSwipeRight: store_get($$store_subs ??= {}, "$isMedia", isMedia) ? (m) => coveragePlan.toggleMatch(m.MatchId) : null,
+              onSwipeLeft: null
+            });
+            $$renderer2.push(`<!----></div> <div${attr_class(`hidden lg:flex lg:items-center lg:gap-4 lg:py-2 lg:px-3 lg:border-b lg:border-charcoal-700 hover:bg-[#2a2a2f]/50 transition-colors cursor-pointer ${stringify("")}`)} data-match-card="" role="button" tabindex="0"><div class="flex-shrink-0 w-16"><div class="text-base font-bold text-charcoal-50 leading-tight">${escape_html(teamId || match.Division.CodeAlias)}</div> <div class="text-xs text-charcoal-300 leading-tight mt-0.5">${escape_html(match.Division.CodeAlias)}</div></div> <div class="flex-shrink-0 w-28"><div class="text-base font-bold text-[#facc15] leading-tight">${escape_html(match.CourtName)}</div></div> <div class="flex-1 min-w-0"><div class="flex items-center gap-2">`);
+            if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator) && teamId) {
+              $$renderer2.push("<!--[-->");
+              const teamColor = followedTeams.getTeamColor(teamId);
+              if (teamColor) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="w-3 h-3 rounded-full flex-shrink-0"${attr_style(`background-color: ${stringify(teamColor)};`)}${attr("title", `${stringify(teamId)} (followed)`)}></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]-->`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--> <div class="text-sm text-charcoal-200 truncate">vs ${escape_html(opponent)}</div> `);
+            if (hasConflict) {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<span class="text-xs text-[#ef4444] flex-shrink-0">⚠️</span>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--></div></div> <div class="flex items-center gap-2 flex-shrink-0">`);
             if (store_get($$store_subs ??= {}, "$isMedia", isMedia)) {
               $$renderer2.push("<!--[-->");
-              $$renderer2.push(`<button${attr_class(`absolute top-2 right-2 sm:relative sm:top-0 sm:right-0 flex-shrink-0 w-5 h-5 rounded border-2 ${stringify(isSelected ? "border-[#eab308] bg-[#eab308]/20" : "border-[#525463] bg-transparent")} flex items-center justify-center hover:bg-[#454654] transition-colors`)}${attr("aria-label", isSelected ? "Remove from plan" : "Add to plan")}>`);
+              $$renderer2.push(`<button${attr_class(`flex-shrink-0 w-5 h-5 rounded border-2 ${stringify(isSelected ? "border-gold-500 bg-gold-500/20" : "border-charcoal-600 bg-transparent")} flex items-center justify-center hover:bg-charcoal-700 transition-colors`)}${attr("aria-label", isSelected ? "Remove from plan" : "Add to plan")}>`);
               if (isSelected) {
                 $$renderer2.push("<!--[-->");
                 $$renderer2.push(`<svg class="w-3 h-3 text-[#facc15]" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>`);
               } else {
                 $$renderer2.push("<!--[!-->");
+                $$renderer2.push(`<span class="text-xs text-charcoal-300">+</span>`);
               }
               $$renderer2.push(`<!--]--></button>`);
             } else {
               $$renderer2.push("<!--[!-->");
             }
-            $$renderer2.push(`<!--]--> <div class="flex-1 min-w-0"><div class="text-sm font-semibold text-[#f8f8f9]">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div> <div class="text-xs text-[#9fa2ab]">${escape_html(match.CourtName)} • ${escape_html(teamId || match.Division.CodeAlias)} vs ${escape_html(opponent)}</div></div> `);
+            $$renderer2.push(`<!--]--> `);
             if (store_get($$store_subs ??= {}, "$isMedia", isMedia)) {
               $$renderer2.push("<!--[-->");
-              $$renderer2.push(`<div class="relative"><button${attr_class(`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[#454654] ${stringify(matchPriority === "must-cover" ? "text-[#eab308]" : matchPriority === "priority" ? "text-[#f59e0b]" : matchPriority === "optional" ? "text-[#9fa2ab]" : "text-[#808593]")}`)} aria-label="Set priority"${attr("title", matchPriority ? `Priority: ${matchPriority}` : "Set priority")}>${escape_html(matchPriority === "must-cover" && "⭐")}
-												${escape_html(matchPriority === "priority" && "🔸")}
-												${escape_html(matchPriority === "optional" && "○")} `);
+              $$renderer2.push(`<div class="relative"><button${attr_class(`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-charcoal-700 ${stringify(matchPriority === "must-cover" ? "text-gold-500" : matchPriority === "priority" ? "text-[#f59e0b]" : matchPriority === "optional" ? "text-charcoal-300" : "text-charcoal-400")}`)} aria-label="Set priority"${attr("title", matchPriority ? `Priority: ${matchPriority}` : "Set priority")}>${escape_html(matchPriority === "must-cover" && "⭐")}
+													${escape_html(matchPriority === "priority" && "🔸")}
+													${escape_html(matchPriority === "optional" && "○")} `);
               if (!matchPriority) {
                 $$renderer2.push("<!--[-->");
                 $$renderer2.push(`<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>`);
@@ -1572,7 +1982,7 @@ function MatchList($$renderer, $$props) {
               $$renderer2.push(`<!--]--></button> `);
               if (priorityMenuOpen === match.MatchId) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<div class="absolute left-0 top-8 z-50">`);
+                $$renderer2.push(`<div class="absolute right-0 top-8 z-50">`);
                 PrioritySelector($$renderer2, {
                   matchId: match.MatchId,
                   currentPriority: matchPriority,
@@ -1590,13 +2000,13 @@ function MatchList($$renderer, $$props) {
             $$renderer2.push(`<!--]--> `);
             if (store_get($$store_subs ??= {}, "$isMedia", isMedia) && teamId) {
               $$renderer2.push("<!--[-->");
-              $$renderer2.push(`<div class="relative"><button${attr_class(`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-[#454654] ${stringify(teamCoverageStatus === "covered" ? "text-green-500" : teamCoverageStatus === "partially-covered" ? "text-[#f59e0b]" : teamCoverageStatus === "planned" ? "text-[#eab308]" : "text-[#808593]")}`)} aria-label="Set coverage status"${attr("title", `Coverage: ${stringify(teamCoverageStatus)}`)}>${escape_html(teamCoverageStatus === "covered" && "✓")}
-												${escape_html(teamCoverageStatus === "partially-covered" && "◐")}
-												${escape_html(teamCoverageStatus === "planned" && "📋")}
-												${escape_html(teamCoverageStatus === "not-covered" && "○")}</button> `);
+              $$renderer2.push(`<div class="relative"><button${attr_class(`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-charcoal-700 ${stringify(teamCoverageStatus === "covered" ? "text-green-500" : teamCoverageStatus === "partially-covered" ? "text-[#f59e0b]" : teamCoverageStatus === "planned" ? "text-gold-500" : "text-charcoal-400")}`)} aria-label="Set coverage status"${attr("title", `Coverage: ${stringify(teamCoverageStatus)}`)}>${escape_html(teamCoverageStatus === "covered" && "✓")}
+													${escape_html(teamCoverageStatus === "partially-covered" && "◐")}
+													${escape_html(teamCoverageStatus === "planned" && "📋")}
+													${escape_html(teamCoverageStatus === "not-covered" && "○")}</button> `);
               if (coverageStatusMenuOpen === teamId) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<div class="absolute left-0 top-8 z-50">`);
+                $$renderer2.push(`<div class="absolute right-0 top-8 z-50">`);
                 CoverageStatusSelector($$renderer2, {
                   teamId,
                   currentStatus: teamCoverageStatus,
@@ -1619,11 +2029,11 @@ function MatchList($$renderer, $$props) {
               const isOwner = matchClaiming.isClaimOwner(match.MatchId);
               if (teamId) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<div class="flex-shrink-0"><button${attr_class(`px-2 py-1 text-xs font-medium rounded transition-colors ${stringify(followedTeams.isFollowing(teamId) ? "bg-[#eab308] text-[#18181b]" : "bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]")}`)}${attr("title", followedTeams.isFollowing(teamId) ? "Unfollow team" : "Follow team")}>${escape_html(followedTeams.isFollowing(teamId) ? "✓" : "+")}</button></div>`);
+                $$renderer2.push(`<button${attr_class(`flex-shrink-0 px-2 py-1 text-xs font-medium rounded transition-colors ${stringify(followedTeams.isFollowing(teamId) ? "bg-gold-500 text-charcoal-950" : "bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600")}`)}${attr("title", followedTeams.isFollowing(teamId) ? "Unfollow team" : "Follow team")}>${escape_html(followedTeams.isFollowing(teamId) ? "✓" : "+")}</button>`);
               } else {
                 $$renderer2.push("<!--[!-->");
               }
-              $$renderer2.push(`<!--]--> <div class="flex-shrink-0 flex items-center gap-2">`);
+              $$renderer2.push(`<!--]--> <div class="flex-shrink-0">`);
               MatchClaimButton($$renderer2, {
                 match,
                 eventId,
@@ -1642,66 +2052,28 @@ function MatchList($$renderer, $$props) {
                   scorekeeperMatch = null;
                 }
               });
-              $$renderer2.push(`<!----> <button class="px-2 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]" title="View claim history for this match">📜</button> `);
+              $$renderer2.push(`<!----></div> `);
               if (claimStatus === "claimed" && isOwner) {
                 $$renderer2.push("<!--[-->");
-                $$renderer2.push(`<button class="px-2 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors border border-[#eab308]" title="Start keeping score for this match">${escape_html(score ? "Update Score" : "Start Scoring")}</button>`);
+                $$renderer2.push(`<button class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors border border-gold-500 whitespace-nowrap" title="Start keeping score for this match">${escape_html(score ? "Update Score" : "Start Scoring")}</button>`);
               } else {
                 $$renderer2.push("<!--[!-->");
               }
               $$renderer2.push(`<!--]--> `);
               if (score && score.status !== "not-started") {
                 $$renderer2.push("<!--[-->");
-                const currentSet = score.sets.find((s) => s.completedAt === 0) || score.sets[score.sets.length - 1];
-                const completedSets = score.sets.filter((s) => s.completedAt > 0);
-                const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
-                const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
-                $$renderer2.push(`<div class="flex-shrink-0 flex items-center gap-2">`);
-                if (completedSets.length > 0) {
-                  $$renderer2.push("<!--[-->");
-                  $$renderer2.push(`<div class="text-xs font-medium text-[#9fa2ab]">${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
-                } else {
-                  $$renderer2.push("<!--[!-->");
-                }
-                $$renderer2.push(`<!--]--> <div class="text-xs font-semibold text-[#f8f8f9]">${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> `);
-                LiveScoreIndicator($$renderer2, {
-                  isLive: score.status === "in-progress",
-                  lastUpdated: score.lastUpdated
-                });
-                $$renderer2.push(`<!----></div>`);
+                LiveScoreIndicator($$renderer2, { match, matchClaiming });
               } else {
                 $$renderer2.push("<!--[!-->");
               }
-              $$renderer2.push(`<!--]--> `);
-              if (!isOwner && score && score.status !== "not-started") {
-                $$renderer2.push("<!--[-->");
-                const currentSet = score.sets.find((s) => s.completedAt === 0) || score.sets[score.sets.length - 1];
-                const completedSets = score.sets.filter((s) => s.completedAt > 0);
-                const team1Wins = completedSets.filter((s) => s.team1Score > s.team2Score).length;
-                const team2Wins = completedSets.filter((s) => s.team2Score > s.team1Score).length;
-                $$renderer2.push(`<div class="flex-shrink-0 flex items-center gap-2">`);
-                if (completedSets.length > 0) {
-                  $$renderer2.push("<!--[-->");
-                  $$renderer2.push(`<div class="text-xs font-medium text-[#9fa2ab]">${escape_html(team1Wins)}-${escape_html(team2Wins)}</div>`);
-                } else {
-                  $$renderer2.push("<!--[!-->");
-                }
-                $$renderer2.push(`<!--]--> <div class="text-xs font-semibold text-[#f8f8f9]">${escape_html(currentSet.team1Score)}-${escape_html(currentSet.team2Score)}</div> `);
-                LiveScoreIndicator($$renderer2, {
-                  isLive: score.status === "in-progress",
-                  lastUpdated: score.lastUpdated
-                });
-                $$renderer2.push(`<!----> <span class="text-[8px] text-[#9fa2ab]">(Live)</span></div>`);
-              } else {
-                $$renderer2.push("<!--[!-->");
-              }
-              $$renderer2.push(`<!--]--></div>`);
+              $$renderer2.push(`<!--]-->`);
             } else {
               $$renderer2.push("<!--[!-->");
             }
-            $$renderer2.push(`<!--]--> <div class="flex-shrink-0 w-4"><svg${attr_class(`w-4 h-4 text-[#9fa2ab] transition-transform ${stringify(isExpanded ? "rotate-180" : "")}`)} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div></div> `);
-            if (isExpanded) {
+            $$renderer2.push(`<!--]--></div></div> `);
+            if (isExpanded && expandedMatch === match.MatchId) {
               $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<div class="hidden lg:block mt-8">`);
               TeamDetailPanel($$renderer2, {
                 match,
                 eventId,
@@ -1709,16 +2081,25 @@ function MatchList($$renderer, $$props) {
                 onClose: () => expandedMatch = null,
                 matches
               });
+              $$renderer2.push(`<!----></div>`);
             } else {
               $$renderer2.push("<!--[!-->");
             }
             $$renderer2.push(`<!--]--></div>`);
           }
-          $$renderer2.push(`<!--]--></div>`);
+          $$renderer2.push(`<!--]--></div></div>`);
         }
         $$renderer2.push(`<!--]-->`);
       }
       $$renderer2.push(`<!--]--></div> `);
+      MatchDetailSheet($$renderer2, {
+        match: detailSheetMatch,
+        eventId,
+        clubId,
+        matches,
+        onClose: () => detailSheetMatch = null
+      });
+      $$renderer2.push(`<!----> `);
       if (scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)) {
         $$renderer2.push("<!--[-->");
         Scorekeeper($$renderer2, {
@@ -1741,7 +2122,7 @@ function MatchList($$renderer, $$props) {
       $$renderer2.push(`<!--]--> `);
       if (store_get($$store_subs ??= {}, "$isSpectator", isSpectator)) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="fixed bottom-4 right-4 z-50"><div class="relative"><button class="px-4 py-2 text-sm font-medium rounded-lg bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors shadow-lg flex items-center gap-2" title="Score sharing &amp; sync options"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Scores</button> `);
+        $$renderer2.push(`<div class="fixed bottom-4 right-4 z-50"><div class="relative"><button class="px-4 py-2 text-sm font-medium rounded-lg bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors shadow-lg flex items-center gap-2" title="Score sharing &amp; sync options"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Scores</button> `);
         {
           $$renderer2.push("<!--[!-->");
         }
@@ -1962,6 +2343,355 @@ function createTeamCoordination() {
   };
 }
 createTeamCoordination();
+function CoveragePlanPanel($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    let selectedMatchesList, planConflicts, coverageAwareOpportunities, conflictGroups, totalCoverageTime, matchesByDate, sortedDates;
+    let matches = $$props["matches"];
+    let onClose = $$props["onClose"];
+    let swipeOffset = 0;
+    let activeTab = "plan";
+    let coverageStatusFilter = "all";
+    let coverageStatusMenuOpen = null;
+    let currentConflictIndex = 0;
+    let conflictRefs = [];
+    function getMatchConflicts(matchId) {
+      const conflictIds = planConflicts.get(matchId) || [];
+      return conflictIds.map((id) => selectedMatchesList.find((m) => m.MatchId === id)).filter(Boolean);
+    }
+    onDestroy(() => {
+      document.body.style.overflow = "";
+    });
+    function getOpponent(m) {
+      if (m.InvolvedTeam === "first") return m.SecondTeamText;
+      if (m.InvolvedTeam === "second") return m.FirstTeamText;
+      return `${m.FirstTeamText} vs ${m.SecondTeamText}`;
+    }
+    if (matches.length > 0) {
+      const teamMatches = /* @__PURE__ */ new Map();
+      const currentPlan = get(coveragePlan);
+      matches.forEach((match) => {
+        const teamId = getTeamIdentifier(match);
+        if (!teamId) return;
+        const stats = teamMatches.get(teamId) || { total: 0, inPlan: 0 };
+        stats.total++;
+        if (currentPlan.has(match.MatchId)) {
+          stats.inPlan++;
+        }
+        teamMatches.set(teamId, stats);
+      });
+      teamMatches.forEach((stats, teamId) => {
+        coverageStatus.updateFromPlan(teamId, stats.inPlan, stats.total);
+      });
+    }
+    selectedMatchesList = (() => {
+      const currentPlan = get(coveragePlan);
+      let filtered = matches.filter((m) => currentPlan.has(m.MatchId)).sort((a, b) => a.ScheduledStartDateTime - b.ScheduledStartDateTime);
+      if (coverageStatusFilter !== "all") {
+        filtered = filtered.filter((match) => {
+          const teamId = getTeamIdentifier(match);
+          if (!teamId) return false;
+          const status = coverageStatus.getTeamStatus(teamId);
+          return status === coverageStatusFilter;
+        });
+      }
+      return filtered;
+    })();
+    planConflicts = detectConflicts(selectedMatchesList);
+    coverageAwareOpportunities = (() => {
+      const conflicts = detectConflicts(matches);
+      const currentPlan = get(coveragePlan);
+      const selectedSet = currentPlan;
+      const coverageStatusMap = /* @__PURE__ */ new Map();
+      matches.forEach((match) => {
+        const teamId = getTeamIdentifier(match);
+        if (teamId) {
+          coverageStatusMap.set(teamId, coverageStatus.getTeamStatus(teamId));
+        }
+      });
+      return generateCoverageSuggestions(matches, selectedSet, conflicts, coverageStatusMap, getTeamIdentifier, {
+        preferUncovered: true,
+        preferNoConflicts: true,
+        preferNearSelected: true,
+        maxResults: 5
+      });
+    })();
+    conflictGroups = (() => {
+      if (planConflicts.size === 0) return [];
+      const groups = [];
+      const processed = /* @__PURE__ */ new Set();
+      selectedMatchesList.forEach((match) => {
+        if (processed.has(match.MatchId)) return;
+        const conflictIds = planConflicts.get(match.MatchId);
+        if (!conflictIds || conflictIds.length === 0) return;
+        const conflictMatches = [
+          match,
+          ...conflictIds.map((id) => selectedMatchesList.find((m) => m.MatchId === id)).filter(Boolean)
+        ];
+        conflictMatches.forEach((m) => processed.add(m.MatchId));
+        groups.push({
+          matches: conflictMatches.sort((a, b) => a.ScheduledStartDateTime - b.ScheduledStartDateTime),
+          conflictCount: conflictMatches.length
+        });
+      });
+      return groups;
+    })();
+    if (conflictGroups.length > 0 && currentConflictIndex >= conflictGroups.length) {
+      currentConflictIndex = 0;
+    } else if (conflictGroups.length === 0) {
+      currentConflictIndex = 0;
+    }
+    if (conflictGroups.length > 0 && conflictRefs[currentConflictIndex]) {
+      setTimeout(
+        () => {
+          conflictRefs[currentConflictIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
+        },
+        100
+      );
+    }
+    totalCoverageTime = (() => {
+      if (selectedMatchesList.length === 0) return 0;
+      const earliest = Math.min(...selectedMatchesList.map((m) => m.ScheduledStartDateTime));
+      const latest = Math.max(...selectedMatchesList.map((m) => m.ScheduledEndDateTime));
+      return Math.floor((latest - earliest) / 6e4);
+    })();
+    matchesByDate = (() => {
+      const grouped = {};
+      selectedMatchesList.forEach((match) => {
+        const dateKey = formatMatchDate(match.ScheduledStartDateTime);
+        if (!grouped[dateKey]) {
+          grouped[dateKey] = [];
+        }
+        grouped[dateKey].push(match);
+      });
+      return grouped;
+    })();
+    sortedDates = (() => {
+      return Object.keys(matchesByDate).sort((a, b) => {
+        const dateA = new Date(a).getTime();
+        const dateB = new Date(b).getTime();
+        return dateA - dateB;
+      });
+    })();
+    $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity lg:flex lg:items-center lg:justify-center lg:p-4" role="dialog" aria-modal="true" aria-label="Coverage plan" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 max-h-[90vh] lg:relative lg:max-w-3xl lg:max-h-[90vh] lg:rounded-lg border border-charcoal-700 lg:border-t bg-charcoal-800 lg:bg-charcoal-800 overflow-hidden flex flex-col transform transition-transform lg:transform-none"${attr_style(`transform: translateY(${stringify(
+      // Export handlers
+      swipeOffset
+    )}px); padding-bottom: env(safe-area-inset-bottom);`)} role="dialog" tabindex="-1"><div class="sticky top-0 bg-charcoal-700/50 lg:bg-charcoal-700/50 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10"><div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full lg:hidden"></div> <div class="flex-1 ml-auto lg:ml-0"><h3 class="text-base sm:text-lg font-semibold text-charcoal-50">My Coverage Plan</h3> <div class="flex items-center gap-3 mt-1 flex-wrap"><p class="text-xs text-charcoal-300">${escape_html(selectedMatchesList.length)} match${escape_html(selectedMatchesList.length !== 1 ? "es" : "")} selected `);
+    if (totalCoverageTime > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`• ${escape_html(Math.floor(totalCoverageTime / 60))}h ${escape_html(totalCoverageTime % 60)}m coverage`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> `);
+    if (conflictGroups.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<span class="ml-2 text-red-400">• ${escape_html(conflictGroups.length)} conflict${escape_html(conflictGroups.length !== 1 ? "s" : "")}</span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></p> `);
+    $$renderer2.select(
+      {
+        id: "coverage-status-filter-panel",
+        value: coverageStatusFilter,
+        onchange: (e) => coverageStatusFilter = e.target.value,
+        class: "px-2 py-1 text-xs rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-brand-500 focus:outline-none"
+      },
+      ($$renderer3) => {
+        $$renderer3.option({ value: "all" }, ($$renderer4) => {
+          $$renderer4.push(`All Status`);
+        });
+        $$renderer3.option({ value: "not-covered" }, ($$renderer4) => {
+          $$renderer4.push(`Uncovered`);
+        });
+        $$renderer3.option({ value: "planned" }, ($$renderer4) => {
+          $$renderer4.push(`Planned`);
+        });
+        $$renderer3.option({ value: "covered" }, ($$renderer4) => {
+          $$renderer4.push(`Covered`);
+        });
+      }
+    );
+    $$renderer2.push(`</div></div> `);
+    if (selectedMatchesList.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700 mx-4 overflow-x-auto scrollbar-hide svelte-1r7fm91"><button type="button"${attr_class(`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 ${stringify(
+        "bg-gold-500 text-charcoal-950"
+      )}`)}>Plan</button> <button type="button"${attr_class(`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Analytics</button> <button type="button"${attr_class(`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Stats</button> <button type="button"${attr_class(`px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Team</button></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> <button type="button" class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 flex items-center justify-center" aria-label="Close panel"><svg class="w-5 h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div> <div class="flex-1 overflow-y-auto p-4">`);
+    {
+      $$renderer2.push("<!--[-->");
+      if (selectedMatchesList.length === 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="text-center py-12 text-charcoal-300 text-sm"><p>No matches selected yet</p> <p class="text-xs text-charcoal-400 mt-2">Click matches in the timeline or list to add them to your coverage plan</p></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+        $$renderer2.push(`<div class="space-y-4">`);
+        if (conflictGroups.length > 0) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<div class="border border-red-800/50 rounded-lg bg-red-950/10 p-4"><div class="flex items-center justify-between mb-3"><div><h4 class="text-sm font-semibold text-red-400">⚠️ Conflicts Detected</h4> <p class="text-xs text-charcoal-300 mt-0.5">${escape_html(conflictGroups.length)} conflict group${escape_html(conflictGroups.length !== 1 ? "s" : "")} in your plan `);
+          if (conflictGroups.length > 0) {
+            $$renderer2.push("<!--[-->");
+            $$renderer2.push(`<span class="ml-2 text-gold-500">• Conflict ${escape_html(currentConflictIndex + 1)} of ${escape_html(conflictGroups.length)}</span>`);
+          } else {
+            $$renderer2.push("<!--[!-->");
+          }
+          $$renderer2.push(`<!--]--></p></div> <div class="flex items-center gap-2">`);
+          if (conflictGroups.length > 1) {
+            $$renderer2.push("<!--[-->");
+            $$renderer2.push(`<button class="px-2 py-1 text-xs font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors border border-charcoal-600" title="Previous conflict">← Prev</button> <button class="px-2 py-1 text-xs font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors border border-charcoal-600" title="Next conflict">Next →</button>`);
+          } else {
+            $$renderer2.push("<!--[!-->");
+          }
+          $$renderer2.push(`<!--]--> <button class="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors">Auto-Resolve</button></div></div> <div class="space-y-3"><!--[-->`);
+          const each_array = ensure_array_like(conflictGroups);
+          for (let groupIndex = 0, $$length = each_array.length; groupIndex < $$length; groupIndex++) {
+            let group = each_array[groupIndex];
+            $$renderer2.push(`<div${attr_class(`border rounded p-3 transition-all ${stringify(groupIndex === currentConflictIndex ? "border-gold-500 bg-gold-500/5" : "border-warning-500/30 bg-charcoal-800/50")}`)}><div class="flex items-center gap-2 mb-2"><div class="text-xs font-medium text-warning-500">Conflict Group ${escape_html(groupIndex + 1)}: ${escape_html(group.conflictCount)} overlapping match${escape_html(group.conflictCount !== 1 ? "es" : "")}</div> `);
+            if (groupIndex === currentConflictIndex) {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<div class="text-[10px] font-semibold text-gold-500 px-1.5 py-0.5 rounded bg-gold-500/20">ACTIVE</div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--></div> <div class="space-y-2"><!--[-->`);
+            const each_array_1 = ensure_array_like(group.matches);
+            for (let matchIndex = 0, $$length2 = each_array_1.length; matchIndex < $$length2; matchIndex++) {
+              let match = each_array_1[matchIndex];
+              const teamId = getTeamIdentifier(match);
+              const conflictMatches = getMatchConflicts(match.MatchId);
+              const isFirstMatch = matchIndex === 0;
+              $$renderer2.push(`<div${attr_class(`flex items-center gap-2 px-2 py-1.5 rounded ${stringify(isFirstMatch ? "bg-gold-500/10 border border-gold-500/30" : "bg-charcoal-700/50")}`)}>`);
+              if (isFirstMatch) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="flex-shrink-0 text-[10px] font-semibold text-gold-500 px-1.5 py-0.5 rounded bg-gold-500/20">KEEP</div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--> <div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs font-semibold text-charcoal-50">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</span> <span class="text-xs text-[#facc15] font-medium">${escape_html(match.CourtName)}</span> <span class="text-xs text-charcoal-200">${escape_html(teamId || match.Division.CodeAlias)}</span></div> `);
+              if (conflictMatches.length > 0) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="text-[10px] text-charcoal-400 mt-0.5">Conflicts with ${escape_html(conflictMatches.length)} other match${escape_html(conflictMatches.length !== 1 ? "es" : "")}</div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></div> `);
+              if (!isFirstMatch) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<button class="px-2 py-1 text-[10px] font-medium rounded bg-red-950/50 text-red-400 border border-red-800/50 hover:bg-red-950/70 transition-colors">Remove</button>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></div>`);
+            }
+            $$renderer2.push(`<!--]--></div></div>`);
+          }
+          $$renderer2.push(`<!--]--></div></div>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]--> `);
+        if (coverageAwareOpportunities.length > 0) {
+          $$renderer2.push("<!--[-->");
+          $$renderer2.push(`<div class="border border-green-500/50 rounded-lg bg-green-950/10 p-4"><div class="flex items-center justify-between mb-3"><div><h4 class="text-sm font-semibold text-green-400">💡 Coverage Opportunities</h4> <p class="text-xs text-charcoal-300 mt-0.5">${escape_html(coverageAwareOpportunities.length)} suggestion${escape_html(coverageAwareOpportunities.length !== 1 ? "s" : "")} (prioritizing uncovered teams)</p></div></div> <div class="space-y-2"><!--[-->`);
+          const each_array_2 = ensure_array_like(coverageAwareOpportunities);
+          for (let $$index_2 = 0, $$length = each_array_2.length; $$index_2 < $$length; $$index_2++) {
+            let suggestion = each_array_2[$$index_2];
+            const match = suggestion.match;
+            const teamId = getTeamIdentifier(match);
+            const teamStatus = teamId ? coverageStatus.getTeamStatus(teamId) : "not-covered";
+            $$renderer2.push(`<div class="flex items-center gap-2 px-2 py-1.5 rounded bg-green-950/20 border border-green-500/30"><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="text-xs font-semibold text-charcoal-50">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</span> <span class="text-xs text-green-400 font-medium">${escape_html(match.CourtName)}</span> <span class="text-xs text-charcoal-200">${escape_html(teamId || match.Division.CodeAlias)}</span> `);
+            if (teamStatus === "not-covered") {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<span class="text-[10px] px-1.5 py-0.5 rounded bg-gold-500/20 text-gold-500 border border-gold-500/50">Uncovered</span>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--></div> <div class="text-[10px] text-charcoal-400 mt-0.5">${escape_html(suggestion.reason)}</div></div> <button class="px-2 py-1 text-xs font-medium rounded transition-colors bg-green-500/20 text-green-400 border border-green-500/50 hover:bg-green-500/30">Add</button></div>`);
+          }
+          $$renderer2.push(`<!--]--></div></div>`);
+        } else {
+          $$renderer2.push("<!--[!-->");
+        }
+        $$renderer2.push(`<!--]--> <div class="space-y-4"><!--[-->`);
+        const each_array_3 = ensure_array_like(sortedDates);
+        for (let $$index_4 = 0, $$length = each_array_3.length; $$index_4 < $$length; $$index_4++) {
+          let dateKey = each_array_3[$$index_4];
+          const dateMatches = matchesByDate[dateKey];
+          $$renderer2.push(`<div class="space-y-2"><div class="flex items-center gap-2 pb-2 border-b border-charcoal-700"><h4 class="text-sm font-semibold text-charcoal-50">${escape_html(dateKey)}</h4> <span class="text-xs text-charcoal-400">(${escape_html(dateMatches.length)} match${escape_html(dateMatches.length !== 1 ? "es" : "")})</span></div> <!--[-->`);
+          const each_array_4 = ensure_array_like(dateMatches);
+          for (let $$index_3 = 0, $$length2 = each_array_4.length; $$index_3 < $$length2; $$index_3++) {
+            let match = each_array_4[$$index_3];
+            const teamId = getTeamIdentifier(match);
+            const opponent = getOpponent(match);
+            const hasConflict = planConflicts.has(match.MatchId);
+            $$renderer2.push(`<div${attr_class(`flex items-center gap-3 px-3 py-2.5 rounded border ${stringify(hasConflict ? "border-red-800/50 bg-red-950/10" : "border-gold-500/50 bg-gold-500/5")}`)}><button${attr_class(`flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors ${stringify(hasConflict ? "border-red-800/50 bg-red-950/20" : "border-gold-500 bg-gold-500/20")}`)} aria-label="Remove from plan"><svg${attr_class(`w-3 h-3 ${stringify(hasConflict ? "text-red-400" : "text-[#facc15]")}`)} fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg></button> `);
+            if (hasConflict) {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<div class="flex-shrink-0 text-[10px] font-semibold text-red-400 px-1.5 py-0.5 rounded bg-red-950/50">CONFLICT</div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--> <div class="flex-shrink-0 w-20 text-sm font-semibold text-charcoal-50">${escape_html(formatMatchTime(match.ScheduledStartDateTime))}</div> <div class="flex-shrink-0 w-24 text-sm font-bold text-[#facc15]">${escape_html(match.CourtName)}</div> <div class="flex-1 min-w-0"><div class="flex items-center gap-2"><div class="text-sm font-bold text-charcoal-50">${escape_html(teamId || match.Division.CodeAlias)}</div> `);
+            if (teamId) {
+              $$renderer2.push("<!--[-->");
+              const teamStatus = coverageStatus.getTeamStatus(teamId);
+              $$renderer2.push(`<div${attr_class(`w-2 h-2 rounded ${stringify(teamStatus === "covered" ? "bg-green-500" : teamStatus === "partially-covered" ? "bg-[#f59e0b]" : teamStatus === "planned" ? "bg-gold-500" : "bg-[#808593]")}`)}${attr("title", `Status: ${stringify(teamStatus)}`)}></div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--></div> <div class="text-xs text-charcoal-200 truncate">vs ${escape_html(opponent)}</div></div> `);
+            if (teamId) {
+              $$renderer2.push("<!--[-->");
+              $$renderer2.push(`<div class="relative flex-shrink-0"><button${attr_class(`px-2 py-1 text-xs rounded transition-colors ${stringify(coverageStatusMenuOpen === teamId ? "bg-gold-500 text-charcoal-950" : "bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600")}`)} title="Set coverage status">${escape_html((() => {
+                const status = coverageStatus.getTeamStatus(teamId);
+                if (status === "covered") return "✓";
+                if (status === "partially-covered") return "◐";
+                if (status === "planned") return "📋";
+                return "○";
+              })())}</button> `);
+              if (coverageStatusMenuOpen === teamId) {
+                $$renderer2.push("<!--[-->");
+                $$renderer2.push(`<div class="fixed inset-0 z-40"></div> <div class="absolute right-0 top-full mt-1 z-50">`);
+                CoverageStatusSelector($$renderer2, {
+                  teamId,
+                  currentStatus: coverageStatus.getTeamStatus(teamId),
+                  onStatusChange: (status) => {
+                    coverageStatus.setTeamStatus(teamId, status);
+                    coverageStatusMenuOpen = null;
+                  },
+                  onClose: () => coverageStatusMenuOpen = null
+                });
+                $$renderer2.push(`<!----></div>`);
+              } else {
+                $$renderer2.push("<!--[!-->");
+              }
+              $$renderer2.push(`<!--]--></div>`);
+            } else {
+              $$renderer2.push("<!--[!-->");
+            }
+            $$renderer2.push(`<!--]--> <div class="flex-shrink-0"><span class="px-2 py-0.5 text-[10px] font-semibold rounded"${attr_style(`background-color: ${stringify(match.Division.ColorHex)}20; color: ${stringify(match.Division.ColorHex)}; border: 1px solid ${stringify(match.Division.ColorHex)}40;`)}>${escape_html(match.Division.CodeAlias)}</span></div></div>`);
+          }
+          $$renderer2.push(`<!--]--></div>`);
+        }
+        $$renderer2.push(`<!--]--></div></div>`);
+      }
+      $$renderer2.push(`<!--]-->`);
+    }
+    $$renderer2.push(`<!--]--></div> `);
+    if (selectedMatchesList.length > 0 && activeTab === "plan") {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t border-charcoal-700 bg-charcoal-700/50"><div class="flex items-center gap-2 flex-wrap"><button class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600">Mark All as Planned</button> <button class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600">Mark All as Covered</button> <button class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-700">Clear Plan</button></div> <div class="flex items-center gap-2 flex-wrap"><button class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600" title="Copy plan to clipboard">Copy</button> <div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700"><button class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700" title="Export as JSON">JSON</button> <button class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700" title="Export as CSV">CSV</button> <button class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700" title="Export as Text">TXT</button> <button class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700" title="Export as Calendar (ICS)">📅 ICS</button></div></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div></div>`);
+    bind_props($$props, { matches, onClose });
+  });
+}
 function CoachView($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let teams, matchesByTeam, sortedTeams;
@@ -1990,16 +2720,16 @@ function CoachView($$renderer, $$props) {
         return matchesB - matchesA;
       });
     })();
-    $$renderer2.push(`<div class="space-y-4"><div class="flex items-center justify-between flex-wrap gap-4"><div><h1 class="text-xl font-bold text-[#f8f8f9]">Coach View</h1> <p class="text-sm text-[#9fa2ab] mt-1">View matches and work assignments by team</p></div> <div class="flex items-center gap-2 bg-[#454654] rounded-lg p-1"><button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(
-      "bg-[#eab308] text-[#18181b]"
-    )}`)}>Matches</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-[#c0c2c8] hover:text-[#f8f8f9]")}`)}>Work Assignments</button></div></div> `);
+    $$renderer2.push(`<div class="space-y-4"><div class="flex items-center justify-between flex-wrap gap-4"><div><h1 class="text-xl font-bold text-charcoal-50">Coach View</h1> <p class="text-sm text-charcoal-300 mt-1">View matches and work assignments by team</p></div> <div class="flex items-center gap-2 bg-charcoal-700 rounded-lg p-1"><button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(
+      "bg-gold-500 text-charcoal-950"
+    )}`)}>Matches</button> <button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify("text-charcoal-200 hover:text-charcoal-50")}`)}>Work Assignments</button></div></div> `);
     if (teams.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="border-b border-[#454654] pb-4"><div class="flex items-center gap-2 flex-wrap"><span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Select Team:</span> <!--[-->`);
+      $$renderer2.push(`<div class="border-b border-charcoal-700 pb-4"><div class="flex items-center gap-2 flex-wrap"><span class="text-xs text-charcoal-300 uppercase tracking-wider">Select Team:</span> <!--[-->`);
       const each_array = ensure_array_like(sortedTeams);
       for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
         let teamId = each_array[$$index];
-        $$renderer2.push(`<button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(selectedTeam === teamId ? "bg-[#eab308] text-[#18181b]" : "bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]")}`)}>${escape_html(teamId)} `);
+        $$renderer2.push(`<button${attr_class(`px-3 py-2 text-xs font-medium rounded transition-colors min-h-[44px] ${stringify(selectedTeam === teamId ? "bg-gold-500 text-charcoal-950" : "bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600")}`)}>${escape_html(teamId)} `);
         if (matchesByTeam[teamId]) {
           $$renderer2.push("<!--[-->");
           $$renderer2.push(`<span class="ml-2 text-[10px] opacity-75">(${escape_html(matchesByTeam[teamId].length)})</span>`);
@@ -2015,7 +2745,7 @@ function CoachView($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     {
       $$renderer2.push("<!--[!-->");
-      $$renderer2.push(`<div class="text-center py-12 text-[#9fa2ab] text-sm">Select a team to view matches and work assignments</div>`);
+      $$renderer2.push(`<div class="text-center py-12 text-charcoal-300 text-sm">Select a team to view matches and work assignments</div>`);
     }
     $$renderer2.push(`<!--]--> `);
     {
@@ -2025,16 +2755,436 @@ function CoachView($$renderer, $$props) {
     bind_props($$props, { matches, eventId, clubId });
   });
 }
+function Sidebar($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    let divisions, teams, conflictCount, activeFilterCount;
+    let matches = $$props["matches"];
+    let collapsed = fallback($$props["collapsed"], false);
+    let onToggle = $$props["onToggle"];
+    divisions = getUniqueDivisions(matches);
+    teams = getUniqueTeams(matches);
+    conflictCount = (() => {
+      const conflicts = /* @__PURE__ */ new Map();
+      matches.forEach((match1, i) => {
+        matches.slice(i + 1).forEach((match2) => {
+          const overlaps = match1.ScheduledStartDateTime < match2.ScheduledEndDateTime && match1.ScheduledEndDateTime > match2.ScheduledStartDateTime;
+          if (overlaps) {
+            if (!conflicts.has(match1.MatchId)) conflicts.set(match1.MatchId, []);
+            conflicts.get(match1.MatchId).push(match2.MatchId);
+          }
+        });
+      });
+      return matches.filter((m) => conflicts.has(m.MatchId)).length;
+    })();
+    activeFilterCount = (() => {
+      let count = 0;
+      if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
+      return count;
+    })();
+    $$renderer2.push(`<aside${attr_class("hidden lg:flex flex-col h-[calc(100vh-64px)] border-r transition-all duration-300 overflow-hidden bg-surface-100 border-charcoal-900", void 0, { "w-64": !collapsed, "w-16": collapsed })} style="max-width: 250px;"><div class="flex items-center justify-between p-4 border-b border-charcoal-900">`);
+    if (!collapsed) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<h2 class="text-sm font-semibold uppercase tracking-wider text-charcoal-50">Filters</h2>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<div class="w-6 h-6 flex items-center justify-center"><span class="text-lg">🎯</span></div>`);
+    }
+    $$renderer2.push(`<!--]--> <button class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-surface-200"${attr("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar")}${attr("title", collapsed ? "Expand sidebar" : "Collapse sidebar")}>`);
+    if (collapsed) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`→`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`←`);
+    }
+    $$renderer2.push(`<!--]--></button></div> `);
+    if (!collapsed) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="flex-1 overflow-y-auto p-4 space-y-3"><div class="pb-3 border-b border-charcoal-900"><label for="wave-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Wave</label> <div class="flex gap-2"><button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "all" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)}>All</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)}>AM</button> <button${attr_class(`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${stringify(store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon" ? "bg-gold-500 text-charcoal-950" : "bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900")}`)}>PM</button></div></div> <div class="pb-3 border-b border-charcoal-900"><label for="sidebar-division" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Division</label> `);
+      $$renderer2.select(
+        {
+          id: "sidebar-division",
+          value: store_get($$store_subs ??= {}, "$filters", filters).division || "",
+          onchange: (e) => updateFilter("division", e.target.value || null),
+          class: "w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+        },
+        ($$renderer3) => {
+          $$renderer3.option({ value: "" }, ($$renderer4) => {
+            $$renderer4.push(`All Divisions`);
+          });
+          $$renderer3.push(`<!--[-->`);
+          const each_array = ensure_array_like(divisions);
+          for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+            let division = each_array[$$index];
+            $$renderer3.option({ value: division }, ($$renderer4) => {
+              $$renderer4.push(`${escape_html(division)}`);
+            });
+          }
+          $$renderer3.push(`<!--]-->`);
+        }
+      );
+      $$renderer2.push(`</div> <div class="pb-3 border-b border-charcoal-900"><label for="sidebar-team" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Team</label> `);
+      $$renderer2.select(
+        {
+          id: "sidebar-team",
+          value: store_get($$store_subs ??= {}, "$filters", filters).teams[0] || "",
+          onchange: (e) => updateFilter("teams", e.target.value ? [e.target.value] : []),
+          class: "w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none text-left bg-surface-200 text-charcoal-50 border border-charcoal-900"
+        },
+        ($$renderer3) => {
+          $$renderer3.option({ value: "" }, ($$renderer4) => {
+            $$renderer4.push(`All Teams`);
+          });
+          $$renderer3.push(`<!--[-->`);
+          const each_array_1 = ensure_array_like(teams);
+          for (let $$index_1 = 0, $$length = each_array_1.length; $$index_1 < $$length; $$index_1++) {
+            let team = each_array_1[$$index_1];
+            $$renderer3.option({ value: team }, ($$renderer4) => {
+              $$renderer4.push(`${escape_html(team)}`);
+            });
+          }
+          $$renderer3.push(`<!--]-->`);
+        }
+      );
+      $$renderer2.push(`</div> <div class="pb-3 border-b border-charcoal-900"><label for="time-range-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Time Range</label> <div class="space-y-2"><div><label for="sidebar-time-start" class="block text-xs mb-1 text-charcoal-500">Start</label> <input id="sidebar-time-start" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || "")} class="w-full px-3 py-2 rounded-lg text-sm focus:border-brand-500 focus:outline-none bg-surface-200 text-charcoal-50 border border-charcoal-900"/></div> <div><label for="sidebar-time-end" class="block text-xs mb-1" style="color: #6e6e73;">End</label> <input id="sidebar-time-end" type="time"${attr("value", store_get($$store_subs ??= {}, "$filters", filters).timeRange.end || "")} class="w-full px-3 py-2 rounded-lg text-sm focus:border-[#eab308] focus:outline-none" style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"/></div></div></div> `);
+      if (activeFilterCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<button class="w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors" style="background-color: #252529; color: #a1a1a6; border: 1px solid #2a2a2f;">Clear Filters (${escape_html(activeFilterCount)})</button>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<div class="flex-1 overflow-y-auto p-2 space-y-2"><button class="w-12 h-12 flex items-center justify-center rounded-lg transition-colors" style="background-color: #252529; color: #a1a1a6;" title="Toggle Wave">🌊</button> `);
+      if (activeFilterCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="w-12 h-12 flex items-center justify-center rounded-lg" style="background-color: #252529;"><span class="text-xs font-medium" style="color: #eab308;">${escape_html(activeFilterCount)}</span></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div>`);
+    }
+    $$renderer2.push(`<!--]--> <div class="p-4 border-t" style="border-color: #2a2a2f;">`);
+    if (!collapsed) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<h3 class="text-xs font-semibold uppercase tracking-wider mb-3" style="color: #a1a1a6;">Quick Stats</h3> <div class="space-y-3"><div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;"><div class="text-xs mb-1" style="color: #6e6e73;">Total Matches</div> <div class="text-xl font-bold" style="color: #f5f5f7;">${escape_html(matches.length)}</div></div> `);
+      if (conflictCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;"><div class="text-xs mb-1" style="color: #6e6e73;">Conflicts</div> <div class="text-xl font-bold" style="color: #ef4444;">${escape_html(conflictCount)}</div></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+      $$renderer2.push(`<div class="space-y-2"><div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;"><span class="text-xs font-medium" style="color: #f5f5f7;">${escape_html(matches.length)}</span> <span class="text-xs" style="color: #6e6e73;">📊</span></div> `);
+      if (conflictCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;"><span class="text-xs font-medium" style="color: #ef4444;">${escape_html(conflictCount)}</span> <span class="text-xs" style="color: #6e6e73;">⚠️</span></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div>`);
+    }
+    $$renderer2.push(`<!--]--></div></aside>`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
+    bind_props($$props, { matches, collapsed, onToggle });
+  });
+}
+function MobileHeader($$renderer, $$props) {
+  let eventName = fallback($$props["eventName"], null);
+  let matchCount = fallback($$props["matchCount"], 0);
+  let conflictCount = fallback($$props["conflictCount"], 0);
+  let collapsed = fallback($$props["collapsed"], true);
+  let onToggle = $$props["onToggle"];
+  $$renderer.push(`<header${attr_class("sticky top-0 z-40 border-b border-charcoal-700 bg-charcoal-950 transition-all duration-300 svelte-54pqel", void 0, {
+    "collapsed": (
+      // Scroll handling is now managed by parent component
+      collapsed
+    )
+  })} style="backdrop-filter: blur(10px); background-color: rgba(24, 24, 27, 0.95);"><div class="px-4 py-3"><div${attr_class("flex items-center justify-between gap-2", void 0, { "hidden": !collapsed })}><div class="flex items-center gap-2 min-w-0 flex-1"><h1 class="text-base font-semibold truncate text-charcoal-50">630 Volleyball</h1> `);
+  if (matchCount > 0) {
+    $$renderer.push("<!--[-->");
+    $$renderer.push(`<span class="text-xs whitespace-nowrap text-charcoal-300">${escape_html(matchCount)} `);
+    if (conflictCount > 0) {
+      $$renderer.push("<!--[-->");
+      $$renderer.push(`<span class="ml-1 text-warning-500">• ${escape_html(conflictCount)}</span>`);
+    } else {
+      $$renderer.push("<!--[!-->");
+    }
+    $$renderer.push(`<!--]--></span>`);
+  } else {
+    $$renderer.push("<!--[!-->");
+  }
+  $$renderer.push(`<!--]--></div> <button type="button" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900 hover:bg-charcoal-800 min-h-[44px]"${attr("aria-label", collapsed ? "Expand header" : "Collapse header")}><span class="text-lg">${escape_html(collapsed ? "▼" : "▲")}</span></button></div> <div${attr_class("flex flex-col gap-2", void 0, { "hidden": collapsed })}><div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0 flex-1"><h1 class="text-base font-semibold truncate text-charcoal-50">630 Volleyball Coverage</h1> `);
+  if (matchCount > 0) {
+    $$renderer.push("<!--[-->");
+    $$renderer.push(`<span class="text-xs whitespace-nowrap text-charcoal-300">${escape_html(matchCount)} matches `);
+    if (conflictCount > 0) {
+      $$renderer.push("<!--[-->");
+      $$renderer.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} conflicts</span>`);
+    } else {
+      $$renderer.push("<!--[!-->");
+    }
+    $$renderer.push(`<!--]--></span>`);
+  } else {
+    $$renderer.push("<!--[!-->");
+  }
+  $$renderer.push(`<!--]--></div> <button type="button" class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900 hover:bg-charcoal-800 min-h-[44px]" aria-label="Collapse header"><span class="text-lg">▲</span></button></div> `);
+  if (eventName) {
+    $$renderer.push("<!--[-->");
+    $$renderer.push(`<div class="text-xs text-charcoal-300 truncate">${escape_html(eventName)}</div>`);
+  } else {
+    $$renderer.push("<!--[!-->");
+  }
+  $$renderer.push(`<!--]--></div></div></header>`);
+  bind_props($$props, { eventName, matchCount, conflictCount, collapsed, onToggle });
+}
+function MobileBottomNav($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    let isMediaValue, isCoachValue, selectedCountValue, tabs;
+    let activeTab = fallback($$props["activeTab"], "matches");
+    let onTabChange = $$props["onTabChange"];
+    let activeFilterCount = 0;
+    function getActiveFilterCount() {
+      let count = 0;
+      if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).division) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly) count++;
+      if (store_get($$store_subs ??= {}, "$filters", filters).myTeamsOnly) count++;
+      return count;
+    }
+    activeFilterCount = getActiveFilterCount();
+    isMediaValue = store_get($$store_subs ??= {}, "$isMedia", isMedia);
+    isCoachValue = store_get($$store_subs ??= {}, "$isCoach", isCoach);
+    selectedCountValue = store_get($$store_subs ??= {}, "$selectedCount", selectedCount);
+    tabs = isMediaValue ? [
+      { id: "matches", label: "Matches", icon: "📋" },
+      {
+        id: "plan",
+        label: "Plan",
+        icon: "📝",
+        badge: selectedCountValue > 0 ? selectedCountValue : void 0
+      },
+      {
+        id: "filters",
+        label: "Filters",
+        icon: "🔍",
+        badge: activeFilterCount > 0 ? activeFilterCount : void 0
+      },
+      { id: "more", label: "More", icon: "⚙️" }
+    ] : isCoachValue ? [
+      { id: "matches", label: "Schedule", icon: "📅" },
+      { id: "more", label: "More", icon: "⚙️" }
+    ] : [
+      { id: "matches", label: "Matches", icon: "📋" },
+      {
+        id: "filters",
+        label: "Filters",
+        icon: "🔍",
+        badge: activeFilterCount > 0 ? activeFilterCount : void 0
+      },
+      { id: "more", label: "More", icon: "⚙️" }
+    ];
+    $$renderer2.push(`<nav class="fixed bottom-0 left-0 right-0 z-50 bg-charcoal-900 border-t border-charcoal-700 svelte-2rf3uy" style="padding-bottom: env(safe-area-inset-bottom);" role="tablist" aria-label="Main navigation"><div class="flex items-center justify-around h-16"><!--[-->`);
+    const each_array = ensure_array_like(tabs);
+    for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+      let tab = each_array[$$index];
+      $$renderer2.push(`<button type="button" role="tab"${attr("aria-selected", activeTab === tab.id)}${attr("aria-label", tab.label)}${attr_class("flex flex-col items-center justify-center flex-1 h-full min-h-[44px] relative transition-colors svelte-2rf3uy", void 0, {
+        "text-gold-500": activeTab === tab.id,
+        "text-charcoal-400": activeTab !== tab.id
+      })}>`);
+      if (activeTab === tab.id) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gold-500 rounded-b-full"></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> <div class="flex items-center justify-center relative"><span class="text-xl">${escape_html(tab.icon)}</span> `);
+      if (tab.badge && tab.badge > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-gold-500 text-charcoal-950 text-[10px] font-bold rounded-full">${escape_html(tab.badge > 99 ? "99+" : tab.badge)}</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div> <span class="text-[10px] font-medium mt-0.5">${escape_html(tab.label)}</span></button>`);
+    }
+    $$renderer2.push(`<!--]--></div></nav>`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
+    bind_props($$props, { activeTab, onTabChange });
+  });
+}
+function MobileFilterBar($$renderer, $$props) {
+  $$renderer.component(($$renderer2) => {
+    var $$store_subs;
+    let activeFilters, isMediaValue;
+    let onOpenFullFilters = $$props["onOpenFullFilters"];
+    function getActiveFilters() {
+      const active = [];
+      if (store_get($$store_subs ??= {}, "$filters", filters).wave !== "all") {
+        active.push({
+          key: "wave",
+          label: "Wave",
+          value: store_get($$store_subs ??= {}, "$filters", filters).wave === "morning" ? "Morning" : "Afternoon"
+        });
+      }
+      if (store_get($$store_subs ??= {}, "$filters", filters).division) {
+        active.push({
+          key: "division",
+          label: "Division",
+          value: store_get($$store_subs ??= {}, "$filters", filters).division
+        });
+      }
+      if (store_get($$store_subs ??= {}, "$filters", filters).teams.length > 0) {
+        store_get($$store_subs ??= {}, "$filters", filters).teams.forEach((team) => {
+          active.push({ key: "team", label: "Team", value: team });
+        });
+      }
+      if (store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || store_get($$store_subs ??= {}, "$filters", filters).timeRange.end) {
+        const timeStr = [
+          store_get($$store_subs ??= {}, "$filters", filters).timeRange.start || "00:00",
+          store_get($$store_subs ??= {}, "$filters", filters).timeRange.end || "23:59"
+        ].join(" - ");
+        active.push({ key: "timeRange", label: "Time", value: timeStr });
+      }
+      if (store_get($$store_subs ??= {}, "$filters", filters).priority && store_get($$store_subs ??= {}, "$filters", filters).priority !== "all") {
+        active.push({
+          key: "priority",
+          label: "Priority",
+          value: store_get($$store_subs ??= {}, "$filters", filters).priority === "must-cover" ? "Must Cover" : store_get($$store_subs ??= {}, "$filters", filters).priority === "priority" ? "Priority" : "Optional"
+        });
+      }
+      if (store_get($$store_subs ??= {}, "$filters", filters).coverageStatus && store_get($$store_subs ??= {}, "$filters", filters).coverageStatus !== "all") {
+        active.push({
+          key: "coverageStatus",
+          label: "Status",
+          value: store_get($$store_subs ??= {}, "$filters", filters).coverageStatus === "uncovered" ? "Uncovered" : store_get($$store_subs ??= {}, "$filters", filters).coverageStatus === "planned" ? "Planned" : "Covered"
+        });
+      }
+      if (store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly) {
+        active.push({ key: "conflictsOnly", label: "Conflicts", value: "Only" });
+      }
+      return active;
+    }
+    activeFilters = getActiveFilters();
+    isMediaValue = store_get($$store_subs ??= {}, "$userRole", userRole) === "media";
+    $$renderer2.push(`<div class="sticky top-0 z-30 bg-charcoal-950 border-b border-charcoal-700 py-2 px-3"><div class="flex items-center gap-2 overflow-x-auto scrollbar-hide svelte-szaik9"><div class="flex items-center gap-2 flex-shrink-0"><button type="button"${attr_class("px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center", void 0, {
+      "bg-gold-500": store_get($$store_subs ??= {}, "$filters", filters).wave === "morning",
+      "text-charcoal-950": store_get($$store_subs ??= {}, "$filters", filters).wave === "morning",
+      "bg-charcoal-800": store_get($$store_subs ??= {}, "$filters", filters).wave !== "morning",
+      "text-charcoal-300": store_get($$store_subs ??= {}, "$filters", filters).wave !== "morning",
+      "hover:bg-charcoal-700": store_get($$store_subs ??= {}, "$filters", filters).wave !== "morning"
+    })}>AM</button> <button type="button"${attr_class("px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center", void 0, {
+      "bg-gold-500": store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon",
+      "text-charcoal-950": store_get($$store_subs ??= {}, "$filters", filters).wave === "afternoon",
+      "bg-charcoal-800": store_get($$store_subs ??= {}, "$filters", filters).wave !== "afternoon",
+      "text-charcoal-300": store_get($$store_subs ??= {}, "$filters", filters).wave !== "afternoon",
+      "hover:bg-charcoal-700": store_get($$store_subs ??= {}, "$filters", filters).wave !== "afternoon"
+    })}>PM</button> `);
+    if (isMediaValue) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<button type="button"${attr_class("px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1", void 0, {
+        "bg-gold-500": store_get($$store_subs ??= {}, "$filters", filters).priority === "must-cover",
+        "text-charcoal-950": store_get($$store_subs ??= {}, "$filters", filters).priority === "must-cover",
+        "bg-charcoal-800": store_get($$store_subs ??= {}, "$filters", filters).priority !== "must-cover",
+        "text-charcoal-300": store_get($$store_subs ??= {}, "$filters", filters).priority !== "must-cover",
+        "hover:bg-charcoal-700": store_get($$store_subs ??= {}, "$filters", filters).priority !== "must-cover"
+      })}>⭐ Must Cover</button> <button type="button"${attr_class("px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1", void 0, {
+        "bg-warning-500": store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly,
+        "text-charcoal-950": store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly,
+        "bg-charcoal-800": !store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly,
+        "text-charcoal-300": !store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly,
+        "hover:bg-charcoal-700": !store_get($$store_subs ??= {}, "$filters", filters).conflictsOnly
+      })}>⚠️ Conflicts</button>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div> `);
+    if (activeFilters.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="flex items-center gap-2 flex-shrink-0"><!--[-->`);
+      const each_array = ensure_array_like(activeFilters);
+      for (let $$index = 0, $$length = each_array.length; $$index < $$length; $$index++) {
+        let filter = each_array[$$index];
+        $$renderer2.push(`<button type="button" class="group px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1.5 bg-gold-500/20 text-gold-400 border border-gold-500/50 hover:bg-gold-500/30"><span>${escape_html(filter.label)}: ${escape_html(filter.value)}</span> <span class="text-gold-500 group-hover:text-gold-300">×</span></button>`);
+      }
+      $$renderer2.push(`<!--]--></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--> <button type="button" class="ml-auto px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1.5 flex-shrink-0 bg-charcoal-800 text-charcoal-300 border border-charcoal-700 hover:bg-charcoal-700 hover:text-charcoal-200">🔍 More</button></div></div>`);
+    if ($$store_subs) unsubscribe_stores($$store_subs);
+    bind_props($$props, { onOpenFullFilters });
+  });
+}
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     var $$store_subs;
-    let conflictCount, selectedCountValue, isMediaValue, isCoachValue, userRoleValue;
+    let divisions, teams, conflictCount, selectedCountValue, isMediaValue, isCoachValue, userRoleValue;
     let eventId = "PTAwMDAwNDEzMTQ90";
     let matches = [];
     let viewMode = "list";
     let showConfig = false;
     let clubId = 24426;
     let showCoveragePlan = false;
+    let headerCollapsed = true;
+    let sidebarCollapsed = false;
+    let activeTab = "matches";
+    let showFilterSheet = false;
+    let showMoreMenu = false;
+    function handleTabChange(tab) {
+      if (activeTab === tab) {
+        if (tab === "filters") {
+          showFilterSheet = false;
+        } else if (tab === "plan") {
+          showCoveragePlan = false;
+        } else if (tab === "more") {
+          showMoreMenu = false;
+        }
+        activeTab = "matches";
+      } else {
+        activeTab = tab;
+        if (tab === "filters") {
+          showFilterSheet = true;
+          showCoveragePlan = false;
+          showMoreMenu = false;
+        } else if (tab === "plan") {
+          showCoveragePlan = true;
+          showFilterSheet = false;
+          showMoreMenu = false;
+        } else if (tab === "more") {
+          showMoreMenu = true;
+          showFilterSheet = false;
+          showCoveragePlan = false;
+        } else {
+          showFilterSheet = false;
+          showMoreMenu = false;
+          showCoveragePlan = false;
+        }
+      }
+    }
+    function closeFilterSheet() {
+      showFilterSheet = false;
+      activeTab = "matches";
+    }
+    function closeCoveragePlan() {
+      showCoveragePlan = false;
+      activeTab = "matches";
+    }
+    divisions = getUniqueDivisions(matches);
+    teams = getUniqueTeams(matches);
     if (matches.length > 0) {
       const teamMatches = /* @__PURE__ */ new Map();
       matches.forEach((match) => {
@@ -2094,13 +3244,56 @@ function _page($$renderer, $$props) {
         coverageStatus.updateFromPlan(teamId, stats.inPlan, stats.total);
       });
     }
-    $$renderer2.push(`<div class="min-h-screen" style="background-color: #18181b;"><header class="border-b sticky top-0 z-10" style="border-color: #454654; background-color: rgba(59, 60, 72, 0.5);"><div class="container mx-auto px-3 sm:px-4 py-2 sm:py-3"><div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4"><div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1"><div class="flex items-center gap-2 min-w-0"><h1 class="text-base sm:text-lg font-semibold truncate" style="color: #f8f8f9;">630 Volleyball Coverage</h1> `);
+    $$renderer2.push(`<div class="min-h-screen bg-charcoal-950 pb-20">`);
+    MobileHeader($$renderer2, {
+      eventName: null,
+      matchCount: matches.length,
+      conflictCount,
+      collapsed: headerCollapsed,
+      onToggle: () => headerCollapsed = !headerCollapsed
+    });
+    $$renderer2.push(`<!----> <header data-header=""${attr_class("hidden md:block border-b sticky top-0 z-10 transition-all duration-300 border-charcoal-700 glass-medium", void 0, {
+      "collapsed": headerCollapsed,
+      "glassmorphism": !headerCollapsed
+    })}><style>
+			/* Mobile: Lighter glassmorphism */
+			@media (max-width: 639px) {
+				header.glassmorphism {
+					backdrop-filter: blur(10px);
+					background-color: rgba(37, 37, 41, 0.85);
+					border-bottom-color: rgba(58, 58, 63, 0.4);
+				}
+			}
+			/* Desktop: Stronger glassmorphism */
+			@media (min-width: 640px) {
+				header.glassmorphism {
+					backdrop-filter: blur(20px);
+					background-color: rgba(37, 37, 41, 0.8);
+					border-bottom-color: rgba(58, 58, 63, 0.5);
+					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+				}
+			}
+		</style> <div class="container mx-auto px-3 sm:px-4 py-2 sm:py-3"><div class="flex items-center justify-between gap-2 sm:hidden"><div class="flex items-center gap-2 min-w-0 flex-1"><h1 class="text-base font-semibold truncate text-charcoal-50">630 Volleyball</h1> `);
     if (matches.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<span class="text-xs whitespace-nowrap hidden sm:inline" style="color: #9fa2ab;">${escape_html(matches.length)} matches `);
+      $$renderer2.push(`<span class="text-xs whitespace-nowrap text-charcoal-300">${escape_html(matches.length)} `);
       if (conflictCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="ml-2" style="color: #ef4444;">• ${escape_html(conflictCount)} conflicts</span>`);
+        $$renderer2.push(`<span class="ml-1 text-warning-500">• ${escape_html(conflictCount)}</span>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></span>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div> <button class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900"${attr("aria-label", headerCollapsed ? "Expand header" : "Collapse header")}>${escape_html(headerCollapsed ? "▼" : "▲")}</button></div> <div${attr_class("flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4", void 0, { "hidden": headerCollapsed })}><div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1"><div class="flex items-center gap-2 min-w-0"><h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">630 Volleyball Coverage</h1> `);
+    if (matches.length > 0) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<span class="text-xs whitespace-nowrap hidden sm:inline text-charcoal-300">${escape_html(matches.length)} matches `);
+      if (conflictCount > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} conflicts</span>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -2115,10 +3308,10 @@ function _page($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (matches.length > 0) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<span class="text-xs sm:hidden" style="color: #9fa2ab;">${escape_html(matches.length)} matches `);
+      $$renderer2.push(`<span class="text-xs sm:hidden text-charcoal-300">${escape_html(matches.length)} matches `);
       if (conflictCount > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<span class="ml-2" style="color: #ef4444;">• ${escape_html(conflictCount)} conflicts</span>`);
+        $$renderer2.push(`<span class="ml-2 text-warning-500">• ${escape_html(conflictCount)} conflicts</span>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
@@ -2126,13 +3319,13 @@ function _page($$renderer, $$props) {
     } else {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--></div> <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap"><div class="flex items-center gap-1"><label class="text-xs hidden sm:inline" style="color: #9fa2ab;">Role:</label> `);
+    $$renderer2.push(`<!--]--></div> <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap"><div class="flex items-center gap-1"><label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">Role:</label> `);
     $$renderer2.select(
       {
+        id: "role-selector-header",
         value: userRoleValue,
         onchange: (e) => userRole.setRole(e.target.value),
-        class: "px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0",
-        style: "background-color: #454654; color: #c0c2c8; border: 1px solid #525463;",
+        class: "px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0 bg-charcoal-700 text-charcoal-200 border border-charcoal-600",
         title: "Select your role"
       },
       ($$renderer3) => {
@@ -2152,38 +3345,72 @@ function _page($$renderer, $$props) {
       $$renderer2.push("<!--[-->");
       if (!isCoachValue) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<div class="flex items-center gap-1 rounded-lg p-1" style="background-color: #454654;"><button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0", void 0, {
+        $$renderer2.push(`<div class="flex items-center gap-1 rounded-lg p-1 bg-charcoal-700"><button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0", void 0, {
           "bg-gold-500": viewMode === "list",
           "text-charcoal-950": viewMode === "list",
           "text-charcoal-300": viewMode !== "list",
           "hover:text-charcoal-50": viewMode !== "list"
-        })}${attr_style(
-          "background-color: #eab308; color: #18181b;"
-        )}>List</button> <button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0", void 0, {
+        })}>List</button> <button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0", void 0, {
           "bg-gold-500": viewMode === "timeline",
           "text-charcoal-950": viewMode === "timeline",
           "text-charcoal-300": viewMode !== "timeline",
           "hover:text-charcoal-50": viewMode !== "timeline"
-        })}${attr_style("color: #c0c2c8;")}>Timeline</button></div>`);
+        })}>Timeline</button></div>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
       $$renderer2.push(`<!--]--> `);
       if (isMediaValue && selectedCountValue > 0) {
         $$renderer2.push("<!--[-->");
-        $$renderer2.push(`<button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0", void 0, { "text-charcoal-950": showCoveragePlan })}${attr_style("background-color: #454654; color: #c0c2c8;")}>Plan (${escape_html(selectedCountValue)})</button>`);
+        $$renderer2.push(`<button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 border", void 0, {
+          "bg-gold-500": showCoveragePlan,
+          "text-charcoal-950": showCoveragePlan,
+          "text-gold-500": !showCoveragePlan
+        })}${attr_style(showCoveragePlan ? "" : "background-color: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);")}>Plan (${escape_html(selectedCountValue)})</button>`);
       } else {
         $$renderer2.push("<!--[!-->");
       }
-      $$renderer2.push(`<!--]--> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors hover:text-[#f8f8f9] min-h-[44px] sm:min-h-0" style="background-color: #454654; color: #c0c2c8;" title="Export JSON">JSON</button> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors hover:text-[#f8f8f9] min-h-[44px] sm:min-h-0" style="background-color: #454654; color: #c0c2c8;" title="Export CSV">CSV</button>`);
+      $$renderer2.push(`<!--]--> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0" title="Export JSON">JSON</button> <button class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0" title="Export CSV">CSV</button>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--> <button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0", void 0, { "text-charcoal-950": showConfig })}${attr_style("background-color: #454654; color: #c0c2c8;")}>${escape_html("Config")}</button></div></div></div></header> `);
+    $$renderer2.push(`<!--]--> <button${attr_class("px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0", void 0, {
+      "bg-gold-500": showConfig,
+      "text-charcoal-950": showConfig,
+      "bg-charcoal-700": !showConfig,
+      "text-charcoal-200": !showConfig
+    })}>${escape_html("Config")}</button></div></div></div></header> `);
     {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--> <main class="container mx-auto px-3 sm:px-4 py-4 sm:py-6">`);
+    $$renderer2.push(`<!--]--> <style>
+		header.collapsed {
+			max-height: 56px;
+			overflow: hidden;
+		}
+		
+		@media (max-width: 767px) {
+			header.collapsed {
+				max-height: 56px;
+			}
+			header:not(.collapsed) {
+				max-height: 500px; /* Allow expansion */
+			}
+		}
+	</style> <div class="flex flex-col lg:flex-row"><div class="hidden lg:block">`);
+    Sidebar($$renderer2, {
+      matches,
+      collapsed: sidebarCollapsed,
+      onToggle: () => sidebarCollapsed = !sidebarCollapsed
+    });
+    $$renderer2.push(`<!----></div> <main class="flex-1 w-full lg:container lg:mx-auto lg:px-6 lg:py-6"><div class="lg:hidden">`);
+    MobileFilterBar($$renderer2, {
+      onOpenFullFilters: () => {
+        showFilterSheet = true;
+        activeTab = "filters";
+      }
+    });
+    $$renderer2.push(`<!----></div> <div class="px-4 py-4 pb-24 lg:px-0 lg:py-0">`);
     {
       $$renderer2.push("<!--[!-->");
     }
@@ -2194,7 +3421,7 @@ function _page($$renderer, $$props) {
     $$renderer2.push(`<!--]--> `);
     if (matches.length === 0 && true) {
       $$renderer2.push("<!--[-->");
-      $$renderer2.push(`<div class="text-center py-12" style="color: #9fa2ab;"><div class="text-sm">No matches found for 630 Volleyball</div> <div class="text-xs mt-2" style="color: #808593;">Click "Config" to change event parameters</div></div>`);
+      $$renderer2.push(`<div class="text-center py-12 text-charcoal-300"><div class="text-sm">No matches found for 630 Volleyball</div> <div class="text-xs mt-2" style="color: #808593;">Click "Config" to change event parameters</div></div>`);
     } else {
       $$renderer2.push("<!--[!-->");
     }
@@ -2217,10 +3444,78 @@ function _page($$renderer, $$props) {
       $$renderer2.push("<!--[!-->");
     }
     $$renderer2.push(`<!--]--> `);
-    {
+    if (showCoveragePlan) {
+      $$renderer2.push("<!--[-->");
+      CoveragePlanPanel($$renderer2, { matches, onClose: closeCoveragePlan });
+    } else {
       $$renderer2.push("<!--[!-->");
     }
-    $$renderer2.push(`<!--]--></main></div>`);
+    $$renderer2.push(`<!--]--></div></main></div> `);
+    MobileBottomNav($$renderer2, { activeTab, onTabChange: handleTabChange });
+    $$renderer2.push(`<!----> `);
+    FilterBottomSheet($$renderer2, {
+      matches,
+      divisions,
+      teams,
+      open: showFilterSheet,
+      onClose: closeFilterSheet
+    });
+    $$renderer2.push(`<!----> `);
+    if (showMoreMenu) {
+      $$renderer2.push("<!--[-->");
+      $$renderer2.push(`<div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" role="dialog" aria-modal="true" aria-label="More options" tabindex="-1"><div class="fixed bottom-0 left-0 right-0 max-h-[60vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto" style="padding-bottom: env(safe-area-inset-bottom);" role="dialog" tabindex="-1"><div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10"><h2 class="text-lg font-semibold text-charcoal-50">More</h2> <button type="button" class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]" aria-label="Close menu">×</button></div> <div class="p-4 space-y-2"><button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"><div class="font-medium">Config</div> <div class="text-xs text-charcoal-400 mt-0.5">Change event parameters</div></button> `);
+      if (matches.length > 0) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"><div class="font-medium">Export JSON</div> <div class="text-xs text-charcoal-400 mt-0.5">Download matches as JSON</div></button> <button type="button" class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"><div class="font-medium">Export CSV</div> <div class="text-xs text-charcoal-400 mt-0.5">Download matches as CSV</div></button>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--> <div class="pt-2 border-t border-charcoal-700"><label for="role-selector-menu" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">Role</label> `);
+      $$renderer2.select(
+        {
+          id: "role-selector-menu",
+          value: userRoleValue,
+          onchange: (e) => {
+            userRole.setRole(e.target.value);
+          },
+          class: "w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
+        },
+        ($$renderer3) => {
+          $$renderer3.option({ value: "media" }, ($$renderer4) => {
+            $$renderer4.push(`Media`);
+          });
+          $$renderer3.option({ value: "spectator" }, ($$renderer4) => {
+            $$renderer4.push(`Spectator`);
+          });
+          $$renderer3.option({ value: "coach" }, ($$renderer4) => {
+            $$renderer4.push(`Coach`);
+          });
+        }
+      );
+      $$renderer2.push(`</div> `);
+      if (!isCoachValue) {
+        $$renderer2.push("<!--[-->");
+        $$renderer2.push(`<div class="pt-2 border-t border-charcoal-700"><label for="view-mode-selector-menu" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">View Mode</label> <div class="flex gap-2" role="group" aria-labelledby="view-mode-selector-menu"><button type="button" id="view-mode-list"${attr_class("flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px]", void 0, {
+          "bg-gold-500": viewMode === "list",
+          "text-charcoal-950": viewMode === "list",
+          "text-charcoal-300": viewMode !== "list",
+          "hover:text-charcoal-50": viewMode !== "list",
+          "bg-charcoal-700": viewMode !== "list"
+        })}${attr("aria-pressed", viewMode === "list")}>List</button> <button type="button" id="view-mode-timeline"${attr_class("flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px]", void 0, {
+          "bg-gold-500": viewMode === "timeline",
+          "text-charcoal-950": viewMode === "timeline",
+          "text-charcoal-300": viewMode !== "timeline",
+          "hover:text-charcoal-50": viewMode !== "timeline",
+          "bg-charcoal-700": viewMode !== "timeline"
+        })}${attr("aria-pressed", viewMode === "timeline")}>Timeline</button></div></div>`);
+      } else {
+        $$renderer2.push("<!--[!-->");
+      }
+      $$renderer2.push(`<!--]--></div></div></div>`);
+    } else {
+      $$renderer2.push("<!--[!-->");
+    }
+    $$renderer2.push(`<!--]--></div>`);
     if ($$store_subs) unsubscribe_stores($$store_subs);
   });
 }

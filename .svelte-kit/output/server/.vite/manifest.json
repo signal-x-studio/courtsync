@@ -109,7 +109,7 @@
       "_index2.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.OfdEdIMT.css"
+      "_app/immutable/assets/_layout.CyEVycLw.css"
     ]
   },
   "src/routes/+layout.ts": {
@@ -127,12 +127,31 @@
       "_index2.js",
       "_index.js",
       "_context.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.BTzkMQHI.css"
     ]
   },
   "src/routes/+page.ts": {
     "file": "entries/pages/_page.ts.js",
     "name": "entries/pages/_page.ts",
     "src": "src/routes/+page.ts",
+    "isEntry": true
+  },
+  "src/routes/style-guide/+page.svelte": {
+    "file": "entries/pages/style-guide/_page.svelte.js",
+    "name": "entries/pages/style-guide/_page.svelte",
+    "src": "src/routes/style-guide/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_index2.js",
+      "_context.js"
+    ]
+  },
+  "src/routes/style-guide/+page.ts": {
+    "file": "entries/pages/style-guide/_page.ts.js",
+    "name": "entries/pages/style-guide/_page.ts",
+    "src": "src/routes/style-guide/+page.ts",
     "isEntry": true
   }
 }

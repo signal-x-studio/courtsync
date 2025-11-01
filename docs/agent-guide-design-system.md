@@ -31,8 +31,8 @@ Used for backgrounds, borders, and text hierarchy:
 | charcoal-900 | `#2a2b35` | Deep backgrounds |
 | charcoal-950 | `#18181b` | Main background |
 
-#### Gold (Accent/Yellow)
-Used for primary actions, highlights, and important indicators:
+#### Gold (Selection & Highlights)
+Used ONLY for selection states, active tabs, and highlights. NOT for primary actions or warnings.
 
 | Token | Hex | Usage |
 |-------|-----|-------|
@@ -41,16 +41,37 @@ Used for primary actions, highlights, and important indicators:
 | gold-200 | `#fef08a` | Light accents |
 | gold-300 | `#fde047` | Hover states |
 | gold-400 | `#facc15` | Hover buttons |
-| gold-500 | `#eab308` | Primary buttons, focus rings |
-| gold-600 | `#ca8a04` | Active states |
-| gold-700 | `#a16207` | Pressed states |
+| gold-500 | `#eab308` | SELECTION ONLY (selected matches, active tabs) |
+| gold-600 | `#ca8a04` | Selection hover |
+| gold-700 | `#a16207` | Selection active |
 | gold-800+ | Darker shades (rarely used) |
+
+#### Brand Blue (Primary Actions)
+Used for primary actions, interactive elements:
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| brand-500 | `#5b7cff` | PRIMARY ACTION buttons (Claim Match, Load, primary CTAs) |
+| brand-600 | `#4b65d6` | Action hover states |
+
+**⚠️ Critical**: Use brand-500 (blue) for primary actions, NOT gold!
 
 ### Semantic Colors
 
 - **Background**: `charcoal-950` (`#18181b`)
 - **Foreground**: `charcoal-50` (`#f8f8f9`)
 - **Border**: `charcoal-600` (`#525463`)
+
+#### Semantic Status Colors
+
+| Color | Token | Hex | Usage |
+|-------|-------|-----|-------|
+| Success | `success-500` or `success-light` | `#10b981` | Covered teams, successful actions |
+| Warning | `warning-500` or `warning-light` | `#f59e0b` | **Conflicts, warnings** (use this, NOT gold!) |
+| Error | `error-500` or `error-light` | `#ef4444` | Critical issues, destructive actions |
+| Info | `info-500` or `info-light` | `#3b82f6` | Informational messages |
+
+**⚠️ Critical**: Conflicts must use `warning-500` (amber), NOT gold or red!
 
 ## Typography
 
@@ -89,12 +110,14 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
 #### Primary Button
 
 ```svelte
-<button class="px-4 py-2 bg-gold-500 text-charcoal-950 rounded-lg hover:bg-gold-400 transition-colors min-h-[44px] sm:min-h-0">
+<button class="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors min-h-[44px] sm:min-h-0">
   Primary Action
 </button>
 ```
 
 **Use for**: Main actions, form submissions, primary CTAs
+
+**⚠️ Use brand-500 (blue), NOT gold-500!**
 
 #### Secondary Button
 

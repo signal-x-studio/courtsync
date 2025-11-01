@@ -17,6 +17,7 @@
     "test:visual": "playwright test visual-regression",
     "test:audit": "playwright test ux-audit-automated",
     "test:screenshots": "playwright test ux-audit-screenshots",
+    "test:journey": "playwright test user-journey",
     "audit:capture": "node scripts/audit-screenshots.js"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { X as escape_html, b as HYDRATION_START, a as HYDRATION_END, _ as STALE_REACTION, $ as set_ssr_context, Y as ssr_context, a0 as push, a1 as pop, a2 as subscribe_to_store, a3 as ELEMENT_PRESERVE_ATTRIBUTE_CASE, a4 as ELEMENT_IS_INPUT, a5 as ELEMENT_IS_NAMESPACED } from "./context.js";
+import { X as escape_html, b as HYDRATION_START, a as HYDRATION_END, a1 as STALE_REACTION, a2 as set_ssr_context, Y as ssr_context, a3 as push, a4 as pop, $ as subscribe_to_store, a5 as ELEMENT_PRESERVE_ATTRIBUTE_CASE, a6 as ELEMENT_IS_INPUT, a7 as ELEMENT_IS_NAMESPACED } from "./context.js";
 import { clsx as clsx$1 } from "clsx";
 const DOM_BOOLEAN_ATTRIBUTES = [
   "allowfullscreen",
@@ -180,6 +180,7 @@ function to_style(value, styles) {
 }
 const BLOCK_OPEN = `<!--${HYDRATION_START}-->`;
 const BLOCK_CLOSE = `<!--${HYDRATION_END}-->`;
+const EMPTY_COMMENT = `<!---->`;
 let controller = null;
 function abort() {
   controller?.abort(STALE_REACTION);
@@ -248,10 +249,10 @@ class Renderer {
    * @param {(renderer: Renderer) => void} fn
    */
   head(fn) {
-    const head = new Renderer(this.global, this);
-    head.type = "head";
-    this.#out.push(head);
-    head.child(fn);
+    const head2 = new Renderer(this.global, this);
+    head2.type = "head";
+    this.#out.push(head2);
+    head2.child(fn);
   }
   /**
    * @param {Array<Promise<void>>} blockers
@@ -373,7 +374,7 @@ class Renderer {
    */
   option(attrs, body, css_hash, classes, styles, flags) {
     this.#out.push(`<option${attributes(attrs, css_hash, classes, styles, flags)}`);
-    const close = (renderer, value, { head, body: body2 }) => {
+    const close = (renderer, value, { head: head2, body: body2 }) => {
       if ("value" in attrs) {
         value = attrs.value;
       }
@@ -381,8 +382,8 @@ class Renderer {
         renderer.#out.push(" selected");
       }
       renderer.#out.push(`>${body2}</option>`);
-      if (head) {
-        renderer.head((child) => child.push(head));
+      if (head2) {
+        renderer.head((child) => child.push(head2));
       }
     };
     if (typeof body === "function") {
@@ -407,8 +408,8 @@ class Renderer {
    */
   title(fn) {
     const path = this.get_path();
-    const close = (head) => {
-      this.global.set_title(head, path);
+    const close = (head2) => {
+      this.global.set_title(head2, path);
     };
     this.child((renderer) => {
       const r = new Renderer(renderer.global, renderer);
@@ -676,13 +677,13 @@ class Renderer {
     for (const cleanup of renderer.#collect_on_destroy()) {
       cleanup();
     }
-    let head = content.head + renderer.global.get_title();
+    let head2 = content.head + renderer.global.get_title();
     let body = content.body;
     for (const { hash, code } of renderer.global.css) {
-      head += `<style id="${hash}">${code}</style>`;
+      head2 += `<style id="${hash}">${code}</style>`;
     }
     return {
-      head,
+      head: head2,
       body
     };
   }
@@ -733,6 +734,13 @@ function render(component, options = {}) {
     component,
     options
   );
+}
+function head(hash, renderer, fn) {
+  renderer.head((renderer2) => {
+    renderer2.push(`<!--${hash}-->`);
+    renderer2.child(fn);
+    renderer2.push(EMPTY_COMMENT);
+  });
 }
 function attributes(attrs, css_hash, classes, styles, flags = 0) {
   if (styles) {
@@ -824,12 +832,14 @@ function ensure_array_like(array_like_or_iterator) {
 export {
   attr_class as a,
   bind_props as b,
-  stringify as c,
-  attr as d,
+  attr_style as c,
+  stringify as d,
   ensure_array_like as e,
-  store_get as f,
-  attr_style as g,
+  attr as f,
+  store_get as g,
+  clsx as h,
   is_passive_event as i,
+  head as j,
   render as r,
   slot as s,
   unsubscribe_stores as u

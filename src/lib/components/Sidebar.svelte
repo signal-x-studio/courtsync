@@ -199,7 +199,7 @@
 				{#if conflictCount > 0}
 					<div class="p-3 rounded-lg border" style="background-color: #252529; border-color: #2a2a2f;">
 						<div class="text-xs mb-1" style="color: #6e6e73;">Conflicts</div>
-						<div class="text-xl font-bold" style="color: #ef4444;">{conflictCount}</div>
+						<div class="text-xl font-bold text-warning-500">{conflictCount}</div>
 					</div>
 				{/if}
 			</div>
@@ -212,7 +212,7 @@
 				</div>
 				{#if conflictCount > 0}
 					<div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;">
-						<span class="text-xs font-medium" style="color: #ef4444;">{conflictCount}</span>
+						<span class="text-xs font-medium text-warning-500">{conflictCount}</span>
 						<span class="text-xs" style="color: #6e6e73;">⚠️</span>
 					</div>
 				{/if}
