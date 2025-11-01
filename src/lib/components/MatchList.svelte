@@ -23,6 +23,7 @@
 	
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
 	import MatchDetailSheet from '$lib/components/MatchDetailSheet.svelte';
+	import MatchDetailView from '$lib/components/MatchDetailView.svelte';
 	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	import MatchClaimButton from '$lib/components/MatchClaimButton.svelte';
@@ -38,6 +39,7 @@
 	export let clubId: number;
 	
 	let expandedMatch: number | null = null;
+	let detailViewMatch: FilteredMatch | null = null;
 	let detailSheetMatch: FilteredMatch | null = null;
 	let priorityMenuOpen: number | null = null;
 	let coverageStatusMenuOpen: string | null = null;
@@ -591,7 +593,7 @@
 										{matchClaiming}
 										hasConflict={false}
 										scanningMode={scanningMode}
-										onTap={(m) => detailSheetMatch = m}
+										onTap={(m) => detailViewMatch = m}
 										onSwipeRight={$isMedia ? (m) => coveragePlan.toggleMatch(m.MatchId) : null}
 										onSwipeLeft={null}
 									/>
@@ -803,17 +805,17 @@
 								</div>
 								
 								<!-- Desktop Expanded Detail -->
-								{#if isExpanded && expandedMatch === match.MatchId}
-									<div class="hidden lg:block mt-8">
-										<TeamDetailPanel
-											{match}
-											{eventId}
-											{clubId}
-											onClose={() => expandedMatch = null}
-											{matches}
-										/>
-									</div>
-								{/if}
+							{#if isExpanded && expandedMatch === match.MatchId}
+								<div class="hidden lg:block mt-8">
+									<TeamDetailPanel
+										{match}
+										{eventId}
+										{clubId}
+										onClose={() => expandedMatch = null}
+										{matches}
+									/>
+								</div>
+							{/if}
 							</div>
 						{/each}
 						</div>
@@ -822,7 +824,21 @@
 			{/if}
 		</div>
 		
-		<!-- Match Detail Sheet (Mobile) -->
+		
+		<!-- Match Detail View (Default Entry Point) -->
+		<MatchDetailView
+			match={detailViewMatch}
+			{eventId}
+			{clubId}
+			{matches}
+			onClose={() => detailViewMatch = null}
+			onOpenFullSchedule={() => {
+				detailSheetMatch = detailViewMatch;
+				detailViewMatch = null;
+			}}
+		/>
+		
+		<!-- Match Detail Sheet (Full Schedule/Pool/Standings) -->
 		<MatchDetailSheet
 			match={detailSheetMatch}
 			{eventId}

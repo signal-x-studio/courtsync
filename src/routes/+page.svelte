@@ -85,7 +85,12 @@
 				selectedTeamId = null;
 				selectedTeamName = null;
 			} else if (tab === 'plan') {
-				showCoveragePlan = true;
+				if ($isMedia) {
+					showCoveragePlan = true;
+				} else {
+					showCoveragePlan = false;
+					activeTab = 'matches';
+				}
 				showFilterSheet = false;
 				showMoreMenu = false;
 				selectedTeamId = null;
@@ -120,6 +125,16 @@
 	function closeCoveragePlan() {
 		showCoveragePlan = false;
 		activeTab = 'matches';
+	}
+	
+	// Auto-close coverage plan when switching away from media role
+	$: {
+		if (!$isMedia && showCoveragePlan) {
+			showCoveragePlan = false;
+			if (activeTab === 'plan') {
+				activeTab = 'matches';
+			}
+		}
 	}
 	
 	function handleTeamSelect(teamId: string, teamName: string) {
@@ -688,7 +703,7 @@
 			{/if}
 		{/if}
 
-		{#if showCoveragePlan}
+		{#if showCoveragePlan && $isMedia}
 			<CoveragePlanPanel {matches} onClose={closeCoveragePlan} />
 		{/if}
 		</div>
@@ -696,16 +711,18 @@
 		</main>
 	</div>
 	
-	<!-- View Plan Button (Mobile) -->
-	<div class="lg:hidden">
-		<ViewPlanButton
-			selectedCount={selectedCountValue}
-			onClick={() => {
-				showCoveragePlan = true;
-				activeTab = 'plan';
-			}}
-		/>
-	</div>
+	<!-- View Plan Button (Mobile) - Media Role Only -->
+	{#if $isMedia}
+		<div class="lg:hidden">
+			<ViewPlanButton
+				selectedCount={selectedCountValue}
+				onClick={() => {
+					showCoveragePlan = true;
+					activeTab = 'plan';
+				}}
+			/>
+		</div>
+	{/if}
 	
 	<!-- Mobile Bottom Navigation -->
 	<MobileBottomNav
@@ -746,7 +763,11 @@
 					<h2 class="text-lg font-semibold text-charcoal-50">More</h2>
 					<button
 						type="button"
-						onclick={closeMoreMenu}
+						onclick={(e) => {
+							e.stopPropagation();
+							e.preventDefault();
+							closeMoreMenu();
+						}}
 						class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]"
 						aria-label="Close menu"
 					>
