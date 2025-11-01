@@ -41,6 +41,7 @@
 	let expandedMatch: number | null = null;
 	let detailViewMatch: FilteredMatch | null = null;
 	let detailSheetMatch: FilteredMatch | null = null;
+	let matchToOpenInSheet: FilteredMatch | null = null; // Temporary storage for transition
 	let priorityMenuOpen: number | null = null;
 	let coverageStatusMenuOpen: string | null = null;
 	let scanningMode = false;
@@ -406,7 +407,12 @@
 {:else}
 	<div>
 		{#if $isSpectator}
-			<LiveMatchDashboard {matches} {eventId} userId={$isSpectator ? 'spectator' : 'anonymous'} />
+			<LiveMatchDashboard 
+				matches={filteredMatches} 
+				{eventId} 
+				userId={$isSpectator ? 'spectator' : 'anonymous'}
+				onMatchClick={(m) => detailViewMatch = m}
+			/>
 		{/if}
 		
 		<!-- Coverage Statistics Header - Media Only -->
@@ -798,7 +804,10 @@
 											
 											<!-- Live Score Indicator -->
 											{#if score && score.status !== 'not-started'}
-												<LiveScoreIndicator {match} {matchClaiming} />
+												<LiveScoreIndicator 
+													isLive={score.status === 'in-progress'}
+													lastUpdated={score.lastUpdated}
+												/>
 											{/if}
 										{/if}
 									</div>
@@ -833,8 +842,7 @@
 			{matches}
 			onClose={() => detailViewMatch = null}
 			onOpenFullSchedule={() => {
-				detailSheetMatch = detailViewMatch;
-				detailViewMatch = null;
+				// No-op - navigation handled in MatchDetailView
 			}}
 		/>
 		
@@ -849,13 +857,14 @@
 		
 		<!-- Scorekeeper Modal -->
 		{#if scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)}
+			{@const currentMatch = scorekeeperMatch}
 			<Scorekeeper
-				matchId={scorekeeperMatch.MatchId}
-				team1Name={scorekeeperMatch.FirstTeamText}
-				team2Name={scorekeeperMatch.SecondTeamText}
-				currentScore={matchClaiming.getScore(scorekeeperMatch.MatchId)}
+				matchId={currentMatch.MatchId}
+				team1Name={currentMatch.FirstTeamText}
+				team2Name={currentMatch.SecondTeamText}
+				currentScore={matchClaiming.getScore(currentMatch.MatchId)}
 				onScoreUpdate={(sets: SetScore[], status: 'not-started' | 'in-progress' | 'completed') => {
-					matchClaiming.updateScore(scorekeeperMatch.MatchId, sets, status);
+					matchClaiming.updateScore(currentMatch.MatchId, sets, status);
 				}}
 				onClose={() => scorekeeperMatch = null}
 			/>

@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
+	import { goto } from '$app/navigation';
 	import type { FilteredMatch } from '$lib/types';
 	import { createSwipeHandler } from '$lib/utils/gestures';
 	import { formatMatchTime, formatMatchDate } from '$lib/utils/dateUtils';
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import { getTeamIdentifier } from '$lib/stores/filters';
+	import { eventInfoStore } from '$lib/stores/matches';
+	import { get } from 'svelte/store';
 	import MatchDetailHeader from '$lib/components/MatchDetailHeader.svelte';
 	import MediaMatchActions from '$lib/components/MediaMatchActions.svelte';
 	import SpectatorMatchActions from '$lib/components/SpectatorMatchActions.svelte';
@@ -16,7 +19,7 @@
 	export let clubId: number;
 	export let matches: FilteredMatch[] = [];
 	export let onClose: () => void;
-	export let onOpenFullSchedule: () => void;
+	export let onOpenFullSchedule: () => void; // Deprecated - keeping for compatibility
 	
 	let sheetElement: HTMLDivElement;
 	let scrollContainer: HTMLDivElement;
@@ -48,12 +51,12 @@
 	
 	// Get match status
 	$: now = typeof window !== 'undefined' ? Date.now() : 0;
-	$: matchStatus = match ? (() => {
+	$: matchStatus = (match ? (() => {
 		if (match.HasOutcome) return 'completed';
 		if (now >= match.ScheduledStartDateTime && now <= match.ScheduledEndDateTime) return 'in-progress';
 		if (now > match.ScheduledEndDateTime) return 'completed';
 		return 'upcoming';
-	})() : 'upcoming';
+	})() : 'upcoming') as 'upcoming' | 'in-progress' | 'completed';
 	
 	onMount(() => {
 		if (!sheetElement || !scrollContainer) return;
@@ -139,7 +142,7 @@
 		<!-- Full-Screen Sheet -->
 		<div
 			bind:this={sheetElement}
-			class="fixed bottom-0 left-0 right-0 top-0 bg-charcoal-950 transition-transform duration-300"
+			class="fixed bottom-0 left-0 right-0 top-0 bg-charcoal-950 transition-transform duration-300 flex flex-col"
 			style="transform: translateY({isVisible ? swipeOffset : '100%'}%);"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => {
@@ -151,7 +154,7 @@
 			tabindex="0"
 		>
 			<!-- Scrollable Content Container -->
-			<div bind:this={scrollContainer} class="h-full overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch">
+			<div bind:this={scrollContainer} class="flex-1 overflow-y-auto overscroll-contain -webkit-overflow-scrolling-touch" style="min-height: 0;">
 				<!-- Header with Drag Handle -->
 				<div data-header class="sticky top-0 bg-charcoal-950 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10 shadow-lg"
 					style="padding-top: max(1rem, env(safe-area-inset-top));"
@@ -173,7 +176,7 @@
 				</div>
 				
 				<!-- Content -->
-				<div class="px-4 py-6 pb-8" style="padding-bottom: max(2rem, env(safe-area-inset-bottom));">
+				<div class="px-4 py-6 pb-32" style="padding-bottom: max(8rem, calc(2rem + env(safe-area-inset-bottom) + 6rem));">
 					{#if match}
 						<!-- Match Header -->
 						<MatchDetailHeader
@@ -214,17 +217,27 @@
 							/>
 						</div>
 						
-						<!-- Link to Full Schedule -->
-						<div class="mt-6">
+						<!-- Link to Full Schedule - Sticky at bottom when scrolling -->
+						<div class="mt-8 mb-4">
 							<button
 								type="button"
 								onclick={() => {
-									handleClose();
-									setTimeout(() => {
-										onOpenFullSchedule();
-									}, 350);
+									if (match) {
+										// Navigate to route instead of modal
+										const eventInfo = get(eventInfoStore);
+										const currentEventId = eventInfo?.eventId || eventId;
+										const currentClubId = eventInfo?.clubId || clubId;
+										
+										// Close current view first
+										handleClose();
+										
+										// Navigate to route after animation
+										setTimeout(() => {
+											goto(`/match/${match.MatchId}/schedule?eventId=${currentEventId}&clubId=${currentClubId}`);
+										}, 350);
+									}
 								}}
-								class="w-full px-4 py-3 rounded-lg bg-charcoal-800 border border-charcoal-700 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px] flex items-center justify-center gap-2"
+								class="w-full px-4 py-3 rounded-lg bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors min-h-[44px] flex items-center justify-center gap-2 font-semibold shadow-lg"
 								aria-label="View full schedule, pool sheet, and standings"
 							>
 								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,6 +245,9 @@
 								</svg>
 								<span class="font-medium">View Full Schedule & Pool Sheet</span>
 							</button>
+							<p class="text-xs text-charcoal-400 mt-2 text-center">
+								See team schedule, pool standings, and match details
+							</p>
 						</div>
 					{/if}
 				</div>

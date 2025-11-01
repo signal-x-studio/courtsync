@@ -26,6 +26,7 @@
 	import TeamDetailView from '$lib/components/TeamDetailView.svelte';
 	import { getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
 	import { followedTeams } from '$lib/stores/followedTeams';
+	import { matchesStore, eventInfoStore } from '$lib/stores/matches';
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
 	let date = '2025-11-01';
@@ -124,6 +125,11 @@
 	
 	function closeCoveragePlan() {
 		showCoveragePlan = false;
+		activeTab = 'matches';
+	}
+	
+	function closeMoreMenu() {
+		showMoreMenu = false;
 		activeTab = 'matches';
 	}
 	
@@ -253,6 +259,9 @@
 			const data = await fetchCourtSchedule(newEventId, newDate, newTimeWindow);
 			const filteredMatches = filterClubMatches(data.CourtSchedules);
 			matches = filteredMatches;
+			// Update matches store for route access
+			matchesStore.set(filteredMatches);
+			eventInfoStore.set({ eventId: newEventId, clubId });
 		} catch (err) {
 			console.error('Error loading schedule:', err);
 			error = err instanceof Error ? err.message : 'Failed to load schedule';
@@ -768,7 +777,9 @@
 							e.preventDefault();
 							closeMoreMenu();
 						}}
-						class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]"
+						onmousedown={(e) => e.stopPropagation()}
+						ontouchstart={(e) => e.stopPropagation()}
+						class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px] relative z-20"
 						aria-label="Close menu"
 					>
 						×
