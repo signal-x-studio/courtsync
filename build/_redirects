@@ -1,4 +1,0 @@
-# Netlify / Cloudflare Pages SPA Redirects
-# Redirect all routes to index.html for SvelteKit SPA mode
-
-/*    /index.html   200
