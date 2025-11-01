@@ -145,9 +145,12 @@
 						}
 					}}
 					class="px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 min-h-[40px] flex items-center justify-center border shadow-sm"
-					class:bg-brand-500={$filters.wave !== 'all'}
-					class:text-white={$filters.wave !== 'all'}
-					class:border-brand-500={$filters.wave !== 'all'}
+					class:bg-warning-500={$filters.wave === 'morning'}
+					class:text-charcoal-950={$filters.wave === 'morning'}
+					class:border-warning-500={$filters.wave === 'morning'}
+					class:bg-brand-500={$filters.wave === 'afternoon'}
+					class:text-white={$filters.wave === 'afternoon'}
+					class:border-brand-500={$filters.wave === 'afternoon'}
 					class:bg-charcoal-800={$filters.wave === 'all'}
 					class:text-charcoal-300={$filters.wave === 'all'}
 					class:border-charcoal-600={$filters.wave === 'all'}

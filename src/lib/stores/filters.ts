@@ -4,6 +4,8 @@ import type { FilteredMatch } from '$lib/types';
 
 export interface FilterState {
 	division: string | null;
+	divisionLevel: 'all' | 'O' | 'C' | 'P' | null; // Level filter: Open, Club, Premier
+	divisionAge: string | null; // Age filter: "14", "16", "18", etc.
 	court: string | null;
 	wave: 'all' | 'morning' | 'afternoon';
 	teams: string[];
@@ -20,6 +22,8 @@ export interface FilterState {
 
 const DEFAULT_FILTERS: FilterState = {
 	division: null,
+	divisionLevel: null,
+	divisionAge: null,
 	court: null,
 	wave: 'all',
 	teams: [],
@@ -128,6 +132,106 @@ export function getUniqueDivisions(matches: FilteredMatch[]): string[] {
 	return Array.from(divSet).sort();
 }
 
+// Parse division code to extract level and age
+export interface DivisionInfo {
+	codeAlias: string;
+	level: 'O' | 'C' | 'P' | null; // Open, Club, Premier
+	age: string | null; // "14", "16", "18", etc.
+}
+
+export function parseDivision(codeAlias: string): DivisionInfo {
+	const upper = codeAlias.toUpperCase();
+	
+	// Extract level (O, C, P) - look for various patterns
+	let level: 'O' | 'C' | 'P' | null = null;
+	
+	// Check for explicit level indicators
+	if (upper.includes('-O') || upper.includes('OPEN') || upper.startsWith('O') || upper.endsWith('-O')) {
+		level = 'O';
+	} else if (upper.includes('-C') || upper.includes('CLUB') || upper.startsWith('C') || upper.endsWith('-C')) {
+		level = 'C';
+	} else if (upper.includes('-P') || upper.includes('PREMIER') || upper.includes('PREM') || upper.startsWith('P') || upper.endsWith('-P')) {
+		level = 'P';
+	}
+	
+	// Extract age (look for 2-digit numbers like 14, 16, 18, etc.)
+	const ageMatch = codeAlias.match(/\b(\d{2})\b/);
+	const age = ageMatch ? ageMatch[1] : null;
+	
+	return { codeAlias, level, age };
+}
+
+// Get divisions grouped by level and age
+export interface GroupedDivisions {
+	level: 'O' | 'C' | 'P';
+	label: string;
+	ages: {
+		age: string;
+		divisions: string[];
+	}[];
+}
+
+export function getGroupedDivisions(matches: FilteredMatch[]): GroupedDivisions[] {
+	const divisionMap = new Map<string, DivisionInfo>();
+	
+	// Parse all divisions
+	matches.forEach(match => {
+		const codeAlias = match.Division.CodeAlias;
+		if (!divisionMap.has(codeAlias)) {
+			divisionMap.set(codeAlias, parseDivision(codeAlias));
+		}
+	});
+	
+	// Group by level
+	const levelGroups = new Map<'O' | 'C' | 'P', Map<string, string[]>>();
+	
+	divisionMap.forEach((info, codeAlias) => {
+		if (info.level) {
+			if (!levelGroups.has(info.level)) {
+				levelGroups.set(info.level, new Map());
+			}
+			const ageMap = levelGroups.get(info.level)!;
+			const age = info.age || 'Other';
+			if (!ageMap.has(age)) {
+				ageMap.set(age, []);
+			}
+			ageMap.get(age)!.push(codeAlias);
+		}
+	});
+	
+	// Convert to array format
+	const result: GroupedDivisions[] = [];
+	const levelOrder: ('O' | 'C' | 'P')[] = ['O', 'C', 'P'];
+	const levelLabels = { O: 'Open', C: 'Club', P: 'Premier' };
+	
+	levelOrder.forEach(level => {
+		const ageMap = levelGroups.get(level);
+		if (ageMap && ageMap.size > 0) {
+			const ages: { age: string; divisions: string[] }[] = [];
+			
+			// Sort ages numerically
+			const sortedAges = Array.from(ageMap.keys()).sort((a, b) => {
+				if (a === 'Other') return 1;
+				if (b === 'Other') return -1;
+				return parseInt(a, 10) - parseInt(b, 10);
+			});
+			
+			sortedAges.forEach(age => {
+				const divisions = ageMap.get(age)!;
+				ages.push({ age, divisions: divisions.sort() });
+			});
+			
+			result.push({
+				level,
+				label: levelLabels[level],
+				ages
+			});
+		}
+	});
+	
+	return result;
+}
+
 export function getUniqueTeams(matches: FilteredMatch[]): string[] {
 	const teamSet = new Set<string>();
 	matches.forEach(match => {
@@ -146,9 +250,25 @@ export function applyFilters(matches: FilteredMatch[]): FilteredMatch[] {
 	})();
 	
 	return matches.filter(match => {
-		// Division filter
+		// Division filter (exact match)
 		if (currentFilters.division && match.Division.CodeAlias !== currentFilters.division) {
 			return false;
+		}
+		
+		// Division level filter (O, C, P)
+		if (currentFilters.divisionLevel && currentFilters.divisionLevel !== 'all') {
+			const divInfo = parseDivision(match.Division.CodeAlias);
+			if (divInfo.level !== currentFilters.divisionLevel) {
+				return false;
+			}
+		}
+		
+		// Division age filter
+		if (currentFilters.divisionAge) {
+			const divInfo = parseDivision(match.Division.CodeAlias);
+			if (divInfo.age !== currentFilters.divisionAge) {
+				return false;
+			}
 		}
 
 		// Court filter

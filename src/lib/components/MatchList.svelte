@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
 	import type { FilteredMatch } from '$lib/types';
-	import { formatMatchTime, calculateTimeGap, formatTimeGap } from '$lib/utils/dateUtils';
+	import { formatMatchTime, calculateTimeGap, formatTimeGap, getMatchWave, isMorningWave } from '$lib/utils/dateUtils';
 	import { detectConflicts } from '$lib/utils/matchFilters';
 	import { detectOpportunities } from '$lib/utils/opportunityDetector';
 	import { generateCoverageSuggestions } from '$lib/utils/coverageSuggestions';
@@ -23,6 +23,47 @@
 	import type { SetScore } from '$lib/types';
 	import { ClipboardList, Check, AlertTriangle, Eye, X, Star, Circle } from 'lucide-svelte';
 	
+	// Natural sort function for alphanumeric strings (e.g., "West 1" < "West 5" < "West 41")
+	function naturalCompare(a: string, b: string): number {
+		const regex = /(\d+|\D+)/g;
+		const aParts = a.match(regex) || [];
+		const bParts = b.match(regex) || [];
+		
+		const minLength = Math.min(aParts.length, bParts.length);
+		
+		for (let i = 0; i < minLength; i++) {
+			const aPart = aParts[i];
+			const bPart = bParts[i];
+			
+			const aIsNum = /^\d+$/.test(aPart);
+			const bIsNum = /^\d+$/.test(bPart);
+			
+			if (aIsNum && bIsNum) {
+				// Both are numbers - compare numerically
+				const numA = parseInt(aPart, 10);
+				const numB = parseInt(bPart, 10);
+				if (numA !== numB) {
+					return numA - numB;
+				}
+			} else if (aIsNum) {
+				// Number comes before non-number
+				return -1;
+			} else if (bIsNum) {
+				// Non-number comes before number
+				return 1;
+			} else {
+				// Both are strings - compare alphabetically (case-insensitive)
+				const comparison = aPart.localeCompare(bPart, undefined, { sensitivity: 'base' });
+				if (comparison !== 0) {
+					return comparison;
+				}
+			}
+		}
+		
+		// If we get here, one string is a prefix of the other
+		return aParts.length - bParts.length;
+	}
+	
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
 	import MatchDetailSheet from '$lib/components/MatchDetailSheet.svelte';
 	import MatchDetailView from '$lib/components/MatchDetailView.svelte';
@@ -32,7 +73,6 @@
 	import Scorekeeper from '$lib/components/Scorekeeper.svelte';
 	import LiveScoreIndicator from '$lib/components/LiveScoreIndicator.svelte';
 	import MyTeamsSelector from '$lib/components/MyTeamsSelector.svelte';
-	import LiveMatchDashboard from '$lib/components/LiveMatchDashboard.svelte';
 	import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
 	import MatchCardMobile from '$lib/components/MatchCardMobile.svelte';
 	
@@ -250,7 +290,7 @@
 			});
 		} else if ($sort === 'court') {
 			sorted.sort((a, b) => {
-				return a.CourtName.localeCompare(b.CourtName);
+				return naturalCompare(a.CourtName, b.CourtName);
 			});
 		} else {
 			// Default: sort by team (alphabetical)
@@ -442,7 +482,7 @@
 
 {#if filteredMatches.length === 0}
 	<div class="text-center py-12 text-charcoal-300 text-sm">
-		{$filters.division || $filters.wave !== 'all' || $filters.teams.length > 0
+		{$filters.division || $filters.divisionLevel || $filters.divisionAge || $filters.wave !== 'all' || $filters.teams.length > 0
 			? 'No matches found for selected filters'
 			: 'No matches found'}
 	</div>
@@ -483,12 +523,72 @@
 					</button>
 					
 					{#if liveNowExpanded}
-						<LiveMatchDashboard 
-							matches={liveMatches} 
-							{eventId} 
-							userId={$isSpectator ? 'spectator' : 'anonymous'}
-							onMatchClick={(m) => detailViewMatch = m}
-						/>
+						<!-- Render match cards directly instead of LiveMatchDashboard to avoid duplicate header -->
+						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+							{#each liveMatches as match}
+								{@const score = matchClaiming.getScore(match.MatchId)}
+								{@const currentSet = score?.sets.find((s: SetScore) => s.completedAt === 0) || score?.sets[score?.sets.length - 1]}
+								{@const completedSets = score?.sets.filter((s: SetScore) => s.completedAt > 0) || []}
+								{@const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length}
+								{@const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length}
+								{@const matchWave = getMatchWave(match.ScheduledStartDateTime)}
+								{@const isMorning = matchWave === 'morning'}
+								
+								<div
+									onclick={() => detailViewMatch = match}
+									onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') detailViewMatch = match; }}
+									role="button"
+									tabindex="0"
+									class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700 hover:border-gold-500 transition-colors cursor-pointer border-l-4"
+									class:border-l-warning-500={isMorning}
+									class:border-l-brand-500={!isMorning}
+									style="background-color: {isMorning ? 'rgba(245, 158, 11, 0.05)' : 'rgba(91, 124, 255, 0.05)'};"
+								>
+									<!-- Match Header -->
+									<div class="flex items-center justify-between mb-2">
+										<div class="flex items-center gap-2">
+											<span class="text-xs font-medium text-gold-400">
+												{match.CourtName}
+											</span>
+											<LiveScoreIndicator
+												isLive={score?.status === 'in-progress' || false}
+												lastUpdated={score?.lastUpdated}
+											/>
+										</div>
+										<div class="text-xs text-charcoal-300">
+											{formatMatchTime(match.ScheduledStartDateTime)}
+										</div>
+									</div>
+
+									<!-- Teams -->
+									<div class="space-y-1">
+										<div class="text-sm font-semibold text-charcoal-50">
+											{match.FirstTeamText}
+										</div>
+										<div class="text-xs text-charcoal-300">vs</div>
+										<div class="text-sm font-semibold text-charcoal-50">
+											{match.SecondTeamText}
+										</div>
+									</div>
+
+									<!-- Score Display -->
+									{#if score && score.status !== 'not-started' && currentSet}
+										<div class="mt-3 pt-3 border-t border-charcoal-600">
+											<div class="flex items-center justify-between">
+												{#if completedSets.length > 0}
+													<div class="text-xs text-charcoal-300">
+														Sets: {team1Wins}-{team2Wins}
+													</div>
+												{/if}
+												<div class="text-lg font-bold text-gold-400">
+													{currentSet.team1Score}-{currentSet.team2Score}
+												</div>
+											</div>
+										</div>
+									{/if}
+								</div>
+							{/each}
+						</div>
 					{/if}
 				</div>
 			{/if}
@@ -609,13 +709,13 @@
 						</button>
 						<button
 							onclick={() => updateFilter('wave', 'morning')}
-							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'morning' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'morning' ? 'bg-warning-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 						>
 							Morning
 						</button>
 						<button
 							onclick={() => updateFilter('wave', 'afternoon')}
-							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'afternoon' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'afternoon' ? 'bg-brand-500 text-white' : 'text-charcoal-200 hover:text-charcoal-50'}"
 						>
 							Afternoon
 						</button>
@@ -646,13 +746,15 @@
 					{@const timeMatches = matchesByStartTime[startTime]}
 					{@const isCollapsed = collapsedTimeGroups.has(startTime)}
 					{@const isPast = isTimeGroupPast(startTime)}
+					{@const isMorning = isMorningWave(startTime)}
 					
 					<div class="space-y-2">
 						<!-- Time Header - Collapsible -->
 						<button
 							type="button"
 							onclick={() => toggleTimeGroup(startTime)}
-							class="flex items-center gap-2 mb-2 w-full text-left"
+							class="flex items-center gap-2 mb-2 w-full text-left px-2 py-1.5 rounded-lg transition-colors"
+							style="background-color: {isMorning ? 'rgba(245, 158, 11, 0.2)' : 'rgba(91, 124, 255, 0.2)'};"
 							aria-expanded={!isCollapsed}
 						>
 							{#if isCollapsed}
@@ -660,7 +762,7 @@
 							{:else}
 								<ChevronDown size={16} class="text-charcoal-400 flex-shrink-0" />
 							{/if}
-							<h3 class="text-base font-bold {isPast ? 'text-charcoal-400 opacity-60' : 'text-charcoal-50'}">{startTime}</h3>
+							<h3 class="text-base font-bold {isPast ? 'text-charcoal-400 opacity-60' : (isMorning ? 'text-warning-500' : 'text-brand-500')}">{startTime}</h3>
 							<span class="text-xs {isPast ? 'text-charcoal-500 opacity-60' : 'text-charcoal-300'}">
 								{timeMatches.length} match{timeMatches.length !== 1 ? 'es' : ''}
 							</span>

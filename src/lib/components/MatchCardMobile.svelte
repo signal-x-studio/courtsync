@@ -2,7 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
 	import type { FilteredMatch } from '$lib/types';
-	import { formatMatchTime } from '$lib/utils/dateUtils';
+	import { formatMatchTime, getMatchWave } from '$lib/utils/dateUtils';
 	import { createSwipeHandler } from '$lib/utils/gestures';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
 	import { priority } from '$lib/stores/priority';
@@ -55,6 +55,7 @@
 	$: isCoachValue = $isCoach;
 	$: followedTeamsList = $followedTeams || [];
 	$: isFollowingTeam = teamId ? followedTeamsList.some(t => t.teamId === teamId) : false;
+	$: matchWave = getMatchWave(match.ScheduledStartDateTime);
 	
 	// Match status calculation
 	$: now = typeof window !== 'undefined' ? Date.now() : 0;
@@ -71,10 +72,12 @@
 	$: isLive = score && score.status === 'in-progress';
 	$: showLiveScore = isLive && currentSetScore;
 	
-	// Compute card classes with opacity support
+	// Compute card classes with opacity support and wave indicator
 	$: cardClasses = [
-		'relative rounded-xl px-3 py-2.5 transition-colors',
+		'relative rounded-xl px-3 py-2.5 transition-colors border-l-4',
 		hasConflict || matchPriority === 'must-cover' ? 'border-2' : 'border',
+		// Wave indicator: left border
+		matchWave === 'morning' ? 'border-l-warning-500' : 'border-l-brand-500',
 		hasConflict ? 'border-warning-500 bg-warning-500/10' : '',
 		matchPriority === 'must-cover' && !hasConflict ? 'border-gold-500 bg-gold-500/10' : '',
 		isPlanned && !hasConflict && matchPriority !== 'must-cover' ? 'border-gold-500/50 bg-gold-500/10' : '',
@@ -83,6 +86,13 @@
 		!hasConflict && !isCovered && !isPlanned && !isSelected && matchPriority !== 'must-cover' ? 'border-charcoal-700 bg-charcoal-900' : '',
 		!isSwiping ? 'hover:border-charcoal-600 hover:bg-charcoal-800' : ''
 	].filter(Boolean).join(' ');
+	
+	// Wave background tint (only apply if no other status colors override it)
+	$: cardStyle = !hasConflict && matchPriority !== 'must-cover' && !isPlanned && !isCovered && !isSelected
+		? (matchWave === 'morning' 
+			? 'background-color: rgba(245, 158, 11, 0.05);' 
+			: 'background-color: rgba(91, 124, 255, 0.05);')
+		: '';
 	
 	onMount(() => {
 		if (!cardElement) return;
@@ -170,7 +180,7 @@
 	{/if}
 	
 	<!-- Card Content -->
-	<div class={cardClasses}>
+	<div class={cardClasses} style={cardStyle}>
 		<div class="flex items-start gap-3">
 			<!-- Main Content -->
 			<div class="flex-1 min-w-0">

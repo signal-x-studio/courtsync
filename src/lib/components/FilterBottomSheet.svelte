@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { filters, updateFilter, resetFilters, getUniqueDivisions, getUniqueCourts } from '$lib/stores/filters';
+	import { filters, updateFilter, resetFilters, getUniqueDivisions, getUniqueCourts, getGroupedDivisions } from '$lib/stores/filters';
 	import { userRole } from '$lib/stores/userRole';
 	import { createSwipeHandler } from '$lib/utils/gestures';
 	import type { FilteredMatch } from '$lib/types';
@@ -12,6 +12,18 @@
 	export let onClose: () => void;
 
 	$: courts = getUniqueCourts(matches);
+	$: groupedDivisions = getGroupedDivisions(matches);
+	$: availableAges = (() => {
+		const ageSet = new Set<string>();
+		groupedDivisions.forEach(group => {
+			group.ages.forEach(ageGroup => {
+				if (ageGroup.age !== 'Other') {
+					ageSet.add(ageGroup.age);
+				}
+			});
+		});
+		return Array.from(ageSet).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+	})();
 	
 	let sheetElement: HTMLDivElement;
 	let swipeHandler: ReturnType<typeof createSwipeHandler> | null = null;
@@ -23,6 +35,8 @@
 		if ($filters.searchQuery) count++;
 		if ($filters.wave !== 'all') count++;
 		if ($filters.division) count++;
+		if ($filters.divisionLevel) count++;
+		if ($filters.divisionAge) count++;
 		if ($filters.court) count++;
 		if ($filters.teams.length > 0) count++;
 		if ($filters.priority && $filters.priority !== 'all') count++;
@@ -161,7 +175,7 @@
 				<label for="wave-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
 					Wave
 				</label>
-				<div class="flex gap-2">
+					<div class="flex gap-2">
 						<button
 							onclick={() => updateFilter('wave', 'all')}
 							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'all' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
@@ -170,23 +184,81 @@
 						</button>
 						<button
 							onclick={() => updateFilter('wave', 'morning')}
-							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'morning' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'morning' ? 'bg-warning-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
 						>
 							Morning
 						</button>
 						<button
 							onclick={() => updateFilter('wave', 'afternoon')}
-							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'afternoon' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'afternoon' ? 'bg-brand-500 text-white' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
 						>
 							Afternoon
 						</button>
 					</div>
 				</div>
 				
-				<!-- Division Filter -->
+				<!-- Division Level Filter -->
+				<div>
+					<label class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
+						Division Level
+					</label>
+					<div class="flex gap-2">
+						<button
+							onclick={() => updateFilter('divisionLevel', null)}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {!$filters.divisionLevel ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+						>
+							All
+						</button>
+						<button
+							onclick={() => updateFilter('divisionLevel', $filters.divisionLevel === 'O' ? null : 'O')}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.divisionLevel === 'O' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+						>
+							Open
+						</button>
+						<button
+							onclick={() => updateFilter('divisionLevel', $filters.divisionLevel === 'C' ? null : 'C')}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.divisionLevel === 'C' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+						>
+							Club
+						</button>
+						<button
+							onclick={() => updateFilter('divisionLevel', $filters.divisionLevel === 'P' ? null : 'P')}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.divisionLevel === 'P' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+						>
+							Premier
+						</button>
+					</div>
+				</div>
+				
+				<!-- Division Age Filter -->
+				{#if availableAges.length > 0}
+					<div>
+						<label class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
+							Age Group
+						</label>
+						<div class="flex flex-wrap gap-2">
+							<button
+								onclick={() => updateFilter('divisionAge', null)}
+								class="px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {!$filters.divisionAge ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+							>
+								All Ages
+							</button>
+							{#each availableAges as age}
+								<button
+									onclick={() => updateFilter('divisionAge', $filters.divisionAge === age ? null : age)}
+									class="px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.divisionAge === age ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+								>
+									U{age}
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
+				
+				<!-- Division Filter (Specific Division) -->
 				<div>
 					<label for="division-filter" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
-						Division
+						Specific Division
 					</label>
 					<select
 						id="division-filter"
@@ -195,9 +267,21 @@
 						class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-brand-500 focus:outline-none bg-charcoal-800 text-charcoal-50 border border-charcoal-700"
 					>
 						<option value="">All Divisions</option>
-						{#each divisions as division}
-							<option value={division}>{division}</option>
-						{/each}
+						{#if groupedDivisions.length > 0}
+							{#each groupedDivisions as group}
+								<optgroup label={group.label}>
+									{#each group.ages as ageGroup}
+										{#each ageGroup.divisions as division}
+											<option value={division}>{division}</option>
+										{/each}
+									{/each}
+								</optgroup>
+							{/each}
+						{:else}
+							{#each divisions as division}
+								<option value={division}>{division}</option>
+							{/each}
+						{/if}
 					</select>
 				</div>
 				
