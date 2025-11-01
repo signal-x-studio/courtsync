@@ -15,7 +15,7 @@
 	export let match: FilteredMatch;
 	export let eventId: string;
 	export let clubId: number;
-	export let onClose: () => void;
+	export let onClose: (() => void) | undefined = undefined;
 	export let matches: FilteredMatch[] = [];
 	
 	interface TeamInfo {
@@ -291,31 +291,33 @@
 					</div>
 				{/if}
 			</div>
-			<button
-				type="button"
-				onclick={(e) => {
-					e.stopPropagation();
-					e.preventDefault();
-					if (onClose) {
-						onClose();
-					}
-				}}
-				onkeydown={(e) => {
-					if (e.key === 'Enter' || e.key === ' ') {
-						e.preventDefault();
+			{#if onClose}
+				<button
+					type="button"
+					onclick={(e) => {
 						e.stopPropagation();
+						e.preventDefault();
 						if (onClose) {
 							onClose();
 						}
-					}
-				}}
-				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center cursor-pointer"
-				aria-label="Close panel"
-			>
-				<svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-				</svg>
-			</button>
+					}}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							e.stopPropagation();
+							if (onClose) {
+								onClose();
+							}
+						}
+					}}
+					class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center cursor-pointer"
+					aria-label="Close panel"
+				>
+					<svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			{/if}
 		</div>
 
 		{#if loading}
