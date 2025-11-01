@@ -72,10 +72,10 @@
 	<!-- Filters Section -->
 	{#if !collapsed}
 		<div class="flex-1 overflow-y-auto p-4 space-y-3">
-			<!-- Wave Filter -->
-			<div class="pb-3 border-b border-charcoal-900">
-				<label class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Wave</label>
-				<div class="flex gap-2">
+		<!-- Wave Filter -->
+		<div class="pb-3 border-b border-charcoal-900">
+			<label for="wave-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Wave</label>
+			<div class="flex gap-2">
 					<button
 						onclick={() => updateFilter('wave', 'all')}
 						class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors {$filters.wave === 'all' ? 'bg-gold-500 text-charcoal-950' : 'bg-surface-200 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-900'}"
@@ -129,10 +129,10 @@
 				</select>
 			</div>
 
-			<!-- Time Range Filter -->
-			<div class="pb-3 border-b border-charcoal-900">
-				<label class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Time Range</label>
-				<div class="space-y-2">
+		<!-- Time Range Filter -->
+		<div class="pb-3 border-b border-charcoal-900">
+			<label for="time-range-filter-sidebar" class="block text-xs font-medium uppercase tracking-wider mb-2 text-left text-charcoal-300">Time Range</label>
+			<div class="space-y-2">
 					<div>
 						<label for="sidebar-time-start" class="block text-xs mb-1 text-charcoal-500">Start</label>
 						<input
@@ -222,8 +222,6 @@
 </aside>
 
 <style>
-	.w-70 {
-		width: 17.5rem; /* 280px */
-	}
+	/* Removed unused .w-70 selector */
 </style>
 

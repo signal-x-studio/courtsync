@@ -20,6 +20,7 @@
 	import type { SetScore } from '$lib/types';
 	
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
+	import MatchDetailSheet from '$lib/components/MatchDetailSheet.svelte';
 	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	import MatchClaimButton from '$lib/components/MatchClaimButton.svelte';
@@ -29,6 +30,7 @@
 	import LiveMatchDashboard from '$lib/components/LiveMatchDashboard.svelte';
 	import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
 	import FilterBottomSheet from '$lib/components/FilterBottomSheet.svelte';
+	import MatchCardMobile from '$lib/components/MatchCardMobile.svelte';
 	
 	export let matches: FilteredMatch[];
 	export let eventId: string;
@@ -38,6 +40,7 @@
 	
 	let sortMode: SortMode = 'team';
 	let expandedMatch: number | null = null;
+	let detailSheetMatch: FilteredMatch | null = null;
 	let priorityMenuOpen: number | null = null;
 	let coverageStatusMenuOpen: string | null = null;
 	let scanningMode = false;
@@ -681,11 +684,27 @@
 							{@const showConflictStyling = hasConflict && !allHaveConflicts}
 							
 							<div>
-								<!-- Desktop: Dense Horizontal Row Layout (≥1024px) - Old Design -->
-								<div class="hidden lg:flex lg:items-center lg:gap-4 lg:py-2 lg:px-3 lg:border-b lg:border-charcoal-700 hover:bg-[#2a2a2f]/50 transition-colors cursor-pointer {shouldDim ? 'opacity-30' : ''}"
-									onclick={() => expandedMatch = isExpanded ? null : match.MatchId}
-									data-match-card
-								>
+								<!-- Mobile: Touch-Optimized Card Layout (<1024px) -->
+								<div class="lg:hidden">
+									<MatchCardMobile
+										{match}
+										{hasConflict}
+										{conflicts}
+										scanningMode={scanningMode}
+										onTap={(m) => detailSheetMatch = m}
+										onSwipeRight={$isMedia ? (m) => coveragePlan.toggleMatch(m.MatchId) : null}
+										onSwipeLeft={null}
+									/>
+								</div>
+								
+					<!-- Desktop: Dense Horizontal Row Layout (≥1024px) - Old Design -->
+					<div class="hidden lg:flex lg:items-center lg:gap-4 lg:py-2 lg:px-3 lg:border-b lg:border-charcoal-700 hover:bg-[#2a2a2f]/50 transition-colors cursor-pointer {shouldDim ? 'opacity-30' : ''}"
+						onclick={() => expandedMatch = isExpanded ? null : match.MatchId}
+						onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') expandedMatch = isExpanded ? null : match.MatchId; }}
+						data-match-card
+						role="button"
+						tabindex="0"
+					>
 									<!-- Column 1: Team ID + Division Code (Left-Aligned) -->
 									<div class="flex-shrink-0 w-16">
 										<div class="text-base font-bold text-charcoal-50 leading-tight">
@@ -877,320 +896,9 @@
 									</div>
 								</div>
 								
-								<!-- Mobile: Original Card Layout (<1024px) -->
-								<div
-									onclick={() => expandedMatch = isExpanded ? null : match.MatchId}
-									data-match-card
-									class="lg:hidden group relative rounded-xl transition-all duration-200 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-4 py-3 sm:py-3 cursor-pointer match-card min-h-[44px] sm:min-h-0 overflow-x-hidden {showConflictStyling ? 'border border-red-800/50 bg-red-950/10' : matchPriority === 'must-cover' ? 'border-2 border-gold-500 bg-gold-500/10' : matchPriority === 'priority' ? 'border border-[#f59e0b] bg-[#f59e0b]/10' : isUncovered && !isSelected ? 'border border-gold-500 bg-gold-500/5' : isPlanned ? 'border border-gold-500/50 bg-gold-500/10' : isCovered ? 'border border-green-500/30 bg-green-950/5' : isOpportunity && !isSelected ? 'border border-green-500/50 bg-green-950/10' : isSelected ? 'border border-gold-500/50 bg-gold-500/10' : 'border border-[#2a2a2f] bg-charcoal-900'} {shouldDim ? 'opacity-30' : ''} hover:border-[#3a3a3f] hover:bg-[#1a1a1d] sm:hover:shadow-lg sm:hover:shadow-[#eab308]/10 sm:hover:-translate-y-0.5"
-								>
-									<!-- Time Badge (Desktop) -->
-									<div class="hidden sm:absolute -top-2 -left-2 px-2 py-1 rounded-full bg-gold-500 text-charcoal-950 text-xs font-semibold">
-										{formatMatchTime(match.ScheduledStartDateTime)}
-									</div>
-									<!-- Selection Checkbox - Media Only -->
-									{#if $isMedia}
-										<button
-											onclick={(e) => {
-												e.stopPropagation();
-												coveragePlan.toggleMatch(match.MatchId);
-											}}
-											class="absolute top-2 right-2 sm:relative sm:top-0 sm:right-0 flex-shrink-0 w-5 h-5 rounded border-2 {isSelected ? 'border-gold-500 bg-gold-500/20' : 'border-charcoal-600 bg-transparent'} flex items-center justify-center hover:bg-charcoal-700 transition-colors"
-											aria-label={isSelected ? 'Remove from plan' : 'Add to plan'}
-										>
-											{#if isSelected}
-												<svg class="w-3 h-3 text-[#facc15]" fill="currentColor" viewBox="0 0 20 20">
-													<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-												</svg>
-											{/if}
-										</button>
-									{/if}
-									
-									<!-- Mobile: Time prominent on left, details compact on right -->
-									<div class="flex items-start justify-between gap-3 sm:justify-start sm:flex-shrink-0 sm:w-16">
-										<!-- Time - Mobile: Prominent on left, larger and bold -->
-										<div class="sm:hidden flex-shrink-0">
-											<div class="text-base font-bold text-charcoal-50 leading-tight">
-												{formatMatchTime(match.ScheduledStartDateTime)}
-											</div>
-										</div>
-										
-										<!-- Match Details - Compact block on right (mobile) -->
-										<div class="flex-1 min-w-0 sm:min-w-0">
-											<!-- Team Identifier -->
-											<div class="flex items-center gap-2 mb-1">
-												<!-- Team Color Indicator - Spectator Only -->
-												{#if $isSpectator && teamId}
-													{@const teamColor = followedTeams.getTeamColor(teamId)}
-													{#if teamColor}
-														<div
-															class="w-3 h-3 rounded-full flex-shrink-0"
-															style="background-color: {teamColor};"
-															title="{teamId} (followed)"
-														/>
-													{/if}
-												{/if}
-												<div class="leading-tight">
-													<div class="text-sm sm:text-base font-bold text-charcoal-50">
-														{teamId || match.Division.CodeAlias}
-													</div>
-													<div class="text-xs text-charcoal-300">
-														{match.Division.CodeAlias}
-													</div>
-												</div>
-											</div>
-											
-											<!-- Court and Opponent - Compact two-line block -->
-											<div class="space-y-0 leading-tight">
-												<div class="text-sm font-bold text-[#facc15] sm:hidden">
-													{match.CourtName}
-												</div>
-												<div class="text-xs sm:text-sm text-charcoal-200">
-													vs {opponent}
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<!-- Desktop: Time, Court, Team layout -->
-									<div class="hidden sm:flex sm:items-center sm:gap-4 sm:flex-1">
-										<!-- Time - Desktop: Prominent -->
-										<div class="flex-shrink-0 w-24">
-											<div class="text-lg font-bold text-charcoal-50">
-												{formatMatchTime(match.ScheduledStartDateTime)}
-											</div>
-										</div>
-										
-										<!-- Court - Desktop -->
-										<div class="flex-shrink-0 w-28">
-											<div class="text-lg font-bold text-[#facc15]">
-												{match.CourtName}
-											</div>
-										</div>
-										
-										<!-- Team and Opponent -->
-										<div class="flex-1 min-w-0">
-											<div class="text-sm font-semibold text-charcoal-50">
-												{teamId || match.Division.CodeAlias} vs {opponent}
-											</div>
-											<div class="text-xs text-charcoal-300 mt-0.5">
-												🏆 {match.Division.Name}
-											</div>
-										</div>
-									</div>
-									
-									<!-- Conflict Indicator -->
-									{#if hasConflict}
-										<div class="mt-2 flex items-center gap-1.5 text-xs text-[#ef4444] sm:mt-0">
-											<span>⚠️</span>
-											<span>Conflict detected</span>
-										</div>
-									{/if}
-									
-									<!-- Priority Button - Media Only -->
-									{#if $isMedia}
-										<div class="relative">
-											<button
-												onclick={(e) => {
-													e.stopPropagation();
-													priorityMenuOpen = priorityMenuOpen === match.MatchId ? null : match.MatchId;
-												}}
-												class="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-charcoal-700 {matchPriority === 'must-cover' ? 'text-gold-500' : matchPriority === 'priority' ? 'text-[#f59e0b]' : matchPriority === 'optional' ? 'text-charcoal-300' : 'text-charcoal-400'}"
-												aria-label="Set priority"
-												title={matchPriority ? `Priority: ${matchPriority}` : 'Set priority'}
-											>
-												{matchPriority === 'must-cover' && '⭐'}
-												{matchPriority === 'priority' && '🔸'}
-												{matchPriority === 'optional' && '○'}
-												{#if !matchPriority}
-													<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-													</svg>
-												{/if}
-											</button>
-											{#if priorityMenuOpen === match.MatchId}
-												<div class="absolute left-0 top-8 z-50">
-													<PrioritySelector
-														matchId={match.MatchId}
-														currentPriority={matchPriority}
-														onPriorityChange={priority.setPriority}
-														onClose={() => priorityMenuOpen = null}
-													/>
-												</div>
-											{/if}
-										</div>
-									{/if}
-									
-									<!-- Coverage Status Button - Media Only -->
-									{#if $isMedia && teamId}
-										<div class="relative">
-											<button
-												onclick={(e) => {
-													e.stopPropagation();
-													coverageStatusMenuOpen = coverageStatusMenuOpen === teamId ? null : teamId;
-												}}
-												class="flex-shrink-0 w-6 h-6 rounded flex items-center justify-center transition-colors hover:bg-charcoal-700 {teamCoverageStatus === 'covered' ? 'text-green-500' : teamCoverageStatus === 'partially-covered' ? 'text-[#f59e0b]' : teamCoverageStatus === 'planned' ? 'text-gold-500' : 'text-charcoal-400'}"
-												aria-label="Set coverage status"
-												title="Coverage: {teamCoverageStatus}"
-											>
-												{teamCoverageStatus === 'covered' && '✓'}
-												{teamCoverageStatus === 'partially-covered' && '◐'}
-												{teamCoverageStatus === 'planned' && '📋'}
-												{teamCoverageStatus === 'not-covered' && '○'}
-											</button>
-											{#if coverageStatusMenuOpen === teamId}
-												<div class="absolute left-0 top-8 z-50">
-													<CoverageStatusSelector
-														{teamId}
-														currentStatus={teamCoverageStatus}
-														onStatusChange={coverageStatus.setTeamStatus}
-														onClose={() => coverageStatusMenuOpen = null}
-													/>
-												</div>
-											{/if}
-										</div>
-									{/if}
-									
-									<!-- Spectator Features -->
-									{#if $isSpectator}
-										{@const score = matchClaiming.getScore(match.MatchId)}
-										{@const claimStatus = matchClaiming.getClaimStatus(match.MatchId)}
-										{@const isOwner = matchClaiming.isClaimOwner(match.MatchId)}
-										
-										<!-- Follow Team Button -->
-										{#if teamId}
-											<div class="flex-shrink-0 order-first sm:order-none">
-												<button
-													onclick={(e) => {
-														e.stopPropagation();
-														if (followedTeams.isFollowing(teamId)) {
-															followedTeams.unfollowTeam(teamId);
-														} else {
-															followedTeams.followTeam(teamId, teamId);
-														}
-													}}
-													class="px-2 py-1 text-xs font-medium rounded transition-colors {followedTeams.isFollowing(teamId) ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
-													title={followedTeams.isFollowing(teamId) ? 'Unfollow team' : 'Follow team'}
-												>
-													{followedTeams.isFollowing(teamId) ? '✓' : '+'}
-												</button>
-											</div>
-										{/if}
-										
-										<!-- Match Claim Button & Score Controls -->
-										<div class="flex-shrink-0 flex flex-wrap items-center gap-2 sm:flex-nowrap w-full sm:w-auto">
-											<!-- Claim Button -->
-											<div class="flex-shrink-0 min-w-0">
-												<MatchClaimButton
-													{match}
-													{eventId}
-													onClaim={(matchId) => {
-														const claimedMatch = matches.find(m => m.MatchId === matchId);
-														if (claimedMatch) {
-															setTimeout(() => {
-																scorekeeperMatch = claimedMatch;
-															}, 300);
-														}
-													}}
-													onRelease={() => {
-														scorekeeperMatch = null;
-													}}
-												/>
-											</div>
-											
-											<!-- Claim History Button -->
-											<button
-												onclick={(e) => {
-													e.stopPropagation();
-													showClaimHistory = true;
-													claimHistoryMatchId = match.MatchId;
-												}}
-												class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:bg-[#525463] transition-colors border border-charcoal-600"
-												title="View claim history for this match"
-											>
-												📜
-											</button>
-											
-											<!-- Start Scoring Button -->
-											{#if claimStatus === 'claimed' && isOwner}
-												<button
-													onclick={(e) => {
-														e.stopPropagation();
-														scorekeeperMatch = match;
-													}}
-													class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-gold-400 transition-colors border border-gold-500 whitespace-nowrap"
-													title="Start keeping score for this match"
-												>
-													{score ? 'Update Score' : 'Start Scoring'}
-												</button>
-											{/if}
-											
-											<!-- Score Display - Show if match has score -->
-											{#if score && score.status !== 'not-started'}
-												{@const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1]}
-												{@const completedSets = score.sets.filter((s: SetScore) => s.completedAt > 0)}
-												{@const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length}
-												{@const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length}
-												
-												<div class="flex-shrink-0 flex items-center gap-2">
-													{#if completedSets.length > 0}
-														<div class="text-xs font-medium text-charcoal-300">
-															{team1Wins}-{team2Wins}
-														</div>
-													{/if}
-													<div class="text-xs font-semibold text-charcoal-50">
-														{currentSet.team1Score}-{currentSet.team2Score}
-													</div>
-													<LiveScoreIndicator
-														isLive={score.status === 'in-progress'}
-														lastUpdated={score.lastUpdated}
-													/>
-												</div>
-											{/if}
-											
-											<!-- Score Display for Non-Claimers -->
-											{#if !isOwner && score && score.status !== 'not-started'}
-												{@const currentSet = score.sets.find((s: SetScore) => s.completedAt === 0) || score.sets[score.sets.length - 1]}
-												{@const completedSets = score.sets.filter((s: SetScore) => s.completedAt > 0)}
-												{@const team1Wins = completedSets.filter((s: SetScore) => s.team1Score > s.team2Score).length}
-												{@const team2Wins = completedSets.filter((s: SetScore) => s.team2Score > s.team1Score).length}
-												
-												<div class="flex-shrink-0 flex items-center gap-2">
-													{#if completedSets.length > 0}
-														<div class="text-xs font-medium text-charcoal-300">
-															{team1Wins}-{team2Wins}
-														</div>
-													{/if}
-													<div class="text-xs font-semibold text-charcoal-50">
-														{currentSet.team1Score}-{currentSet.team2Score}
-													</div>
-													<LiveScoreIndicator
-														isLive={score.status === 'in-progress'}
-														lastUpdated={score.lastUpdated}
-													/>
-													<span class="text-[8px] text-charcoal-300">
-														(Live)
-													</span>
-												</div>
-											{/if}
-										</div>
-									{/if}
-									
-									<!-- Expand Indicator -->
-									<div class="flex-shrink-0 w-4">
-										<svg
-											class="w-4 h-4 text-charcoal-300 transition-transform {isExpanded ? 'rotate-180' : ''}"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-										</svg>
-									</div>
-								</div>
-								
-								<!-- Expanded Team Detail Panel -->
-								{#if isExpanded}
-									<div class="mt-8">
+								<!-- Desktop Expanded Detail -->
+								{#if isExpanded && expandedMatch === match.MatchId}
+									<div class="hidden lg:block mt-8">
 										<TeamDetailPanel
 											{match}
 											{eventId}
@@ -1207,6 +915,15 @@
 				{/each}
 			{/if}
 		</div>
+		
+		<!-- Match Detail Sheet (Mobile) -->
+		<MatchDetailSheet
+			match={detailSheetMatch}
+			{eventId}
+			{clubId}
+			{matches}
+			onClose={() => detailSheetMatch = null}
+		/>
 		
 		<!-- Scorekeeper Modal -->
 		{#if scorekeeperMatch && matchClaiming.isClaimOwner(scorekeeperMatch.MatchId)}

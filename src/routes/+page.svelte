@@ -16,7 +16,11 @@
 	import CoveragePlanPanel from '$lib/components/CoveragePlanPanel.svelte';
 	import CoachView from '$lib/components/CoachView.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
-	// TODO: Import other components as they're migrated
+	import MobileHeader from '$lib/components/MobileHeader.svelte';
+	import MobileBottomNav from '$lib/components/MobileBottomNav.svelte';
+	import FilterBottomSheet from '$lib/components/FilterBottomSheet.svelte';
+	import MobileFilterBar from '$lib/components/MobileFilterBar.svelte';
+	import { getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
 	let date = '2025-11-01';
@@ -33,6 +37,61 @@
 	let headerCollapsed = true; // Mobile: start collapsed
 	let lastScrollY = 0;
 	let sidebarCollapsed = false; // Desktop: start expanded
+	let activeTab: 'matches' | 'plan' | 'filters' | 'more' = 'matches';
+	let showFilterSheet = false;
+	let showMoreMenu = false;
+	
+	// Get unique divisions and teams for filter sheet
+	$: divisions = getUniqueDivisions(matches);
+	$: teams = getUniqueTeams(matches);
+	
+	function handleTabChange(tab: 'matches' | 'plan' | 'filters' | 'more') {
+		// If clicking same tab, close it
+		if (activeTab === tab) {
+			if (tab === 'filters') {
+				showFilterSheet = false;
+			} else if (tab === 'plan') {
+				showCoveragePlan = false;
+			} else if (tab === 'more') {
+				showMoreMenu = false;
+			}
+			activeTab = 'matches';
+		} else {
+			activeTab = tab;
+			if (tab === 'filters') {
+				showFilterSheet = true;
+				showCoveragePlan = false;
+				showMoreMenu = false;
+			} else if (tab === 'plan') {
+				showCoveragePlan = true;
+				showFilterSheet = false;
+				showMoreMenu = false;
+			} else if (tab === 'more') {
+				showMoreMenu = true;
+				showFilterSheet = false;
+				showCoveragePlan = false;
+			} else {
+				showFilterSheet = false;
+				showMoreMenu = false;
+				showCoveragePlan = false;
+			}
+		}
+	}
+	
+	function closeFilterSheet() {
+		showFilterSheet = false;
+		activeTab = 'matches';
+	}
+	
+	function closeCoveragePlan() {
+		showCoveragePlan = false;
+		activeTab = 'matches';
+	}
+	
+	function closeMoreMenu() {
+		showMoreMenu = false;
+		activeTab = 'matches';
+	}
 	
 	// Auto-collapse header on scroll (mobile only)
 	function handleScroll() {
@@ -246,11 +305,20 @@
 	}
 </script>
 
-<div class="min-h-screen bg-charcoal-950">
-	<!-- Compact Header -->
+<div class="min-h-screen bg-charcoal-950 pb-20">
+	<!-- Mobile Header -->
+	<MobileHeader
+		eventName={eventInfo?.name || null}
+		matchCount={matches.length}
+		conflictCount={conflictCount}
+		collapsed={headerCollapsed}
+		onToggle={() => headerCollapsed = !headerCollapsed}
+	/>
+	
+	<!-- Desktop Header (hidden on mobile) -->
 	<header 
 		data-header 
-		class="border-b sticky top-0 z-10 transition-all duration-300 sm:transition-none border-charcoal-700 glass-medium" 
+		class="hidden md:block border-b sticky top-0 z-10 transition-all duration-300 border-charcoal-700 glass-medium" 
 		class:collapsed={headerCollapsed}
 		class:glassmorphism={!headerCollapsed}
 	>
@@ -370,8 +438,9 @@
 				<div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
 					<!-- User Role Selector -->
 					<div class="flex items-center gap-1">
-						<label class="text-xs hidden sm:inline text-charcoal-300">Role:</label>
+						<label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">Role:</label>
 						<select
+							id="role-selector-header"
 							value={userRoleValue}
 							onchange={(e) => userRole.setRole(e.target.value as 'media' | 'spectator' | 'coach')}
 							class="px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0 bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
@@ -491,14 +560,22 @@
 	<!-- Main Content -->
 	<div class="flex flex-col lg:flex-row">
 		<!-- Sidebar (Desktop Only) -->
-		<Sidebar
-			{matches}
-			collapsed={sidebarCollapsed}
-			onToggle={() => sidebarCollapsed = !sidebarCollapsed}
-		/>
+		<div class="hidden lg:block">
+			<Sidebar
+				{matches}
+				collapsed={sidebarCollapsed}
+				onToggle={() => sidebarCollapsed = !sidebarCollapsed}
+			/>
+		</div>
 		
         <!-- Main Content Area -->
-        <main class="flex-1 container mx-auto px-4 py-6 lg:px-6">
+        <main class="flex-1 w-full lg:container lg:mx-auto lg:px-6 lg:py-6">
+		<!-- Mobile Filter Bar -->
+		<div class="lg:hidden">
+			<MobileFilterBar onOpenFullFilters={() => { showFilterSheet = true; activeTab = 'filters'; }} />
+		</div>
+		
+		<div class="px-4 py-4 pb-24 lg:px-0 lg:py-0">
 		{#if loading}
 			<div class="text-center py-12">
 				<div class="inline-block animate-pulse text-charcoal-300">
@@ -534,8 +611,145 @@
 		{/if}
 
 		{#if showCoveragePlan}
-			<CoveragePlanPanel {matches} onClose={() => showCoveragePlan = false} />
+			<CoveragePlanPanel {matches} onClose={closeCoveragePlan} />
 		{/if}
+		</div>
 		</main>
 	</div>
+	
+	<!-- Mobile Bottom Navigation -->
+	<MobileBottomNav
+		{activeTab}
+		onTabChange={handleTabChange}
+	/>
+	
+	<!-- Filter Bottom Sheet -->
+	<FilterBottomSheet
+		{matches}
+		{divisions}
+		{teams}
+		open={showFilterSheet}
+		onClose={closeFilterSheet}
+	/>
+	
+	<!-- More Menu Modal -->
+	{#if showMoreMenu}
+		<div
+			class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity"
+			onclick={closeMoreMenu}
+			onkeydown={(e) => e.key === 'Escape' && closeMoreMenu()}
+			role="dialog"
+			aria-modal="true"
+			aria-label="More options"
+			tabindex="-1"
+		>
+			<div
+				class="fixed bottom-0 left-0 right-0 max-h-[60vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto"
+				style="padding-bottom: env(safe-area-inset-bottom);"
+				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => e.stopPropagation()}
+				role="dialog"
+				tabindex="-1"
+			>
+				<!-- Header -->
+				<div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10">
+					<h2 class="text-lg font-semibold text-charcoal-50">More</h2>
+					<button
+						type="button"
+						onclick={closeMoreMenu}
+						class="w-8 h-8 flex items-center justify-center rounded-lg text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-900 transition-colors min-h-[44px]"
+						aria-label="Close menu"
+					>
+						×
+					</button>
+				</div>
+				
+				<!-- Menu Items -->
+				<div class="p-4 space-y-2">
+					<button
+						type="button"
+						onclick={() => { showConfig = !showConfig; closeMoreMenu(); }}
+						class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"
+					>
+						<div class="font-medium">Config</div>
+						<div class="text-xs text-charcoal-400 mt-0.5">Change event parameters</div>
+					</button>
+					
+					{#if matches.length > 0}
+						<button
+							type="button"
+							onclick={() => { handleExportJSON(); closeMoreMenu(); }}
+							class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"
+						>
+							<div class="font-medium">Export JSON</div>
+							<div class="text-xs text-charcoal-400 mt-0.5">Download matches as JSON</div>
+						</button>
+						
+						<button
+							type="button"
+							onclick={() => { handleExportCSV(); closeMoreMenu(); }}
+							class="w-full px-4 py-3 text-left rounded-lg bg-charcoal-800 text-charcoal-50 hover:bg-charcoal-700 transition-colors min-h-[44px]"
+						>
+							<div class="font-medium">Export CSV</div>
+							<div class="text-xs text-charcoal-400 mt-0.5">Download matches as CSV</div>
+						</button>
+					{/if}
+					
+					<div class="pt-2 border-t border-charcoal-700">
+						<label for="role-selector-menu" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
+							Role
+						</label>
+						<select
+							id="role-selector-menu"
+							value={userRoleValue}
+							onchange={(e) => { userRole.setRole(e.target.value as 'media' | 'spectator' | 'coach'); }}
+							class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
+						>
+							<option value="media">Media</option>
+							<option value="spectator">Spectator</option>
+							<option value="coach">Coach</option>
+						</select>
+					</div>
+					
+					{#if !isCoachValue}
+						<div class="pt-2 border-t border-charcoal-700">
+							<label for="view-mode-selector-menu" class="block text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2">
+								View Mode
+							</label>
+							<div class="flex gap-2" role="group" aria-labelledby="view-mode-selector-menu">
+								<button
+									type="button"
+									id="view-mode-list"
+									onclick={() => { viewMode = 'list'; }}
+									class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px]"
+									class:bg-gold-500={viewMode === 'list'}
+									class:text-charcoal-950={viewMode === 'list'}
+									class:text-charcoal-300={viewMode !== 'list'}
+									class:hover:text-charcoal-50={viewMode !== 'list'}
+									class:bg-charcoal-700={viewMode !== 'list'}
+									aria-pressed={viewMode === 'list'}
+								>
+									List
+								</button>
+								<button
+									type="button"
+									id="view-mode-timeline"
+									onclick={() => { viewMode = 'timeline'; }}
+									class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px]"
+									class:bg-gold-500={viewMode === 'timeline'}
+									class:text-charcoal-950={viewMode === 'timeline'}
+									class:text-charcoal-300={viewMode !== 'timeline'}
+									class:hover:text-charcoal-50={viewMode !== 'timeline'}
+									class:bg-charcoal-700={viewMode !== 'timeline'}
+									aria-pressed={viewMode === 'timeline'}
+								>
+									Timeline
+								</button>
+							</div>
+						</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>

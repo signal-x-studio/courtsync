@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { get } from 'svelte/store';
 	import type { FilteredMatch } from '$lib/types';
 	import { formatMatchTime, formatMatchDate } from '$lib/utils/dateUtils';
@@ -9,6 +9,7 @@
 	import { getTeamIdentifier } from '$lib/stores/filters';
 	import { generateCoverageSuggestions } from '$lib/utils/coverageSuggestions';
 	import { exportCoveragePlanToICS } from '$lib/utils/icsExport';
+	import { createSwipeHandler } from '$lib/utils/gestures';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	import CoverageAnalytics from '$lib/components/CoverageAnalytics.svelte';
 	import CoverageStats from '$lib/components/CoverageStats.svelte';
@@ -17,6 +18,11 @@
 	
 	export let matches: FilteredMatch[];
 	export let onClose: () => void;
+	
+	let sheetElement: HTMLDivElement;
+	let swipeHandler: ReturnType<typeof createSwipeHandler> | null = null;
+	let swipeOffset = 0;
+	let isSwiping = false;
 	
 	interface ConflictGroup {
 		matches: FilteredMatch[];
@@ -149,6 +155,58 @@
 			});
 		}, 100);
 	}
+	
+	// Swipe handler for mobile bottom sheet
+	onMount(() => {
+		if (!sheetElement) return;
+		
+		swipeHandler = createSwipeHandler(
+			(gesture) => {
+				// Swipe down to dismiss
+				if (gesture.direction === 'down' && gesture.distance > 100) {
+					onClose();
+				}
+				// Reset swipe state
+				swipeOffset = 0;
+				isSwiping = false;
+			},
+			{
+				onMove: (distance, direction) => {
+					if (direction === 'down') {
+						isSwiping = true;
+						swipeOffset = Math.min(distance, 200); // Max 200px swipe
+					}
+				},
+				onCancel: () => {
+					swipeOffset = 0;
+					isSwiping = false;
+				}
+			}
+		);
+		
+		sheetElement.addEventListener('touchstart', swipeHandler.handleTouchStart, { passive: true });
+		sheetElement.addEventListener('touchmove', swipeHandler.handleTouchMove, { passive: true });
+		sheetElement.addEventListener('touchend', swipeHandler.handleTouchEnd, { passive: true });
+		sheetElement.addEventListener('touchcancel', swipeHandler.handleTouchCancel, { passive: true });
+		
+		// Prevent body scroll when panel is open on mobile
+		document.body.style.overflow = 'hidden';
+		
+		return () => {
+			if (swipeHandler) {
+				sheetElement.removeEventListener('touchstart', swipeHandler.handleTouchStart);
+				sheetElement.removeEventListener('touchmove', swipeHandler.handleTouchMove);
+				sheetElement.removeEventListener('touchend', swipeHandler.handleTouchEnd);
+				sheetElement.removeEventListener('touchcancel', swipeHandler.handleTouchCancel);
+				swipeHandler.destroy();
+			}
+			document.body.style.overflow = '';
+		};
+	});
+	
+	onDestroy(() => {
+		document.body.style.overflow = '';
+	});
 	
 	// Reset conflict index when conflict groups change
 	$: if (conflictGroups.length > 0 && currentConflictIndex >= conflictGroups.length) {
@@ -364,11 +422,32 @@
 	}
 </script>
 
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-	<div class="relative w-full max-w-3xl max-h-[90vh] border border-charcoal-700 rounded-lg bg-charcoal-800 overflow-hidden flex flex-col">
+<!-- Backdrop -->
+<div
+	class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity lg:flex lg:items-center lg:justify-center lg:p-4"
+	onclick={onClose}
+	onkeydown={(e) => e.key === 'Escape' && onClose()}
+	role="dialog"
+	aria-modal="true"
+	aria-label="Coverage plan"
+	tabindex="-1"
+>
+	<!-- Mobile: Bottom Sheet / Desktop: Centered Modal -->
+	<div
+		bind:this={sheetElement}
+		class="fixed bottom-0 left-0 right-0 max-h-[90vh] lg:relative lg:max-w-3xl lg:max-h-[90vh] lg:rounded-lg border border-charcoal-700 lg:border-t bg-charcoal-800 lg:bg-charcoal-800 overflow-hidden flex flex-col transform transition-transform lg:transform-none"
+		style="transform: translateY({swipeOffset}px); padding-bottom: env(safe-area-inset-bottom);"
+		onclick={(e) => e.stopPropagation()}
+		onkeydown={(e) => e.stopPropagation()}
+		role="dialog"
+		tabindex="-1"
+	>
 		<!-- Header -->
-		<div class="flex items-center justify-between p-4 border-b border-charcoal-700 bg-charcoal-700/50">
-			<div class="flex-1">
+		<div class="sticky top-0 bg-charcoal-700/50 lg:bg-charcoal-700/50 border-b border-charcoal-700 px-4 py-3 flex items-center justify-between z-10">
+			<!-- Mobile: Drag Handle -->
+			<div class="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-charcoal-600 rounded-full lg:hidden"></div>
+			
+			<div class="flex-1 ml-auto lg:ml-0">
 				<h3 class="text-base sm:text-lg font-semibold text-charcoal-50">
 					My Coverage Plan
 				</h3>
@@ -386,9 +465,10 @@
 					</p>
 					<!-- Coverage Status Filter -->
 					<select
+						id="coverage-status-filter-panel"
 						value={coverageStatusFilter}
 						onchange={(e) => coverageStatusFilter = e.target.value as any}
-						class="px-2 py-1 text-xs rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
+						class="px-2 py-1 text-xs rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-brand-500 focus:outline-none"
 					>
 						<option value="all">All Status</option>
 						<option value="not-covered">Uncovered</option>
@@ -398,30 +478,34 @@
 				</div>
 			</div>
 			
-			<!-- Tabs -->
+			<!-- Tabs (Mobile: Horizontal Scroll) -->
 			{#if selectedMatchesList.length > 0}
-				<div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700 mx-4">
+				<div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700 mx-4 overflow-x-auto scrollbar-hide">
 					<button
+						type="button"
 						onclick={() => activeTab = 'plan'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'plan' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 {activeTab === 'plan' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Plan
 					</button>
 					<button
+						type="button"
 						onclick={() => activeTab = 'analytics'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'analytics' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 {activeTab === 'analytics' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Analytics
 					</button>
 					<button
+						type="button"
 						onclick={() => activeTab = 'stats'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'stats' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 {activeTab === 'stats' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Stats
 					</button>
 					<button
+						type="button"
 						onclick={() => activeTab = 'coordination'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'coordination' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors whitespace-nowrap flex-shrink-0 min-h-[44px] lg:min-h-0 {activeTab === 'coordination' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Team
 					</button>
@@ -429,11 +513,12 @@
 			{/if}
 			
 			<button
+				type="button"
 				onclick={onClose}
-				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 flex items-center justify-center"
 				aria-label="Close panel"
 			>
-				<svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="w-5 h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
 				</svg>
 			</button>
@@ -504,10 +589,10 @@
 									{#each conflictGroups as group, groupIndex}
 										<div
 											bind:this={conflictRefs[groupIndex]}
-											class="border rounded p-3 transition-all {groupIndex === currentConflictIndex ? 'border-gold-500 bg-gold-500/5' : 'border-red-800/30 bg-charcoal-800/50'}"
+											class="border rounded p-3 transition-all {groupIndex === currentConflictIndex ? 'border-gold-500 bg-gold-500/5' : 'border-warning-500/30 bg-charcoal-800/50'}"
 										>
 											<div class="flex items-center gap-2 mb-2">
-												<div class="text-xs font-medium text-red-400">
+												<div class="text-xs font-medium text-warning-500">
 													Conflict Group {groupIndex + 1}: {group.conflictCount} overlapping match{group.conflictCount !== 1 ? 'es' : ''}
 												</div>
 												{#if groupIndex === currentConflictIndex}
@@ -667,10 +752,10 @@
 													<div class="text-sm font-bold text-charcoal-50">
 														{teamId || match.Division.CodeAlias}
 													</div>
-													{#if teamId}
-														{@const teamStatus = coverageStatus.getTeamStatus(teamId)}
-														<div class="w-2 h-2 rounded {teamStatus === 'covered' ? 'bg-green-500' : teamStatus === 'partially-covered' ? 'bg-[#f59e0b]' : teamStatus === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" title="Status: {teamStatus}" />
-													{/if}
+							{#if teamId}
+								{@const teamStatus = coverageStatus.getTeamStatus(teamId)}
+								<div class="w-2 h-2 rounded {teamStatus === 'covered' ? 'bg-green-500' : teamStatus === 'partially-covered' ? 'bg-[#f59e0b]' : teamStatus === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" title="Status: {teamStatus}"></div>
+							{/if}
 												</div>
 												<div class="text-xs text-charcoal-200 truncate">
 													vs {opponent}
@@ -826,4 +911,15 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	
+	.scrollbar-hide::-webkit-scrollbar {
+		display: none;
+	}
+</style>
 

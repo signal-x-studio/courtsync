@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { get } from 'svelte/store';
 	import type { FilteredMatch } from '$lib/types';
-	import { formatMatchTime } from '$lib/utils/dateUtils';
+	import { formatMatchTime, formatMatchDate } from '$lib/utils/dateUtils';
 	import { detectConflicts } from '$lib/utils/matchFilters';
 	import { detectOpportunities } from '$lib/utils/opportunityDetector';
 	import { coveragePlan } from '$lib/stores/coveragePlan';
@@ -28,6 +28,74 @@
 	let scorekeeperMatch: FilteredMatch | null = null;
 	let highlightGaps = false;
 	let showGapsOnly = false;
+	let selectedDay: string | null = null;
+	let timelineScrollContainer: HTMLDivElement;
+	
+	// Get matches with gaps for filtering
+	$: matchesWithGaps = (() => {
+		const matchSet = new Set<number>();
+		const allMatchesByCourt: Record<string, FilteredMatch[]> = {};
+		filteredMatches.forEach(match => {
+			if (!allMatchesByCourt[match.CourtName]) {
+				allMatchesByCourt[match.CourtName] = [];
+			}
+			allMatchesByCourt[match.CourtName].push(match);
+		});
+		
+		Object.values(allMatchesByCourt).forEach(courtMatches => {
+			const gaps = calculateGaps(courtMatches);
+			gaps.forEach(gap => {
+				matchSet.add(gap.before.MatchId);
+				matchSet.add(gap.after.MatchId);
+			});
+		});
+		return matchSet;
+	})();
+	
+	// Apply gap filter if enabled
+	$: gapFilteredMatches = (() => {
+		if (showGapsOnly) {
+			return filteredMatches.filter(m => matchesWithGaps.has(m.MatchId));
+		}
+		return filteredMatches;
+	})();
+	
+	// Group matches by day (using gap-filtered matches)
+	$: matchesByDay = (() => {
+		const grouped: Record<string, FilteredMatch[]> = {};
+		gapFilteredMatches.forEach(match => {
+			const dayKey = formatMatchDate(match.ScheduledStartDateTime);
+			if (!grouped[dayKey]) {
+				grouped[dayKey] = [];
+			}
+			grouped[dayKey].push(match);
+		});
+		return grouped;
+	})();
+	
+	$: days = Object.keys(matchesByDay).sort();
+	
+	// Set selected day to first day if not set
+	$: if (days.length > 0 && !selectedDay) {
+		selectedDay = days[0];
+	}
+	
+	// Filter matches by selected day (using gap-filtered matches)
+	$: dayFilteredMatches = selectedDay ? matchesByDay[selectedDay] || [] : gapFilteredMatches;
+	
+	// Group matches by court (using day-filtered matches)
+	$: matchesByCourt = (() => {
+		const grouped: Record<string, FilteredMatch[]> = {};
+		dayFilteredMatches.forEach(match => {
+			if (!grouped[match.CourtName]) {
+				grouped[match.CourtName] = [];
+			}
+			grouped[match.CourtName].push(match);
+		});
+		return grouped;
+	})();
+	
+	$: courts = Object.keys(matchesByCourt).sort();
 	
 	// Create match claiming store
 	let matchClaiming: ReturnType<typeof createMatchClaiming>;
@@ -95,10 +163,10 @@
 		return filtered;
 	})();
 	
-	// Detect opportunities
+	// Detect opportunities (using day-filtered matches)
 	$: opportunities = (() => {
 		const selectedSet = get(coveragePlan);
-		return detectOpportunities(matches, selectedSet, conflicts, {
+		return detectOpportunities(dayFilteredMatches, selectedSet, conflicts, {
 			excludeSelected: true,
 			preferNoConflicts: true,
 			preferNearSelected: true,
@@ -115,9 +183,9 @@
 		return `${match.FirstTeamText} vs ${match.SecondTeamText}`;
 	}
 	
-	// Calculate timeline bounds (using gap-filtered matches)
-	$: earliestTime = gapFilteredMatches.length > 0 ? Math.min(...gapFilteredMatches.map((m) => m.ScheduledStartDateTime)) : 0;
-	$: latestTime = gapFilteredMatches.length > 0 ? Math.max(...gapFilteredMatches.map((m) => m.ScheduledEndDateTime)) : 0;
+	// Calculate timeline bounds (using day-filtered matches)
+	$: earliestTime = dayFilteredMatches.length > 0 ? Math.min(...dayFilteredMatches.map((m) => m.ScheduledStartDateTime)) : 0;
+	$: latestTime = dayFilteredMatches.length > 0 ? Math.max(...dayFilteredMatches.map((m) => m.ScheduledEndDateTime)) : 0;
 	$: totalDuration = latestTime - earliestTime;
 	
 	function getPosition(startTime: number): number {
@@ -130,54 +198,11 @@
 		return ((endTime - startTime) / totalDuration) * 100;
 	}
 	
-	// Get matches with gaps for filtering
-	$: matchesWithGaps = (() => {
-		const matchSet = new Set<number>();
-		const allMatchesByCourt: Record<string, FilteredMatch[]> = {};
-		filteredMatches.forEach(match => {
-			if (!allMatchesByCourt[match.CourtName]) {
-				allMatchesByCourt[match.CourtName] = [];
-			}
-			allMatchesByCourt[match.CourtName].push(match);
-		});
-		
-		Object.values(allMatchesByCourt).forEach(courtMatches => {
-			const gaps = calculateGaps(courtMatches);
-			gaps.forEach(gap => {
-				matchSet.add(gap.before.MatchId);
-				matchSet.add(gap.after.MatchId);
-			});
-		});
-		return matchSet;
-	})();
-	
-	// Apply gap filter if enabled
-	$: gapFilteredMatches = (() => {
-		if (showGapsOnly) {
-			return filteredMatches.filter(m => matchesWithGaps.has(m.MatchId));
-		}
-		return filteredMatches;
-	})();
-	
-	// Group matches by court (using gap-filtered matches)
-	$: matchesByCourt = (() => {
-		const grouped: Record<string, FilteredMatch[]> = {};
-		gapFilteredMatches.forEach(match => {
-			if (!grouped[match.CourtName]) {
-				grouped[match.CourtName] = [];
-			}
-			grouped[match.CourtName].push(match);
-		});
-		return grouped;
-	})();
-	
-	$: courts = Object.keys(matchesByCourt).sort();
-	
-	// Get highlighted team matches (using gap-filtered matches)
+	// Get highlighted team matches (using day-filtered matches)
 	$: highlightedTeamMatches = (() => {
 		if (!highlightedTeam) return new Set<number>();
 		const matchSet = new Set<number>();
-		gapFilteredMatches.forEach(match => {
+		dayFilteredMatches.forEach(match => {
 			const teamId = getTeamIdFromFilter(match);
 			if (teamId === highlightedTeam) {
 				matchSet.add(match.MatchId);
@@ -186,22 +211,22 @@
 		return matchSet;
 	})();
 	
-	// Get conflicting matches for selected conflict (using gap-filtered matches)
+	// Get conflicting matches for selected conflict (using day-filtered matches)
 	$: conflictingMatchesForSelected = (() => {
 		if (!selectedConflict) return [];
 		const conflictGroup = conflicts.get(selectedConflict.MatchId);
 		if (!conflictGroup) return [];
 		return conflictGroup.map(matchId => {
-			return gapFilteredMatches.find(m => m.MatchId === matchId);
+			return dayFilteredMatches.find(m => m.MatchId === matchId);
 		}).filter(Boolean) as FilteredMatch[];
 	})();
 	
-	// Get all conflicts and track completion
+	// Get all conflicts and track completion (using day-filtered matches)
 	$: allConflicts = (() => {
 		const conflictList: FilteredMatch[] = [];
 		const seen = new Set<number>();
 		
-		gapFilteredMatches.forEach(match => {
+		dayFilteredMatches.forEach(match => {
 			if (conflicts.has(match.MatchId) && !seen.has(match.MatchId)) {
 				conflictList.push(match);
 				seen.add(match.MatchId);
@@ -428,43 +453,89 @@
 		</div>
 		
 		<!-- Timeline Header -->
-		<div class="flex items-center justify-between">
-			<div class="text-xs text-charcoal-300">
-				Timeline: {formatMatchTime(earliestTime)} - {formatMatchTime(latestTime)}
-				{#if gapFilteredMatches.length !== matches.length}
-					<span class="ml-2">
-						({gapFilteredMatches.length} of {matches.length})
-					</span>
-				{/if}
-				{#if conflictProgress.total > 0 && $isMedia}
-					<span class="ml-2 text-xs">
-						• Conflicts: {conflictProgress.resolved}/{conflictProgress.total} resolved
-					</span>
-				{/if}
-			</div>
-			{#if highlightedTeam}
-				<div class="flex items-center gap-2">
-					<span class="text-xs text-charcoal-300">Showing:</span>
-					<span class="px-2 py-1 text-xs font-semibold rounded bg-gold-500/20 text-[#facc15] border border-gold-500/50">
-						Team {highlightedTeam}
-					</span>
-					<button
-						onclick={() => highlightedTeam = null}
-						class="text-xs text-charcoal-300 hover:text-charcoal-50 transition-colors"
-						aria-label="Clear highlight"
-					>
-						✕
-					</button>
+		<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+			<!-- Day Navigation (Mobile) -->
+			{#if days.length > 1}
+				<div class="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 lg:hidden">
+					{#each days as day}
+						<button
+							type="button"
+							onclick={() => selectedDay = day}
+							class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] flex-shrink-0 {selectedDay === day ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+						>
+							{day}
+						</button>
+					{/each}
 				</div>
 			{/if}
+			
+			<div class="flex items-center justify-between">
+				<div class="text-xs text-charcoal-300">
+					Timeline: {formatMatchTime(earliestTime)} - {formatMatchTime(latestTime)}
+					{#if selectedDay}
+						<span class="ml-2 text-gold-400">• {selectedDay}</span>
+					{/if}
+					{#if dayFilteredMatches.length !== filteredMatches.length}
+						<span class="ml-2">
+							({dayFilteredMatches.length} of {filteredMatches.length})
+						</span>
+					{/if}
+					{#if conflictProgress.total > 0 && $isMedia}
+						<span class="ml-2 text-xs">
+							• Conflicts: {conflictProgress.resolved}/{conflictProgress.total} resolved
+						</span>
+					{/if}
+				</div>
+				{#if highlightedTeam}
+					<div class="flex items-center gap-2">
+						<span class="text-xs text-charcoal-300">Showing:</span>
+						<span class="px-2 py-1 text-xs font-semibold rounded bg-gold-500/20 text-[#facc15] border border-gold-500/50">
+							Team {highlightedTeam}
+						</span>
+						<button
+							type="button"
+							onclick={() => highlightedTeam = null}
+							class="text-xs text-charcoal-300 hover:text-charcoal-50 transition-colors min-h-[44px] sm:min-h-0"
+							aria-label="Clear highlight"
+						>
+							✕
+						</button>
+					</div>
+				{/if}
+			</div>
 		</div>
 		
+		<!-- Day Navigation (Desktop) -->
+		{#if days.length > 1}
+			<div class="hidden lg:flex items-center gap-2 mb-4">
+				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Day:</span>
+				<div class="flex gap-2">
+					{#each days as day}
+						<button
+							type="button"
+							onclick={() => selectedDay = day}
+							class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {selectedDay === day ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-800 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-700'}"
+						>
+							{day}
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
+		
 		<!-- Court Timelines -->
-		<div class="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-			<div class="space-y-4 min-w-max sm:min-w-0">
+		<div 
+			bind:this={timelineScrollContainer}
+			class="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0 scrollbar-hide"
+			style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;"
+		>
+			<div class="space-y-4 min-w-max lg:min-w-0">
 				{#each courts as courtName}
 					{@const courtMatches = matchesByCourt[courtName]}
-					<div class="border-b border-charcoal-700 pb-4 last:border-b-0 last:pb-0 min-w-[600px] sm:min-w-0">
+					<div 
+						class="border-b border-charcoal-700 pb-4 last:border-b-0 last:pb-0 min-w-[calc(100vw-2rem)] lg:min-w-0"
+						style="scroll-snap-align: start;"
+					>
 						<!-- Court Header -->
 						<div class="flex items-center justify-between mb-2">
 							<div class="text-base font-semibold text-charcoal-50">{courtName}</div>
@@ -521,17 +592,26 @@
 								{@const borderColor = matchPriority === 'must-cover' ? '#facc15' : matchPriority === 'priority' ? '#fbbf24' : isUncovered && !isInPlan ? '#facc15' : isPlanned ? '#facc15' : isSelected ? '#eab308' : isHighlighted ? '#facc15' : isInPlan ? '#facc15' : hasConflict ? '#ef4444' : 'rgba(255, 255, 255, 0.2)'}
 								{@const zIndex = isSelected ? 30 : isHighlighted ? 20 : matchPriority === 'must-cover' ? 18 : isInPlan ? 15 : hasConflict ? 10 : 1}
 								
-								<div
-									onclick={(e) => {
-										if (e.target instanceof HTMLElement && e.target.closest('.priority-button')) {
-											return;
-										}
-										handleMatchClick(match);
-									}}
-									class="group absolute h-16 rounded-md px-2 py-1.5 text-white shadow-sm border-2 flex flex-col justify-center transition-all active:scale-95 sm:hover:z-20 sm:hover:shadow-lg touch-manipulation cursor-pointer {isSelected ? 'ring-2 ring-[#eab308] ring-offset-2 ring-offset-[#3b3c48]' : ''} {isHighlighted ? 'ring-2 ring-[#eab308] ring-offset-1 ring-offset-[#3b3c48]' : ''} {shouldDim ? 'opacity-30' : ''} {isInPlan ? 'ring-1 ring-[#eab308] ring-offset-1 ring-offset-[#3b3c48]' : ''} {isCovered ? 'opacity-60' : ''}"
-									style="left: {left}%; width: {width}%; background-color: {backgroundColor}; border-color: {borderColor}; min-width: 100px; z-index: {zIndex};"
-									title="{match.CompleteShortName}: {match.FirstTeamText} vs {match.SecondTeamText} - {formatMatchTime(match.ScheduledStartDateTime)}{hasConflict ? ' (Click to see conflicts)' : ' (Click to add to plan)'}{matchPriority ? ` [Priority: ${matchPriority}]` : ''}{isOpportunity && !isInPlan ? ' [Easy opportunity]' : ''}{teamCoverageStatus !== 'not-covered' ? ` [Coverage: ${teamCoverageStatus}]` : ''}"
-								>
+					<div
+						onclick={(e) => {
+							if (e.target instanceof HTMLElement && e.target.closest('.priority-button')) {
+								return;
+							}
+							handleMatchClick(match);
+						}}
+						onkeydown={(e) => {
+							if (e.key === 'Enter' || e.key === ' ') {
+								if (e.target instanceof HTMLElement && !e.target.closest('.priority-button')) {
+									handleMatchClick(match);
+								}
+							}
+						}}
+						class="group absolute h-16 rounded-md px-2 py-1.5 text-white shadow-sm border-2 flex flex-col justify-center transition-all active:scale-95 sm:hover:z-20 sm:hover:shadow-lg touch-manipulation cursor-pointer min-h-[44px] {isSelected ? 'ring-2 ring-[#eab308] ring-offset-2 ring-offset-[#3b3c48]' : ''} {isHighlighted ? 'ring-2 ring-[#eab308] ring-offset-1 ring-offset-[#3b3c48]' : ''} {shouldDim ? 'opacity-30' : ''} {isInPlan ? 'ring-1 ring-[#eab308] ring-offset-1 ring-offset-[#3b3c48]' : ''} {isCovered ? 'opacity-60' : ''}"
+						style="left: {left}%; width: {width}%; background-color: {backgroundColor}; border-color: {borderColor}; min-width: 120px; z-index: {zIndex};"
+						title="{match.CompleteShortName}: {match.FirstTeamText} vs {match.SecondTeamText} - {formatMatchTime(match.ScheduledStartDateTime)}{hasConflict ? ' (Click to see conflicts)' : ' (Click to add to plan)'}{matchPriority ? ` [Priority: ${matchPriority}]` : ''}{isOpportunity && !isInPlan ? ' [Easy opportunity]' : ''}{teamCoverageStatus !== 'not-covered' ? ` [Coverage: ${teamCoverageStatus}]` : ''}"
+						role="button"
+						tabindex="0"
+					>
 									<!-- Priority Indicator - Media Only -->
 									{#if $isMedia && matchPriority}
 										<div class="absolute top-0 left-0 text-[10px]">
@@ -541,10 +621,10 @@
 										</div>
 									{/if}
 									
-									<!-- Opportunity Badge - Media Only -->
-									{#if $isMedia && isOpportunity && !isInPlan}
-										<div class="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white" title="Easy coverage opportunity" />
-									{/if}
+						<!-- Opportunity Badge - Media Only -->
+						{#if $isMedia && isOpportunity && !isInPlan}
+							<div class="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border border-white" title="Easy coverage opportunity"></div>
+						{/if}
 									
 									<!-- Selection Indicator - Media Only -->
 									{#if $isMedia && isInPlan}
@@ -555,11 +635,14 @@
 										</div>
 									{/if}
 									
-									<!-- Team Identifier -->
-									<div 
-										onclick={(e) => teamId && handleTeamClick(teamId, e)}
-										class="text-xs sm:text-sm font-bold truncate leading-tight {teamId ? 'cursor-pointer hover:underline' : ''}"
-									>
+						<!-- Team Identifier -->
+						<div 
+							onclick={(e) => teamId && handleTeamClick(teamId, e)}
+							onkeydown={(e) => { if (teamId && (e.key === 'Enter' || e.key === ' ')) handleTeamClick(teamId, e); }}
+							class="text-xs sm:text-sm font-bold truncate leading-tight {teamId ? 'cursor-pointer hover:underline' : ''}"
+							role={teamId ? "button" : undefined}
+							tabindex={teamId ? 0 : undefined}
+						>
 										{teamId || match.Division.CodeAlias}
 									</div>
 									
@@ -705,7 +788,10 @@
 			<div
 				class="fixed inset-0 z-40"
 				onclick={() => priorityMenuOpen = null}
-			/>
+				onkeydown={(e) => e.key === 'Escape' && (priorityMenuOpen = null)}
+				role="button"
+				tabindex="-1"
+			></div>
 		{/if}
 		
 		<!-- Close coverage status menu when clicking outside -->
@@ -713,8 +799,22 @@
 			<div
 				class="fixed inset-0 z-40"
 				onclick={() => coverageStatusMenuOpen = null}
-			/>
+				onkeydown={(e) => e.key === 'Escape' && (coverageStatusMenuOpen = null)}
+				role="button"
+				tabindex="-1"
+			></div>
 		{/if}
 	</div>
 {/if}
+
+<style>
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	
+	.scrollbar-hide::-webkit-scrollbar {
+		display: none;
+	}
+</style>
 
