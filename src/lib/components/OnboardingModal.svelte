@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { userRole } from '$lib/stores/userRole';
+	import { Camera, BarChart3, ClipboardList } from 'lucide-svelte';
 
 	export let onComplete: () => void;
 
@@ -9,7 +10,7 @@
 	const roles = [
 		{
 			id: 'media' as const,
-			icon: '📸',
+			icon: Camera,
 			title: 'Photographer',
 			description: 'Plan your tournament coverage and avoid scheduling conflicts',
 			features: [
@@ -20,7 +21,7 @@
 		},
 		{
 			id: 'spectator' as const,
-			icon: '📊',
+			icon: BarChart3,
 			title: 'Scorekeeper',
 			description: 'Track scores for your favorite teams',
 			features: [
@@ -31,7 +32,7 @@
 		},
 		{
 			id: 'coach' as const,
-			icon: '📋',
+			icon: ClipboardList,
 			title: 'Coach',
 			description: 'View your team\'s match schedule',
 			features: [
@@ -110,8 +111,8 @@
 						{/if}
 
 						<!-- Icon -->
-						<div class="text-4xl mb-3" role="img" aria-label={`${role.title} icon`}>
-							{role.icon}
+						<div class="w-16 h-16 rounded-full bg-gold-500/20 flex items-center justify-center mb-3">
+							<svelte:component this={role.icon} size={32} class="text-gold-500" />
 						</div>
 
 						<!-- Title & Description -->

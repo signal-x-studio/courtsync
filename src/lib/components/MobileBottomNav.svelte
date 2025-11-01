@@ -2,6 +2,7 @@
 	import { userRole, isMedia, isCoach } from '$lib/stores/userRole';
 	import { selectedCount } from '$lib/stores/coveragePlan';
 	import { filters } from '$lib/stores/filters';
+	import { ClipboardList, Calendar, CalendarDays, Search, Settings } from 'lucide-svelte';
 	
 	export let activeTab: 'matches' | 'plan' | 'filters' | 'more' = 'matches';
 	export let onTabChange: (tab: 'matches' | 'plan' | 'filters' | 'more') => void;
@@ -29,20 +30,20 @@
 	// Role-based navigation tabs
 	$: tabs = isMediaValue
 		? [
-				{ id: 'matches' as const, label: 'Matches', icon: '📋' },
-				{ id: 'plan' as const, label: 'Schedule', icon: '📝', badge: selectedCountValue > 0 ? selectedCountValue : undefined },
-				{ id: 'filters' as const, label: 'Filters', icon: '🔍', badge: activeFilterCount > 0 ? activeFilterCount : undefined },
-				{ id: 'more' as const, label: 'More', icon: '⚙️' }
+				{ id: 'matches' as const, label: 'Matches', icon: ClipboardList },
+				{ id: 'plan' as const, label: 'Schedule', icon: CalendarDays, badge: selectedCountValue > 0 ? selectedCountValue : undefined },
+				{ id: 'filters' as const, label: 'Filters', icon: Search, badge: activeFilterCount > 0 ? activeFilterCount : undefined },
+				{ id: 'more' as const, label: 'More', icon: Settings }
 		  ]
 		: isCoachValue
 		? [
-				{ id: 'matches' as const, label: 'Schedule', icon: '📅' },
-				{ id: 'more' as const, label: 'More', icon: '⚙️' }
+				{ id: 'matches' as const, label: 'Schedule', icon: Calendar },
+				{ id: 'more' as const, label: 'More', icon: Settings }
 		  ]
 		: [
-				{ id: 'matches' as const, label: 'Matches', icon: '📋' },
-				{ id: 'filters' as const, label: 'Filters', icon: '🔍', badge: activeFilterCount > 0 ? activeFilterCount : undefined },
-				{ id: 'more' as const, label: 'More', icon: '⚙️' }
+				{ id: 'matches' as const, label: 'Matches', icon: ClipboardList },
+				{ id: 'filters' as const, label: 'Filters', icon: Search, badge: activeFilterCount > 0 ? activeFilterCount : undefined },
+				{ id: 'more' as const, label: 'More', icon: Settings }
 		  ];
 </script>
 
@@ -67,7 +68,7 @@
 					<div class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-gold-500 rounded-b-full"></div>
 				{/if}
 				<div class="flex items-center justify-center relative">
-					<span class="text-xl">{tab.icon}</span>
+					<svelte:component this={tab.icon} size={20} class={activeTab === tab.id ? 'text-gold-500' : 'text-charcoal-400'} />
 					{#if tab.badge && tab.badge > 0}
 						<span
 							class="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-gold-500 text-charcoal-950 text-[10px] font-bold rounded-full"

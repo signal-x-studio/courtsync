@@ -11,6 +11,7 @@
 	import { createMatchClaiming } from '$lib/stores/matchClaiming';
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import type { SetScore } from '$lib/types';
+	import { Star, Circle, ClipboardList, Check } from 'lucide-svelte';
 	
 	import PrioritySelector from '$lib/components/PrioritySelector.svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
@@ -404,14 +405,20 @@
 						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {highlightGaps ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
 						title="Highlight all time gaps"
 					>
-						{highlightGaps ? '✓' : ''} Highlight Gaps
+						{#if highlightGaps}
+							<Check size={14} class="inline" />
+						{/if}
+						Highlight Gaps
 					</button>
 					<button
 						onclick={() => showGapsOnly = !showGapsOnly}
 						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {showGapsOnly ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
 						title="Show only matches with gaps"
 					>
-						{showGapsOnly ? '✓' : ''} Gaps Only
+						{#if showGapsOnly}
+							<Check size={14} class="inline" />
+						{/if}
+						Gaps Only
 					</button>
 				</div>
 			{/if}
@@ -590,9 +597,13 @@
 									<!-- Priority Indicator - Media Only -->
 									{#if $isMedia && matchPriority}
 										<div class="absolute top-0 left-0 text-[10px]">
-											{matchPriority === 'must-cover' && '⭐'}
-											{matchPriority === 'priority' && '🔸'}
-											{matchPriority === 'optional' && '○'}
+											{#if matchPriority === 'must-cover'}
+												<Star size={10} class="text-gold-500" />
+											{:else if matchPriority === 'priority'}
+												<Circle size={10} class="text-[#f59e0b]" fill="currentColor" />
+											{:else if matchPriority === 'optional'}
+												<Circle size={10} class="text-charcoal-400" />
+											{/if}
 										</div>
 									{/if}
 									
@@ -671,9 +682,13 @@
 												aria-label="Set priority"
 												title={matchPriority ? `Priority: ${matchPriority}` : 'Set priority'}
 											>
-												{matchPriority === 'must-cover' && '⭐'}
-												{matchPriority === 'priority' && '🔸'}
-												{matchPriority === 'optional' && '○'}
+												{#if matchPriority === 'must-cover'}
+													<Star size={10} class="text-gold-500" />
+												{:else if matchPriority === 'priority'}
+													<Circle size={10} class="text-[#f59e0b]" fill="currentColor" />
+												{:else if matchPriority === 'optional'}
+													<Circle size={10} class="text-charcoal-400" />
+												{/if}
 												{#if !matchPriority}
 													<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -705,10 +720,15 @@
 												aria-label="Set coverage status"
 												title="Coverage: {teamCoverageStatus}"
 											>
-												{teamCoverageStatus === 'covered' && '✓'}
-												{teamCoverageStatus === 'partially-covered' && '◐'}
-												{teamCoverageStatus === 'planned' && '📋'}
-												{teamCoverageStatus === 'not-covered' && '○'}
+												{#if teamCoverageStatus === 'covered'}
+													<Check size={12} />
+												{:else if teamCoverageStatus === 'partially-covered'}
+													<Circle size={12} class="text-[#f59e0b]" fill="currentColor" />
+												{:else if teamCoverageStatus === 'planned'}
+													<ClipboardList size={12} />
+												{:else if teamCoverageStatus === 'not-covered'}
+													<Circle size={12} />
+												{/if}
 											</button>
 											{#if coverageStatusMenuOpen === teamId}
 												<div class="absolute left-full top-0 ml-2 z-50">

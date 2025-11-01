@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import type { MatchScore, SetScore } from '$lib/types';
 	import ScoreHistory from '$lib/components/ScoreHistory.svelte';
+	import { AlertTriangle, Save, Check } from 'lucide-svelte';
 	
 	export let matchId: number;
 	export let team1Name: string;
@@ -196,7 +197,8 @@
 			<!-- Validation Warning -->
 			{#if validationWarning}
 				<div class="px-4 py-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 text-yellow-400 text-sm">
-					⚠️ {validationWarning}
+					<AlertTriangle size={16} class="inline" />
+					{validationWarning}
 				</div>
 			{/if}
 
@@ -320,7 +322,13 @@
 			<!-- Auto-save indicator -->
 			{#if status === 'in-progress'}
 				<div class="text-xs text-charcoal-300 text-center">
-					{isSaving ? '💾 Saving...' : '✓ Auto-save enabled'}
+					{#if isSaving}
+						<Save size={14} class="inline" />
+						Saving...
+					{:else}
+						<Check size={14} class="inline" />
+						Auto-save enabled
+					{/if}
 				</div>
 			{/if}
 

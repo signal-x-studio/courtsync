@@ -9,6 +9,7 @@
 	import { coverageStatus } from '$lib/stores/coverageStatus';
 	import { userRole, isMedia, isSpectator } from '$lib/stores/userRole';
 	import { followedTeams } from '$lib/stores/followedTeams';
+	import { Star, AlertTriangle, ClipboardList, Check, Circle } from 'lucide-svelte';
 	
 	export let match: FilteredMatch;
 	export let hasConflict: boolean = false;
@@ -16,7 +17,6 @@
 	export let onSwipeRight: ((match: FilteredMatch) => void) | null = null;
 	export let onSwipeLeft: ((match: FilteredMatch) => void) | null = null;
 	export let scanningMode: boolean = false;
-	export let conflicts: Map<number, number[]>;
 	
 	let cardElement: HTMLDivElement;
 	let swipeOffset = 0;
@@ -53,7 +53,7 @@
 	
 	// Compute card classes with opacity support
 	$: cardClasses = [
-		'relative rounded-xl px-4 py-3 min-h-[44px] transition-colors',
+		'relative rounded-xl px-3 py-2.5 transition-colors',
 		hasConflict || matchPriority === 'must-cover' ? 'border-2' : 'border',
 		hasConflict ? 'border-warning-500 bg-warning-500/10' : '',
 		matchPriority === 'must-cover' && !hasConflict ? 'border-gold-500 bg-gold-500/10' : '',
@@ -142,9 +142,9 @@
 			style="opacity: {Math.min(swipeOffset / 100, 1)};"
 		>
 			{#if swipeDirection === 'right'}
-				<span class="text-charcoal-950 font-bold text-lg">✓</span>
+				<Check size={20} class="text-charcoal-950" />
 			{:else if swipeDirection === 'left'}
-				<span class="text-charcoal-200 font-bold text-lg">✕</span>
+				<X size={20} class="text-charcoal-200" />
 			{/if}
 		</div>
 	{/if}
@@ -167,10 +167,10 @@
 						{teamId || match.Division.CodeAlias}
 					</div>
 					{#if hasConflict}
-						<span class="text-xs text-warning-500 flex-shrink-0">⚠️</span>
+						<AlertTriangle size={14} class="text-warning-500 flex-shrink-0" />
 					{/if}
 					{#if matchPriority === 'must-cover'}
-						<span class="text-xs text-gold-500 flex-shrink-0">⭐</span>
+						<Star size={14} class="text-gold-500 flex-shrink-0" />
 					{/if}
 				</div>
 				
@@ -184,11 +184,17 @@
 					<span class="text-xs text-charcoal-400">•</span>
 					<span class="text-xs text-charcoal-400">{match.Division.CodeAlias}</span>
 					{#if teamCoverageStatus === 'covered'}
-						<span class="text-xs text-success-500">✓ Covered</span>
+						<span class="text-xs text-success-500">
+							<Check size={12} class="inline" />
+							Covered
+						</span>
 					{:else if teamCoverageStatus === 'partially-covered'}
 						<span class="text-xs text-warning-500">◐ Partial</span>
 					{:else if teamCoverageStatus === 'planned'}
-						<span class="text-xs text-gold-500">📋 Planned</span>
+						<span class="text-xs text-gold-500">
+							<ClipboardList size={12} class="inline" />
+							Planned
+						</span>
 					{/if}
 				</div>
 			</div>
@@ -200,7 +206,7 @@
 					<button
 						type="button"
 						onclick={handleSelect}
-					class="w-6 h-6 rounded border-2 flex items-center justify-center transition-colors min-h-[44px] sm:min-h-0 {isSelected ? 'border-gold-500 bg-gold-500/20' : 'border-charcoal-600 hover:bg-charcoal-700'}"
+					class="w-6 h-6 rounded border-2 flex items-center justify-center transition-colors touch-target {isSelected ? 'border-gold-500 bg-gold-500/20' : 'border-charcoal-600 hover:bg-charcoal-700'}"
 						aria-label={isSelected ? 'Remove from plan' : 'Add to plan'}
 					>
 						{#if isSelected}
@@ -224,14 +230,18 @@
 									followedTeams.followTeam(teamId, teamId);
 								}
 							}}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0"
+							class="px-2 py-1 text-xs font-medium rounded transition-colors touch-target"
 							class:bg-gold-500={followedTeams.isFollowing(teamId)}
 							class:text-charcoal-950={followedTeams.isFollowing(teamId)}
 							class:bg-charcoal-700={!followedTeams.isFollowing(teamId)}
 							class:text-charcoal-200={!followedTeams.isFollowing(teamId)}
 							title={followedTeams.isFollowing(teamId) ? 'Unfollow team' : 'Follow team'}
 						>
-							{followedTeams.isFollowing(teamId) ? '✓' : '+'}
+							{#if followedTeams.isFollowing(teamId)}
+								<Check size={14} />
+							{:else}
+								+
+							{/if}
 						</button>
 					{/if}
 				{/if}
@@ -249,6 +259,19 @@
 	
 	[data-match-card]:active {
 		transform: scale(0.98);
+	}
+	
+	/* Touch targets for mobile */
+	.touch-target {
+		min-height: 36px;
+		min-width: 36px;
+	}
+	
+	@media (min-width: 640px) {
+		.touch-target {
+			min-height: 0;
+			min-width: 0;
+		}
 	}
 </style>
 

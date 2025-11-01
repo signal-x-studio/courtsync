@@ -339,7 +339,7 @@
 						<div
 							class="w-4 h-4 rounded-full flex-shrink-0"
 							style="background-color: {member.color}"
-						/>
+						></div>
 						<div class="flex-1 min-w-0">
 							<div class="text-sm font-medium text-charcoal-50">{member.name}</div>
 							<div class="text-xs text-charcoal-300">

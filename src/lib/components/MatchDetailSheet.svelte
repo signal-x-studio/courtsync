@@ -104,6 +104,11 @@
 			class="fixed bottom-0 left-0 right-0 top-0 bg-charcoal-950 overflow-y-auto transition-transform duration-300"
 			style="transform: translateY({isVisible ? swipeOffset : '100%'}%);"
 			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => {
+				if (e.key === 'Escape') {
+					handleClose();
+				}
+			}}
 			role="dialog"
 			tabindex="0"
 		>

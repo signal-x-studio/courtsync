@@ -2,6 +2,7 @@
 	import type { FilteredMatch } from '$lib/types';
 	import { formatMatchTime } from '$lib/utils/dateUtils';
 	import { getTeamIdentifier } from '$lib/stores/filters';
+	import { Check } from 'lucide-svelte';
 	
 	export let match: FilteredMatch;
 	export let conflictingMatches: FilteredMatch[];
@@ -83,7 +84,10 @@
 					<div class="text-xs text-charcoal-300">
 						{conflictProgress.resolved}/{conflictProgress.total} resolved
 						{#if conflictProgress.remaining === 0}
-							<span class="ml-2 text-green-400">✓ All resolved!</span>
+							<span class="ml-2 text-green-400">
+								<Check size={14} class="inline" />
+								All resolved!
+							</span>
 						{/if}
 					</div>
 				{/if}

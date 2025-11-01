@@ -18,6 +18,7 @@
 	import { userRole, isMedia, isSpectator, isCoach } from '$lib/stores/userRole';
 	import type { CoverageStatus } from '$lib/stores/coverageStatus';
 	import type { SetScore } from '$lib/types';
+	import { ClipboardList, Check, AlertTriangle, Eye, X, Star, Circle } from 'lucide-svelte';
 	
 	import TeamDetailPanel from '$lib/components/TeamDetailPanel.svelte';
 	import MatchDetailSheet from '$lib/components/MatchDetailSheet.svelte';
@@ -29,7 +30,6 @@
 	import MyTeamsSelector from '$lib/components/MyTeamsSelector.svelte';
 	import LiveMatchDashboard from '$lib/components/LiveMatchDashboard.svelte';
 	import ClaimHistoryPanel from '$lib/components/ClaimHistoryPanel.svelte';
-	import FilterBottomSheet from '$lib/components/FilterBottomSheet.svelte';
 	import MatchCardMobile from '$lib/components/MatchCardMobile.svelte';
 	
 	export let matches: FilteredMatch[];
@@ -53,19 +53,6 @@
 	let importJson = '';
 	let importError: string | null = null;
 	let previousClaimedMatchIds = new Set<number>();
-	let showFilterSheet = false;
-	
-	function getActiveFilterCount(): number {
-		let count = 0;
-		if ($filters.wave !== 'all') count++;
-		if ($filters.division) count++;
-		if ($filters.teams.length > 0) count++;
-		if ($filters.priority && $filters.priority !== 'all') count++;
-		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
-		return count;
-	}
-	
-	$: activeFilterCount = getActiveFilterCount();
 	
 	// Create match claiming store
 	let matchClaiming: ReturnType<typeof createMatchClaiming>;
@@ -427,34 +414,41 @@
 		
 		<!-- Coverage Statistics Header - Media Only -->
 		{#if $isMedia && coverageStats.totalTeams > 0}
-			<div class="mb-4 px-4 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 flex items-center justify-between flex-wrap gap-2">
-				<div class="flex items-center gap-4 flex-wrap">
-					<div class="text-xs text-charcoal-300">
-						<span class="font-semibold text-charcoal-50">{coverageStats.coveragePercentage.toFixed(0)}%</span> Coverage
+			<div class="mb-3 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800/50">
+				<div class="flex items-center justify-between gap-2 flex-wrap">
+					<div class="flex items-center gap-3 text-xs">
+						<div class="text-charcoal-300">
+							<span class="font-semibold text-charcoal-50">{coverageStats.coveragePercentage.toFixed(0)}%</span> Coverage
+						</div>
+						<div class="flex items-center gap-1.5">
+							<span class="text-green-400">
+								<Check size={12} class="inline" />
+								{coverageStats.coveredTeams}
+							</span>
+							<span class="text-charcoal-500">/</span>
+							<span class="text-gold-500">
+								<ClipboardList size={12} class="inline" />
+								{coverageStats.plannedTeams}
+							</span>
+							<span class="text-charcoal-500">/</span>
+							<span class="text-charcoal-400">
+								<Circle size={12} class="inline" />
+								{coverageStats.uncoveredTeams}
+							</span>
+						</div>
 					</div>
-					<div class="flex items-center gap-2 text-xs">
-						<span class="text-green-400">✓ {coverageStats.coveredTeams}</span>
-						<span class="text-charcoal-300">/</span>
-						<span class="text-[#f59e0b]">◐ {coverageStats.partiallyCoveredTeams}</span>
-						<span class="text-charcoal-300">/</span>
-						<span class="text-gold-500">📋 {coverageStats.plannedTeams}</span>
-						<span class="text-charcoal-300">/</span>
-						<span class="text-charcoal-400">○ {coverageStats.uncoveredTeams}</span>
-					</div>
+					
+					<!-- Compact Scanning Mode Toggle - Media Only -->
+					<button
+						onclick={() => scanningMode = !scanningMode}
+						class="flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors flex-shrink-0 {scanningMode ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-300 hover:text-charcoal-50 border border-charcoal-600'}"
+						title="Dim covered teams to focus on uncovered"
+						aria-label={scanningMode ? 'Disable scanning mode' : 'Enable scanning mode'}
+					>
+						<svelte:component this={Eye} size={14} />
+						<span class="hidden sm:inline">{scanningMode ? 'On' : 'Off'}</span>
+					</button>
 				</div>
-				
-				<!-- Scanning Mode Button - Media Only -->
-				{#if $isMedia}
-					<div class="mt-8 pt-6 border-t border-charcoal-700">
-						<button
-							onclick={() => scanningMode = !scanningMode}
-							class="w-full px-4 py-3 text-sm font-medium rounded-lg transition-colors min-h-[44px] {scanningMode ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
-							title="Dim covered teams to focus on uncovered"
-						>
-							{scanningMode ? '👁️ Scanning' : 'Scanning Mode'}
-						</button>
-					</div>
-				{/if}
 			</div>
 		{/if}
 		
@@ -468,7 +462,7 @@
 						class="text-charcoal-300 hover:text-charcoal-50 transition-colors"
 						aria-label="Close suggestions"
 					>
-						✕
+						<X size={16} />
 					</button>
 				</div>
 				<div class="space-y-2">
@@ -497,56 +491,25 @@
 			</div>
 		{/if}
 		
-		<!-- Coverage Legend - Media Only -->
+		<!-- Coverage Legend - Media Only - Compact on Mobile -->
 		{#if $isMedia}
-			<div class="mb-4 px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-800 text-xs" role="region" aria-label="Coverage status legend">
-				<div class="font-medium text-charcoal-300 mb-2 flex items-center gap-2">
-					<span>Coverage Status</span>
-					<button
-						type="button"
-						class="w-4 h-4 rounded-full border border-charcoal-600 text-charcoal-400 hover:text-charcoal-200 hover:border-charcoal-500 transition-colors flex items-center justify-center text-[10px]"
-						title="Coverage status indicates whether you've planned to photograph a team's matches"
-						aria-label="Coverage status help"
-					>
-						?
-					</button>
-				</div>
-				<div class="flex flex-wrap gap-4 text-charcoal-200">
+			<div class="mb-3 px-2 py-1.5 rounded border border-charcoal-700 bg-charcoal-800/50 text-xs" role="region" aria-label="Coverage status legend">
+				<div class="flex flex-wrap gap-3 text-charcoal-200">
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-gold-500 bg-gold-500/5 flex items-center justify-center" aria-hidden="true">
-							<span class="text-gold-500 text-xs">○</span>
-						</div>
-						<span class="flex flex-col">
-							<span class="font-medium text-charcoal-50">Uncovered</span>
-							<span class="text-[10px] text-charcoal-400 hidden sm:inline">No matches planned</span>
-						</span>
+						<Circle size={12} class="text-charcoal-400" />
+						<span class="text-xs">Uncovered</span>
 					</div>
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-gold-500/50 bg-gold-500/10 flex items-center justify-center" aria-hidden="true">
-							<span class="text-gold-500 text-xs">📋</span>
-						</div>
-						<span class="flex flex-col">
-							<span class="font-medium text-gold-400">Planned</span>
-							<span class="text-[10px] text-charcoal-400 hidden sm:inline">On your schedule</span>
-						</span>
+						<ClipboardList size={12} class="text-gold-500" />
+						<span class="text-xs">Planned</span>
 					</div>
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-green-500/30 bg-green-950/5 flex items-center justify-center" aria-hidden="true">
-							<span class="text-success-500 text-xs">✓</span>
-						</div>
-						<span class="flex flex-col">
-							<span class="font-medium text-success-400">Covered</span>
-							<span class="text-[10px] text-charcoal-400 hidden sm:inline">All matches planned</span>
-						</span>
+						<Check size={12} class="text-success-500" />
+						<span class="text-xs">Covered</span>
 					</div>
 					<div class="flex items-center gap-1.5">
-						<div class="w-4 h-4 rounded border border-warning-500/50 bg-warning-500/10 flex items-center justify-center" aria-hidden="true">
-							<span class="text-warning-500 text-xs">⚠</span>
-						</div>
-						<span class="flex flex-col">
-							<span class="font-medium text-warning-400">Conflict</span>
-							<span class="text-[10px] text-charcoal-400 hidden sm:inline">Overlapping times</span>
-						</span>
+						<AlertTriangle size={12} class="text-warning-500" />
+						<span class="text-xs">Conflict</span>
 					</div>
 				</div>
 			</div>
@@ -554,20 +517,6 @@
 		
 		<!-- Sort & Filter Controls -->
 		<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
-		<!-- Mobile: Floating Filter Button -->
-		<button
-			onclick={() => showFilterSheet = true}
-			class="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-brand-500 text-white shadow-lg flex items-center justify-center font-semibold z-[60] sm:hidden hover:bg-brand-600 transition-colors"
-			aria-label="Open filters"
-		>
-				Filters
-				{#if activeFilterCount > 0}
-					<span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error-500 text-charcoal-50 text-xs flex items-center justify-center">
-						{activeFilterCount}
-					</span>
-				{/if}
-			</button>
-			
 			<!-- Desktop: Inline Filters (Hidden when sidebar is available) -->
 			<div class="hidden sm:flex lg:hidden flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
 				<div class="flex items-center gap-2">
@@ -656,14 +605,6 @@
 			<!-- This is a partial migration - remaining sections will be added incrementally -->
 		</div>
 		
-		<!-- Filter Bottom Sheet (Mobile Only) -->
-		<FilterBottomSheet
-			{divisions}
-			{teams}
-			open={showFilterSheet}
-			onClose={() => showFilterSheet = false}
-		/>
-		
 		<!-- Matches List - Grouped by Start Time -->
 		<div data-match-list class="space-y-4">
 			{#if startTimes.length === 0}
@@ -717,7 +658,6 @@
 									<MatchCardMobile
 										{match}
 										{hasConflict}
-										{conflicts}
 										scanningMode={scanningMode}
 										onTap={(m) => detailSheetMatch = m}
 										onSwipeRight={$isMedia ? (m) => coveragePlan.toggleMatch(m.MatchId) : null}
@@ -768,7 +708,7 @@
 												vs {opponent}
 											</div>
 											{#if hasConflict}
-												<span class="text-xs text-warning-500 flex-shrink-0">⚠️</span>
+												<AlertTriangle size={14} class="text-warning-500 flex-shrink-0" />
 											{/if}
 										</div>
 									</div>
@@ -807,7 +747,9 @@
 													aria-label="Set priority"
 													title={matchPriority ? `Priority: ${matchPriority}` : 'Set priority'}
 												>
-													{matchPriority === 'must-cover' && '⭐'}
+													{#if matchPriority === 'must-cover'}
+														<Star size={14} class="text-gold-500" />
+													{/if}
 													{matchPriority === 'priority' && '🔸'}
 													{matchPriority === 'optional' && '○'}
 													{#if !matchPriority}
@@ -841,10 +783,13 @@
 													aria-label="Set coverage status"
 													title="Coverage: {teamCoverageStatus}"
 												>
-													{teamCoverageStatus === 'covered' && '✓'}
-													{teamCoverageStatus === 'partially-covered' && '◐'}
-													{teamCoverageStatus === 'planned' && '📋'}
-													{teamCoverageStatus === 'not-covered' && '○'}
+													{#if teamCoverageStatus === 'covered'}
+														<Check size={14} />
+													{:else if teamCoverageStatus === 'planned'}
+														<ClipboardList size={14} />
+													{:else if teamCoverageStatus === 'not-covered'}
+														<Circle size={14} />
+													{/if}
 												</button>
 												{#if coverageStatusMenuOpen === teamId}
 													<div class="absolute right-0 top-8 z-50">
@@ -879,7 +824,11 @@
 													class="flex-shrink-0 px-2 py-1 text-xs font-medium rounded transition-colors {followedTeams.isFollowing(teamId) ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
 													title={followedTeams.isFollowing(teamId) ? 'Unfollow team' : 'Follow team'}
 												>
-													{followedTeams.isFollowing(teamId) ? '✓' : '+'}
+													{#if followedTeams.isFollowing(teamId)}
+														<Check size={14} />
+													{:else}
+														+
+													{/if}
 												</button>
 											{/if}
 											

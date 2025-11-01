@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CoverageStatus } from '$lib/stores/coverageStatus';
+	import { Circle, Check, ClipboardList } from 'lucide-svelte';
 	
 	export let teamId: string;
 	export let currentStatus: CoverageStatus;
@@ -8,11 +9,11 @@
 	
 	let hoveredStatus: CoverageStatus | null = null;
 	
-	const statusOptions: Array<{ value: CoverageStatus; label: string; color: string; icon: string }> = [
-		{ value: 'not-covered', label: 'Not Covered', color: '#9fa2ab', icon: '○' },
-		{ value: 'covered', label: 'Covered', color: '#10b981', icon: '✓' },
-		{ value: 'partially-covered', label: 'Partially Covered', color: '#f59e0b', icon: '◐' },
-		{ value: 'planned', label: 'Planned', color: '#eab308', icon: '📋' },
+	const statusOptions: Array<{ value: CoverageStatus; label: string; color: string; icon: typeof Circle }> = [
+		{ value: 'not-covered', label: 'Not Covered', color: '#9fa2ab', icon: Circle },
+		{ value: 'covered', label: 'Covered', color: '#10b981', icon: Check },
+		{ value: 'partially-covered', label: 'Partially Covered', color: '#f59e0b', icon: Circle },
+		{ value: 'planned', label: 'Planned', color: '#eab308', icon: ClipboardList },
 	];
 	
 	function handleStatusClick(status: CoverageStatus) {
@@ -40,7 +41,7 @@
 				onmouseleave={() => hoveredStatus = null}
 				class="w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 {isSelected ? (option.value === 'covered' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : option.value === 'planned' ? 'bg-gold-500/20 text-[#facc15] border border-[#eab308]/50' : option.value === 'partially-covered' ? 'bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]/50' : 'bg-charcoal-700 text-charcoal-300 border border-charcoal-600') : isHovered ? 'bg-charcoal-700 text-charcoal-50' : 'text-charcoal-200 hover:bg-charcoal-700'}"
 			>
-				<span>{option.icon}</span>
+				<svelte:component this={option.icon} size={16} />
 				<span>{option.label}</span>
 			</button>
 		{/each}

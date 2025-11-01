@@ -2,6 +2,7 @@
 	import { filters, updateFilter, resetFilters, getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
 	import { userRole } from '$lib/stores/userRole';
 	import type { FilteredMatch } from '$lib/types';
+	import { Target, BarChart3, AlertTriangle } from 'lucide-svelte';
 	
 	export let matches: FilteredMatch[];
 	export let collapsed: boolean = false;
@@ -51,7 +52,7 @@
 			<h2 class="text-sm font-semibold text-charcoal-50">Filters</h2>
 		{:else}
 			<div class="w-6 h-6 flex items-center justify-center">
-				<span class="text-lg" role="img" aria-label="Filters">🎯</span>
+				<Target size={20} class="text-charcoal-300" />
 			</div>
 		{/if}
 		<button
@@ -187,12 +188,12 @@
 			<div class="space-y-2">
 				<div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;">
 					<span class="text-xs font-medium" style="color: #f5f5f7;">{matches.length}</span>
-					<span class="text-xs" style="color: #6e6e73;">📊</span>
+					<BarChart3 size={16} style="color: #6e6e73;" />
 				</div>
 				{#if conflictCount > 0}
 					<div class="w-12 h-12 flex flex-col items-center justify-center rounded-lg" style="background-color: #252529;">
 						<span class="text-xs font-medium text-warning-500">{conflictCount}</span>
-						<span class="text-xs" style="color: #6e6e73;">⚠️</span>
+						<AlertTriangle size={16} style="color: #6e6e73;" />
 					</div>
 				{/if}
 			</div>

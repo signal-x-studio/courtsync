@@ -35,7 +35,7 @@
 	let selectedTeam: FilteredMatch | null = null;
 	let showCoveragePlan = false;
 	let eventInfo: { name?: string; startDate?: string; endDate?: string } | null = null;
-	let headerCollapsed = true; // Mobile: start collapsed
+	let headerCollapsed = false; // Desktop: start expanded
 	let lastScrollY = 0;
 	let sidebarCollapsed = false; // Desktop: start expanded
 	let activeTab: 'matches' | 'plan' | 'filters' | 'more' = 'matches';
@@ -95,13 +95,13 @@
 		activeTab = 'matches';
 	}
 	
-	// Auto-collapse header on scroll (mobile only)
+	// Auto-collapse header on scroll (desktop only)
 	function handleScroll() {
 		if (typeof window === 'undefined') return;
 		const currentScrollY = window.scrollY;
 		
-		// Only auto-collapse on mobile
-		if (window.innerWidth < 768) {
+		// Only auto-collapse on desktop (not mobile)
+		if (window.innerWidth >= 768) {
 			if (currentScrollY > lastScrollY && currentScrollY > 100) {
 				// Scrolling down - collapse header
 				headerCollapsed = true;
@@ -321,8 +321,6 @@
 		eventName={eventInfo?.name || null}
 		matchCount={matches.length}
 		conflictCount={conflictCount}
-		collapsed={headerCollapsed}
-		onToggle={() => headerCollapsed = !headerCollapsed}
 	/>
 	
 	<!-- Desktop Header (hidden on mobile) -->
@@ -334,51 +332,28 @@
 	>
 		<!-- Glassmorphism effect -->
 		<style>
-			/* Mobile: Lighter glassmorphism */
-			@media (max-width: 639px) {
-				header.glassmorphism {
-					backdrop-filter: blur(10px);
-					background-color: rgba(37, 37, 41, 0.85);
-					border-bottom-color: rgba(58, 58, 63, 0.4);
-				}
-			}
 			/* Desktop: Stronger glassmorphism */
-			@media (min-width: 640px) {
-				header.glassmorphism {
-					backdrop-filter: blur(20px);
-					background-color: rgba(37, 37, 41, 0.8);
-					border-bottom-color: rgba(58, 58, 63, 0.5);
-					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-				}
+			header.glassmorphism {
+				backdrop-filter: blur(20px);
+				background-color: rgba(37, 37, 41, 0.8);
+				border-bottom-color: rgba(58, 58, 63, 0.5);
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 			}
 		</style>
-		<div class="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
-			<!-- Mobile: Collapsed State -->
-			<div class="flex items-center justify-between gap-2 sm:hidden">
-				<div class="flex items-center gap-2 min-w-0 flex-1">
-					<h1 class="text-base font-semibold truncate text-charcoal-50">
-						630 Volleyball
-					</h1>
-					{#if matches.length > 0}
-						<span class="text-xs whitespace-nowrap text-charcoal-300">
-							{matches.length}
-							{#if conflictCount > 0}
-								<span class="ml-1 text-warning-500">• {conflictCount}</span>
-							{/if}
-						</span>
-					{/if}
-				</div>
+		<div class="container mx-auto px-4 py-3">
+			<!-- Desktop: Collapsible Header -->
+			<div class="flex items-center justify-between gap-2 mb-2">
 				<button
 					onclick={() => headerCollapsed = !headerCollapsed}
-					class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900"
+					class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900 hover:bg-charcoal-800"
 					aria-label={headerCollapsed ? 'Expand header' : 'Collapse header'}
 				>
 					{headerCollapsed ? '▼' : '▲'}
 				</button>
 			</div>
 			
-			<!-- Mobile: Expanded State / Desktop: Always Visible -->
-			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4" class:hidden={headerCollapsed}>
+			<!-- Desktop: Expandable Content -->
+			<div class="flex flex-row items-center justify-between gap-4" class:hidden={headerCollapsed}>
 				<div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1">
 					<div class="flex flex-col gap-1 min-w-0">
 						<!-- Context Label -->
@@ -423,7 +398,7 @@
 										return false;
 									}
 								})()}
-									<span class="hidden sm:inline">
+									<span>
 										{(() => {
 											try {
 												const startDate = eventInfo.startDate ? new Date(eventInfo.startDate).getTime() : null;
@@ -445,28 +420,18 @@
 							</div>
 						{/if}
 					</div>
-					
-					<!-- Mobile: Show match count below -->
-					{#if matches.length > 0}
-						<span class="text-xs sm:hidden text-charcoal-300">
-							{matches.length} {matches.length === 1 ? 'match' : 'matches'}
-							{#if conflictCount > 0}
-								<span class="ml-2 text-warning-500">• {conflictCount} {conflictCount === 1 ? 'conflict' : 'conflicts'}</span>
-							{/if}
-						</span>
-					{/if}
 				</div>
 				
 				<!-- Inline Utility Controls -->
-				<div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+				<div class="flex items-center gap-2 flex-wrap">
 					<!-- User Role Selector -->
 					<div class="flex items-center gap-1">
-						<label for="role-selector-header" class="text-xs hidden sm:inline text-charcoal-300">I am a:</label>
+						<label for="role-selector-header" class="text-xs text-charcoal-300">I am a:</label>
 						<select
 							id="role-selector-header"
 							value={userRoleValue}
 							onchange={(e) => userRole.setRole(e.target.value as 'media' | 'spectator' | 'coach')}
-							class="px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0 bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
+							class="px-2 py-1.5 text-xs rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
 							title="Select your role to customize the app features for your needs"
 							aria-describedby="role-help"
 						>
@@ -479,13 +444,13 @@
 						</span>
 					</div>
 					
-					{#if matches.length > 0}
+						{#if matches.length > 0}
 						<!-- View Mode Toggle - Hide for Coach role -->
 						{#if !isCoachValue}
 							<div class="flex items-center gap-1 rounded-lg p-1 bg-charcoal-700">
 								<button
 									onclick={() => viewMode = 'list'}
-									class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0"
+									class="px-3 py-1.5 text-xs font-medium rounded transition-colors"
 									class:bg-gold-500={viewMode === 'list'}
 									class:text-charcoal-950={viewMode === 'list'}
 									class:text-charcoal-300={viewMode !== 'list'}
@@ -495,7 +460,7 @@
 								</button>
 								<button
 									onclick={() => viewMode = 'timeline'}
-									class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0"
+									class="px-3 py-1.5 text-xs font-medium rounded transition-colors"
 									class:bg-gold-500={viewMode === 'timeline'}
 									class:text-charcoal-950={viewMode === 'timeline'}
 									class:text-charcoal-300={viewMode !== 'timeline'}
@@ -510,7 +475,7 @@
 						{#if isMediaValue && selectedCountValue > 0}
 							<button
 								onclick={() => showCoveragePlan = !showCoveragePlan}
-								class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 border"
+								class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors border"
 								class:bg-gold-500={showCoveragePlan}
 								class:text-charcoal-950={showCoveragePlan}
 								class:text-gold-500={!showCoveragePlan}
@@ -528,7 +493,7 @@
 						<!-- Export Buttons -->
 						<button
 							onclick={handleExportJSON}
-							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0"
+							class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50"
 							title="Export match data as JSON"
 							aria-label="Export data as JSON"
 						>
@@ -539,7 +504,7 @@
 						</button>
 						<button
 							onclick={handleExportCSV}
-							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0"
+							class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50"
 							title="Export to Excel (CSV format)"
 							aria-label="Export to Excel"
 						>
@@ -553,7 +518,7 @@
 					<!-- Event Settings Toggle -->
 					<button
 						onclick={() => showConfig = !showConfig}
-						class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0"
+						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
 						class:bg-gold-500={showConfig}
 						class:text-charcoal-950={showConfig}
 						class:bg-charcoal-700={!showConfig}
@@ -588,18 +553,14 @@
 	{/if}
 	
 	<style>
+		/* Desktop header collapse styles */
 		header.collapsed {
-			max-height: 56px;
+			max-height: 48px;
 			overflow: hidden;
 		}
 		
-		@media (max-width: 767px) {
-			header.collapsed {
-				max-height: 56px;
-			}
-			header:not(.collapsed) {
-				max-height: 500px; /* Allow expansion */
-			}
+		header:not(.collapsed) {
+			max-height: 300px; /* Allow expansion */
 		}
 	</style>
 
@@ -616,9 +577,11 @@
 		
         <!-- Main Content Area -->
         <main class="flex-1 w-full lg:container lg:mx-auto lg:px-6 lg:py-6">
-		<!-- Mobile Filter Bar -->
+		<!-- Mobile Filter Bar - Hidden by default, accessible via bottom nav -->
 		<div class="lg:hidden">
-			<MobileFilterBar onOpenFullFilters={() => { showFilterSheet = true; activeTab = 'filters'; }} />
+			{#if activeTab === 'filters'}
+				<MobileFilterBar onOpenFullFilters={() => { showFilterSheet = true; activeTab = 'filters'; }} />
+			{/if}
 		</div>
 		
 		<div class="px-4 py-4 pb-24 lg:px-0 lg:py-0">

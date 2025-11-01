@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { filters, updateFilter, resetFilters } from '$lib/stores/filters';
 	import { userRole } from '$lib/stores/userRole';
+	import { Star, AlertTriangle, Search } from 'lucide-svelte';
 	
 	export let onOpenFullFilters: () => void;
 	
@@ -97,7 +98,7 @@
 			<button
 				type="button"
 				onclick={() => updateFilter('wave', $filters.wave === 'morning' ? 'all' : 'morning')}
-				class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center"
+				class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center"
 				class:bg-gold-500={$filters.wave === 'morning'}
 				class:text-charcoal-950={$filters.wave === 'morning'}
 				class:bg-charcoal-800={$filters.wave !== 'morning'}
@@ -109,7 +110,7 @@
 			<button
 				type="button"
 				onclick={() => updateFilter('wave', $filters.wave === 'afternoon' ? 'all' : 'afternoon')}
-				class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center"
+				class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center"
 				class:bg-gold-500={$filters.wave === 'afternoon'}
 				class:text-charcoal-950={$filters.wave === 'afternoon'}
 				class:bg-charcoal-800={$filters.wave !== 'afternoon'}
@@ -124,28 +125,30 @@
 				<button
 					type="button"
 					onclick={() => updateFilter('priority', $filters.priority === 'must-cover' ? null : 'must-cover')}
-					class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1"
+					class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1"
 					class:bg-gold-500={$filters.priority === 'must-cover'}
 					class:text-charcoal-950={$filters.priority === 'must-cover'}
 					class:bg-charcoal-800={$filters.priority !== 'must-cover'}
 					class:text-charcoal-300={$filters.priority !== 'must-cover'}
 					class:hover:bg-charcoal-700={$filters.priority !== 'must-cover'}
 				>
-					⭐ Must Cover
+					<Star size={12} class="inline" />
+					<span class="hidden sm:inline">Must Cover</span>
 				</button>
 				
 				<!-- Conflicts Only Filter -->
 				<button
 					type="button"
 					onclick={() => updateFilter('conflictsOnly', !$filters.conflictsOnly)}
-					class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1"
+					class="px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1"
 					class:bg-warning-500={$filters.conflictsOnly}
 					class:text-charcoal-950={$filters.conflictsOnly}
 					class:bg-charcoal-800={!$filters.conflictsOnly}
 					class:text-charcoal-300={!$filters.conflictsOnly}
 					class:hover:bg-charcoal-700={!$filters.conflictsOnly}
 				>
-					⚠️ Conflicts
+					<AlertTriangle size={12} class="inline" />
+					<span class="hidden sm:inline">Conflicts</span>
 				</button>
 			{/if}
 		</div>
@@ -157,7 +160,7 @@
 					<button
 						type="button"
 						onclick={() => removeFilter(filter.key, filter.key === 'team' ? filter.value : undefined)}
-						class="group px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1.5 bg-gold-500/20 text-gold-400 border border-gold-500/50 hover:bg-gold-500/30"
+						class="group px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1.5 bg-gold-500/20 text-gold-400 border border-gold-500/50 hover:bg-gold-500/30"
 					>
 						<span>{filter.label}: {filter.value}</span>
 						<span class="text-gold-500 group-hover:text-gold-300">×</span>
@@ -170,9 +173,10 @@
 		<button
 			type="button"
 			onclick={onOpenFullFilters}
-			class="ml-auto px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[32px] flex items-center gap-1.5 flex-shrink-0 bg-charcoal-800 text-charcoal-300 border border-charcoal-700 hover:bg-charcoal-700 hover:text-charcoal-200"
+			class="ml-auto px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap min-h-[36px] flex items-center gap-1.5 flex-shrink-0 bg-charcoal-800 text-charcoal-300 border border-charcoal-700 hover:bg-charcoal-700 hover:text-charcoal-200"
 		>
-			🔍 More
+			<Search size={12} class="inline" />
+			More
 		</button>
 	</div>
 </div>

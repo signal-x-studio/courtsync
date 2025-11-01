@@ -3,6 +3,7 @@
 	import { formatMatchTime, formatMatchDate } from '$lib/utils/dateUtils';
 	import { getTeamIdentifier } from '$lib/stores/filters';
 	import { createMatchNotesStore } from '$lib/stores/matchNotes';
+	import { FileText, Edit } from 'lucide-svelte';
 	
 	export let matches: FilteredMatch[];
 	export let teamId: string;
@@ -103,7 +104,11 @@
 								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-gold-500 text-charcoal-950 hover:bg-[#facc15]' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border border-charcoal-600'}"
 								title={hasNote ? 'Edit note' : 'Add note'}
 							>
-								{hasNote ? '📝' : '📄'}
+								{#if hasNote}
+									<Edit size={14} />
+								{:else}
+									<FileText size={14} />
+								{/if}
 							</button>
 						</div>
 
@@ -188,7 +193,11 @@
 								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-gold-500 text-charcoal-950 hover:bg-[#facc15]' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border border-charcoal-600'}"
 								title={hasNote ? 'Edit note' : 'Add note'}
 							>
-								{hasNote ? '📝' : '📄'}
+								{#if hasNote}
+									<Edit size={14} />
+								{:else}
+									<FileText size={14} />
+								{/if}
 							</button>
 						</div>
 
@@ -273,7 +282,11 @@
 								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-gold-500 text-charcoal-950 hover:bg-[#facc15]' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border border-charcoal-600'}"
 								title={hasNote ? 'Edit note' : 'Add note'}
 							>
-								{hasNote ? '📝' : '📄'}
+								{#if hasNote}
+									<Edit size={14} />
+								{:else}
+									<FileText size={14} />
+								{/if}
 							</button>
 						</div>
 

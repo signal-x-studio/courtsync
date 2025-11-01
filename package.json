@@ -24,6 +24,7 @@
     "@sveltejs/adapter-static": "^3.0.1",
     "@sveltejs/kit": "^2.7.0",
     "date-fns": "^4.1.0",
+    "lucide-svelte": "^0.552.0",
     "svelte": "^5.0.0"
   },
   "devDependencies": {

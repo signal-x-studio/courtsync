@@ -10,6 +10,7 @@
 	import { generateCoverageSuggestions } from '$lib/utils/coverageSuggestions';
 	import { exportCoveragePlanToICS } from '$lib/utils/icsExport';
 	import { createSwipeHandler } from '$lib/utils/gestures';
+	import { AlertTriangle, Calendar, Check, Circle, ClipboardList } from 'lucide-svelte';
 	import CoverageStatusSelector from '$lib/components/CoverageStatusSelector.svelte';
 	import CoverageAnalytics from '$lib/components/CoverageAnalytics.svelte';
 	import CoverageStats from '$lib/components/CoverageStats.svelte';
@@ -542,7 +543,8 @@
 								<div class="flex items-center justify-between mb-3">
 									<div>
 										<h4 class="text-sm font-semibold text-warning-500">
-											⚠️ Conflicts Detected
+											<AlertTriangle size={16} class="inline" />
+											Conflicts Detected
 										</h4>
 										<p class="text-xs text-charcoal-300 mt-0.5">
 											{conflictGroups.length} conflict group{conflictGroups.length !== 1 ? 's' : ''} in your plan
@@ -772,13 +774,15 @@
 														class="px-2 py-1 text-xs rounded transition-colors {coverageStatusMenuOpen === teamId ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600'}"
 														title="Set coverage status"
 													>
-														{(() => {
-															const status = coverageStatus.getTeamStatus(teamId);
-															if (status === 'covered') return '✓';
-															if (status === 'partially-covered') return '◐';
-															if (status === 'planned') return '📋';
-															return '○';
-														})()}
+														{#if coverageStatus.getTeamStatus(teamId) === 'covered'}
+															<svelte:component this={Check} size={14} />
+														{:else if coverageStatus.getTeamStatus(teamId) === 'partially-covered'}
+															<svelte:component this={Circle} size={14} class="text-[#f59e0b]" fill="currentColor" />
+														{:else if coverageStatus.getTeamStatus(teamId) === 'planned'}
+															<svelte:component this={ClipboardList} size={14} />
+														{:else}
+															<svelte:component this={Circle} size={14} />
+														{/if}
 													</button>
 													{#if coverageStatusMenuOpen === teamId}
 														<div
@@ -906,7 +910,8 @@
 							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
 							title="Export as Calendar (ICS)"
 						>
-							📅 ICS
+							<Calendar size={14} class="inline" />
+							ICS
 						</button>
 					</div>
 				</div>

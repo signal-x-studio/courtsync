@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Priority } from '$lib/stores/priority';
+	import { Star, Circle, X } from 'lucide-svelte';
 	
 	export let matchId: number;
 	export let currentPriority: Priority;
@@ -8,11 +9,11 @@
 	
 	let hoveredPriority: Priority | null = null;
 	
-	const priorityOptions: Array<{ value: Priority; label: string; color: string; icon: string }> = [
-		{ value: 'must-cover', label: 'Must Cover', color: '#eab308', icon: '⭐' },
-		{ value: 'priority', label: 'Priority', color: '#f59e0b', icon: '🔸' },
-		{ value: 'optional', label: 'Optional', color: '#9fa2ab', icon: '○' },
-		{ value: null, label: 'Clear', color: '#9fa2ab', icon: '✕' },
+	const priorityOptions: Array<{ value: Priority; label: string; color: string; icon: typeof Star }> = [
+		{ value: 'must-cover', label: 'Must Cover', color: '#eab308', icon: Star },
+		{ value: 'priority', label: 'Priority', color: '#f59e0b', icon: Circle },
+		{ value: 'optional', label: 'Optional', color: '#9fa2ab', icon: Circle },
+		{ value: null, label: 'Clear', color: '#9fa2ab', icon: X },
 	];
 	
 	function handlePriorityClick(priority: Priority) {
@@ -37,7 +38,7 @@
 				onmouseleave={() => hoveredPriority = null}
 				class="w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 {isSelected ? 'bg-gold-500/20 text-[#facc15] border border-[#eab308]/50' : isHovered ? 'bg-charcoal-700 text-charcoal-50' : 'text-charcoal-200 hover:bg-charcoal-700'}"
 			>
-				<span>{option.icon}</span>
+				<svelte:component this={option.icon} size={16} />
 				<span>{option.label}</span>
 			</button>
 		{/each}

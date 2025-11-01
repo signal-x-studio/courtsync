@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { teamCoordination } from '$lib/stores/teamCoordination';
+	import { Pencil, X } from 'lucide-svelte';
 	
 	let showAddForm = false;
 	let newMemberName = '';
@@ -128,7 +129,7 @@
 							class="px-2 py-1 text-xs text-charcoal-300 hover:text-charcoal-50 transition-colors"
 							title="Edit name"
 						>
-							✏️
+							<Pencil size={14} />
 						</button>
 					{/if}
 					{#if teamCoordination.members.length > 1}
@@ -137,7 +138,7 @@
 							class="px-2 py-1 text-xs text-charcoal-300 hover:text-red-400 transition-colors"
 							title="Remove member"
 						>
-							✕
+							<X size={14} />
 						</button>
 					{/if}
 				</div>
