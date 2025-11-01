@@ -44,24 +44,24 @@
 	function getActionColor(action: string): string {
 		switch (action) {
 			case 'claimed':
-				return 'text-[#eab308]';
+				return 'text-gold-500';
 			case 'released':
-				return 'text-[#9fa2ab]';
+				return 'text-charcoal-300';
 			case 'transferred':
 				return 'text-[#facc15]';
 			default:
-				return 'text-[#c0c2c8]';
+				return 'text-charcoal-200';
 		}
 	}
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-	<div class="bg-[#3b3c48] rounded-lg border border-[#454654] shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+	<div class="bg-charcoal-800 rounded-lg border border-charcoal-700 shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
 		<!-- Header -->
-		<div class="flex items-center justify-between p-4 border-b border-[#454654] bg-[#454654]/50">
+		<div class="flex items-center justify-between p-4 border-b border-charcoal-700 bg-charcoal-700/50">
 			<div>
-				<h3 class="text-lg font-semibold text-[#f8f8f9]">Claim History</h3>
-				<p class="text-xs text-[#9fa2ab] mt-0.5">
+				<h3 class="text-lg font-semibold text-charcoal-50">Claim History</h3>
+				<p class="text-xs text-charcoal-300 mt-0.5">
 					{filter === 'match' && matchId ? 'Match history' : 'All claims for this event'}
 				</p>
 			</div>
@@ -69,7 +69,7 @@
 				{#if matchId}
 					<select
 						bind:value={filter}
-						class="px-2 py-1 text-xs rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none"
+						class="px-2 py-1 text-xs rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
 					>
 						<option value="match">This Match</option>
 						<option value="all">All Matches</option>
@@ -77,7 +77,7 @@
 				{/if}
 				<button
 					onclick={onClose}
-					class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+					class="text-charcoal-300 hover:text-charcoal-50 transition-colors"
 					aria-label="Close"
 				>
 					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,22 +90,22 @@
 		<!-- Content -->
 		<div class="flex-1 overflow-y-auto p-4">
 			{#if history.length === 0}
-				<div class="text-center py-12 text-[#9fa2ab] text-sm">
+				<div class="text-center py-12 text-charcoal-300 text-sm">
 					No claim history found
 				</div>
 			{:else}
 				<div class="space-y-2">
 					{#each history as entry, index}
 						{@const match = getMatchInfo(entry.matchId)}
-						<div class="px-3 py-2 rounded-lg border border-[#454654] bg-[#454654]/30">
+						<div class="px-3 py-2 rounded-lg border border-charcoal-700 bg-charcoal-700/30">
 							<div class="flex items-start justify-between mb-1">
 								<div class="flex-1">
 									{#if match}
-										<div class="text-sm font-semibold text-[#f8f8f9]">
+										<div class="text-sm font-semibold text-charcoal-50">
 											{formatMatchTime(match.ScheduledStartDateTime)} • {match.CourtName}
 										</div>
 									{/if}
-									<div class="text-xs text-[#9fa2ab] mt-0.5">
+									<div class="text-xs text-charcoal-300 mt-0.5">
 										{match ? `${match.FirstTeamText} vs ${match.SecondTeamText}` : `Match ${entry.matchId}`}
 									</div>
 								</div>
@@ -113,7 +113,7 @@
 									{getActionLabel(entry)}
 								</div>
 							</div>
-							<div class="flex items-center justify-between mt-2 text-xs text-[#808593]">
+							<div class="flex items-center justify-between mt-2 text-xs text-charcoal-400">
 								<span>By: {entry.userId}</span>
 								<span>{formatTimestamp(entry.timestamp)}</span>
 							</div>

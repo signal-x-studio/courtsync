@@ -365,15 +365,15 @@
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-	<div class="relative w-full max-w-3xl max-h-[90vh] border border-[#454654] rounded-lg bg-[#3b3c48] overflow-hidden flex flex-col">
+	<div class="relative w-full max-w-3xl max-h-[90vh] border border-charcoal-700 rounded-lg bg-charcoal-800 overflow-hidden flex flex-col">
 		<!-- Header -->
-		<div class="flex items-center justify-between p-4 border-b border-[#454654] bg-[#454654]/50">
+		<div class="flex items-center justify-between p-4 border-b border-charcoal-700 bg-charcoal-700/50">
 			<div class="flex-1">
-				<h3 class="text-base sm:text-lg font-semibold text-[#f8f8f9]">
+				<h3 class="text-base sm:text-lg font-semibold text-charcoal-50">
 					My Coverage Plan
 				</h3>
 				<div class="flex items-center gap-3 mt-1 flex-wrap">
-					<p class="text-xs text-[#9fa2ab]">
+					<p class="text-xs text-charcoal-300">
 						{selectedMatchesList.length} match{selectedMatchesList.length !== 1 ? 'es' : ''} selected
 						{#if totalCoverageTime > 0}
 							• {Math.floor(totalCoverageTime / 60)}h {totalCoverageTime % 60}m coverage
@@ -388,7 +388,7 @@
 					<select
 						value={coverageStatusFilter}
 						onchange={(e) => coverageStatusFilter = e.target.value as any}
-						class="px-2 py-1 text-xs rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none"
+						class="px-2 py-1 text-xs rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none"
 					>
 						<option value="all">All Status</option>
 						<option value="not-covered">Uncovered</option>
@@ -400,28 +400,28 @@
 			
 			<!-- Tabs -->
 			{#if selectedMatchesList.length > 0}
-				<div class="flex items-center gap-1 bg-[#3b3c48] rounded-lg p-1 border border-[#454654] mx-4">
+				<div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700 mx-4">
 					<button
 						onclick={() => activeTab = 'plan'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'plan' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'plan' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Plan
 					</button>
 					<button
 						onclick={() => activeTab = 'analytics'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'analytics' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'analytics' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Analytics
 					</button>
 					<button
 						onclick={() => activeTab = 'stats'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'stats' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'stats' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Stats
 					</button>
 					<button
 						onclick={() => activeTab = 'coordination'}
-						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'coordination' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-1.5 text-xs font-medium rounded transition-colors {activeTab === 'coordination' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Team
 					</button>
@@ -430,7 +430,7 @@
 			
 			<button
 				onclick={onClose}
-				class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
 				aria-label="Close panel"
 			>
 				<svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -443,9 +443,9 @@
 		<div class="flex-1 overflow-y-auto p-4">
 			{#if activeTab === 'plan'}
 				{#if selectedMatchesList.length === 0}
-					<div class="text-center py-12 text-[#9fa2ab] text-sm">
+					<div class="text-center py-12 text-charcoal-300 text-sm">
 						<p>No matches selected yet</p>
-						<p class="text-xs text-[#808593] mt-2">
+						<p class="text-xs text-charcoal-400 mt-2">
 							Click matches in the timeline or list to add them to your coverage plan
 						</p>
 					</div>
@@ -459,10 +459,10 @@
 										<h4 class="text-sm font-semibold text-red-400">
 											⚠️ Conflicts Detected
 										</h4>
-										<p class="text-xs text-[#9fa2ab] mt-0.5">
+										<p class="text-xs text-charcoal-300 mt-0.5">
 											{conflictGroups.length} conflict group{conflictGroups.length !== 1 ? 's' : ''} in your plan
 											{#if conflictGroups.length > 0}
-												<span class="ml-2 text-[#eab308]">
+												<span class="ml-2 text-gold-500">
 													• Conflict {currentConflictIndex + 1} of {conflictGroups.length}
 												</span>
 											{/if}
@@ -472,14 +472,14 @@
 										{#if conflictGroups.length > 1}
 											<button
 												onclick={handlePreviousConflict}
-												class="px-2 py-1 text-xs font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+												class="px-2 py-1 text-xs font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors border border-charcoal-600"
 												title="Previous conflict"
 											>
 												← Prev
 											</button>
 											<button
 												onclick={handleNextConflict}
-												class="px-2 py-1 text-xs font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors border border-[#525463]"
+												class="px-2 py-1 text-xs font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors border border-charcoal-600"
 												title="Next conflict"
 											>
 												Next →
@@ -504,14 +504,14 @@
 									{#each conflictGroups as group, groupIndex}
 										<div
 											bind:this={conflictRefs[groupIndex]}
-											class="border rounded p-3 transition-all {groupIndex === currentConflictIndex ? 'border-[#eab308] bg-[#eab308]/5' : 'border-red-800/30 bg-[#3b3c48]/50'}"
+											class="border rounded p-3 transition-all {groupIndex === currentConflictIndex ? 'border-gold-500 bg-gold-500/5' : 'border-red-800/30 bg-charcoal-800/50'}"
 										>
 											<div class="flex items-center gap-2 mb-2">
 												<div class="text-xs font-medium text-red-400">
 													Conflict Group {groupIndex + 1}: {group.conflictCount} overlapping match{group.conflictCount !== 1 ? 'es' : ''}
 												</div>
 												{#if groupIndex === currentConflictIndex}
-													<div class="text-[10px] font-semibold text-[#eab308] px-1.5 py-0.5 rounded bg-[#eab308]/20">
+													<div class="text-[10px] font-semibold text-gold-500 px-1.5 py-0.5 rounded bg-gold-500/20">
 														ACTIVE
 													</div>
 												{/if}
@@ -522,27 +522,27 @@
 													{@const conflictMatches = getMatchConflicts(match.MatchId)}
 													{@const isFirstMatch = matchIndex === 0}
 													
-													<div class="flex items-center gap-2 px-2 py-1.5 rounded {isFirstMatch ? 'bg-[#eab308]/10 border border-[#eab308]/30' : 'bg-[#454654]/50'}">
+													<div class="flex items-center gap-2 px-2 py-1.5 rounded {isFirstMatch ? 'bg-gold-500/10 border border-gold-500/30' : 'bg-charcoal-700/50'}">
 														{#if isFirstMatch}
-															<div class="flex-shrink-0 text-[10px] font-semibold text-[#eab308] px-1.5 py-0.5 rounded bg-[#eab308]/20">
+															<div class="flex-shrink-0 text-[10px] font-semibold text-gold-500 px-1.5 py-0.5 rounded bg-gold-500/20">
 																KEEP
 															</div>
 														{/if}
 														
 														<div class="flex-1 min-w-0">
 															<div class="flex items-center gap-2">
-																<span class="text-xs font-semibold text-[#f8f8f9]">
+																<span class="text-xs font-semibold text-charcoal-50">
 																	{formatMatchTime(match.ScheduledStartDateTime)}
 																</span>
 																<span class="text-xs text-[#facc15] font-medium">
 																	{match.CourtName}
 																</span>
-																<span class="text-xs text-[#c0c2c8]">
+																<span class="text-xs text-charcoal-200">
 																	{teamId || match.Division.CodeAlias}
 																</span>
 															</div>
 															{#if conflictMatches.length > 0}
-																<div class="text-[10px] text-[#808593] mt-0.5">
+																<div class="text-[10px] text-charcoal-400 mt-0.5">
 																	Conflicts with {conflictMatches.length} other match{conflictMatches.length !== 1 ? 'es' : ''}
 																</div>
 															{/if}
@@ -573,7 +573,7 @@
 										<h4 class="text-sm font-semibold text-green-400">
 											💡 Coverage Opportunities
 										</h4>
-										<p class="text-xs text-[#9fa2ab] mt-0.5">
+										<p class="text-xs text-charcoal-300 mt-0.5">
 											{coverageAwareOpportunities.length} suggestion{coverageAwareOpportunities.length !== 1 ? 's' : ''} (prioritizing uncovered teams)
 										</p>
 									</div>
@@ -588,22 +588,22 @@
 										<div class="flex items-center gap-2 px-2 py-1.5 rounded bg-green-950/20 border border-green-500/30">
 											<div class="flex-1 min-w-0">
 												<div class="flex items-center gap-2">
-													<span class="text-xs font-semibold text-[#f8f8f9]">
+													<span class="text-xs font-semibold text-charcoal-50">
 														{formatMatchTime(match.ScheduledStartDateTime)}
 													</span>
 													<span class="text-xs text-green-400 font-medium">
 														{match.CourtName}
 													</span>
-													<span class="text-xs text-[#c0c2c8]">
+													<span class="text-xs text-charcoal-200">
 														{teamId || match.Division.CodeAlias}
 													</span>
 													{#if teamStatus === 'not-covered'}
-														<span class="text-[10px] px-1.5 py-0.5 rounded bg-[#eab308]/20 text-[#eab308] border border-[#eab308]/50">
+														<span class="text-[10px] px-1.5 py-0.5 rounded bg-gold-500/20 text-gold-500 border border-gold-500/50">
 															Uncovered
 														</span>
 													{/if}
 												</div>
-												<div class="text-[10px] text-[#808593] mt-0.5">
+												<div class="text-[10px] text-charcoal-400 mt-0.5">
 													{suggestion.reason}
 												</div>
 											</div>
@@ -625,9 +625,9 @@
 							{#each sortedDates as dateKey}
 								{@const dateMatches = matchesByDate[dateKey]}
 								<div class="space-y-2">
-									<div class="flex items-center gap-2 pb-2 border-b border-[#454654]">
-										<h4 class="text-sm font-semibold text-[#f8f8f9]">{dateKey}</h4>
-										<span class="text-xs text-[#808593]">
+									<div class="flex items-center gap-2 pb-2 border-b border-charcoal-700">
+										<h4 class="text-sm font-semibold text-charcoal-50">{dateKey}</h4>
+										<span class="text-xs text-charcoal-400">
 											({dateMatches.length} match{dateMatches.length !== 1 ? 'es' : ''})
 										</span>
 									</div>
@@ -637,10 +637,10 @@
 										{@const opponent = getOpponent(match)}
 										{@const hasConflict = planConflicts.has(match.MatchId)}
 										
-										<div class="flex items-center gap-3 px-3 py-2.5 rounded border {hasConflict ? 'border-red-800/50 bg-red-950/10' : 'border-[#eab308]/50 bg-[#eab308]/5'}">
+										<div class="flex items-center gap-3 px-3 py-2.5 rounded border {hasConflict ? 'border-red-800/50 bg-red-950/10' : 'border-gold-500/50 bg-gold-500/5'}">
 											<button
 												onclick={() => coveragePlan.toggleMatch(match.MatchId)}
-												class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors {hasConflict ? 'border-red-800/50 bg-red-950/20' : 'border-[#eab308] bg-[#eab308]/20'}"
+												class="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center hover:opacity-80 transition-colors {hasConflict ? 'border-red-800/50 bg-red-950/20' : 'border-gold-500 bg-gold-500/20'}"
 												aria-label="Remove from plan"
 											>
 												<svg class="w-3 h-3 {hasConflict ? 'text-red-400' : 'text-[#facc15]'}" fill="currentColor" viewBox="0 0 20 20">
@@ -654,7 +654,7 @@
 												</div>
 											{/if}
 											
-											<div class="flex-shrink-0 w-20 text-sm font-semibold text-[#f8f8f9]">
+											<div class="flex-shrink-0 w-20 text-sm font-semibold text-charcoal-50">
 												{formatMatchTime(match.ScheduledStartDateTime)}
 											</div>
 											
@@ -664,15 +664,15 @@
 											
 											<div class="flex-1 min-w-0">
 												<div class="flex items-center gap-2">
-													<div class="text-sm font-bold text-[#f8f8f9]">
+													<div class="text-sm font-bold text-charcoal-50">
 														{teamId || match.Division.CodeAlias}
 													</div>
 													{#if teamId}
 														{@const teamStatus = coverageStatus.getTeamStatus(teamId)}
-														<div class="w-2 h-2 rounded {teamStatus === 'covered' ? 'bg-green-500' : teamStatus === 'partially-covered' ? 'bg-[#f59e0b]' : teamStatus === 'planned' ? 'bg-[#eab308]' : 'bg-[#808593]'}" title="Status: {teamStatus}" />
+														<div class="w-2 h-2 rounded {teamStatus === 'covered' ? 'bg-green-500' : teamStatus === 'partially-covered' ? 'bg-[#f59e0b]' : teamStatus === 'planned' ? 'bg-gold-500' : 'bg-[#808593]'}" title="Status: {teamStatus}" />
 													{/if}
 												</div>
-												<div class="text-xs text-[#c0c2c8] truncate">
+												<div class="text-xs text-charcoal-200 truncate">
 													vs {opponent}
 												</div>
 											</div>
@@ -684,7 +684,7 @@
 															e.stopPropagation();
 															coverageStatusMenuOpen = coverageStatusMenuOpen === teamId ? null : teamId;
 														}}
-														class="px-2 py-1 text-xs rounded transition-colors {coverageStatusMenuOpen === teamId ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463]'}"
+														class="px-2 py-1 text-xs rounded transition-colors {coverageStatusMenuOpen === teamId ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600'}"
 														title="Set coverage status"
 													>
 														{(() => {
@@ -744,7 +744,7 @@
 
 		<!-- Footer Actions -->
 		{#if selectedMatchesList.length > 0 && activeTab === 'plan'}
-			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t border-[#454654] bg-[#454654]/50">
+			<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border-t border-charcoal-700 bg-charcoal-700/50">
 				<div class="flex items-center gap-2 flex-wrap">
 					<button
 						onclick={() => {
@@ -756,7 +756,7 @@
 							});
 							alert('All matches marked as Planned');
 						}}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463]"
+						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600"
 					>
 						Mark All as Planned
 					</button>
@@ -770,13 +770,13 @@
 							});
 							alert('All matches marked as Covered');
 						}}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463]"
+						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600"
 					>
 						Mark All as Covered
 					</button>
 					<button
 						onclick={() => coveragePlan.clearPlan()}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-[#9fa2ab] hover:text-[#f8f8f9] hover:bg-[#454654]"
+						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-700"
 					>
 						Clear Plan
 					</button>
@@ -785,37 +785,37 @@
 				<div class="flex items-center gap-2 flex-wrap">
 					<button
 						onclick={handleCopyToClipboard}
-						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#525463] border border-[#525463]"
+						class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-600 border border-charcoal-600"
 						title="Copy plan to clipboard"
 					>
 						Copy
 					</button>
 					
-					<div class="flex items-center gap-1 bg-[#3b3c48] rounded-lg p-1 border border-[#454654]">
+					<div class="flex items-center gap-1 bg-charcoal-800 rounded-lg p-1 border border-charcoal-700">
 						<button
 							onclick={handleExportJSON}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#454654]"
+							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
 							title="Export as JSON"
 						>
 							JSON
 						</button>
 						<button
 							onclick={handleExportCSV}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#454654]"
+							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
 							title="Export as CSV"
 						>
 							CSV
 						</button>
 						<button
 							onclick={handleExportText}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#454654]"
+							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
 							title="Export as Text"
 						>
 							TXT
 						</button>
 						<button
 							onclick={handleExportICS}
-							class="px-2 py-1 text-xs font-medium rounded transition-colors text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#454654]"
+							class="px-2 py-1 text-xs font-medium rounded transition-colors text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700"
 							title="Export as Calendar (ICS)"
 						>
 							📅 ICS

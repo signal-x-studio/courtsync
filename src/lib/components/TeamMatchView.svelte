@@ -59,9 +59,9 @@
 
 <div class="space-y-6">
 	<!-- Team Header -->
-	<div class="border-b border-[#454654] pb-4">
-		<h2 class="text-xl font-bold text-[#f8f8f9]">{teamName}</h2>
-		<div class="text-sm text-[#9fa2ab] mt-1">
+	<div class="border-b border-charcoal-700 pb-4">
+		<h2 class="text-xl font-bold text-charcoal-50">{teamName}</h2>
+		<div class="text-sm text-charcoal-300 mt-1">
 			{teamMatches.length} total match{teamMatches.length !== 1 ? 'es' : ''}
 		</div>
 	</div>
@@ -78,21 +78,21 @@
 					{@const isEditing = editingMatchId === match.MatchId}
 					{@const note = matchNotes.getNote(match.MatchId)}
 					
-					<div class="px-4 py-3 rounded-lg border-2 border-[#eab308] bg-[#eab308]/10 transition-colors">
+					<div class="px-4 py-3 rounded-lg border-2 border-[#eab308] bg-gold-500/10 transition-colors">
 						<div class="flex items-start justify-between mb-2">
 							<div class="flex-1">
 								<div class="flex items-center justify-between mb-2">
-									<div class="text-sm font-semibold text-[#f8f8f9]">
+									<div class="text-sm font-semibold text-charcoal-50">
 										{formatMatchTime(match.ScheduledStartDateTime)}
 									</div>
 									<div class="text-xs font-medium text-[#facc15]">
 										{match.CourtName}
 									</div>
 								</div>
-								<div class="text-base font-bold text-[#f8f8f9]">
+								<div class="text-base font-bold text-charcoal-50">
 									vs {getOpponent(match)}
 								</div>
-								<div class="text-xs text-[#9fa2ab] mt-1">
+								<div class="text-xs text-charcoal-300 mt-1">
 									{match.Division.CodeAlias}
 								</div>
 							</div>
@@ -100,7 +100,7 @@
 							<!-- Notes Button -->
 							<button
 								onclick={() => isEditing ? handleCancelEditing() : handleStartEditing(match.MatchId)}
-								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-[#eab308] text-[#18181b] hover:bg-[#facc15]' : 'bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border border-[#525463]'}"
+								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-gold-500 text-charcoal-950 hover:bg-[#facc15]' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border border-charcoal-600'}"
 								title={hasNote ? 'Edit note' : 'Add note'}
 							>
 								{hasNote ? '📝' : '📄'}
@@ -109,18 +109,18 @@
 
 						<!-- Note Display/Edit -->
 						{#if isEditing}
-							<div class="mt-3 pt-3 border-t border-[#454654]">
+							<div class="mt-3 pt-3 border-t border-charcoal-700">
 								<textarea
 									bind:value={noteText}
 									placeholder="Add notes about this match..."
-									class="w-full px-3 py-2 text-sm bg-[#454654] border border-[#525463] rounded text-[#c0c2c8] focus:border-[#eab308] focus:outline-none resize-none"
+									class="w-full px-3 py-2 text-sm bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-[#eab308] focus:outline-none resize-none"
 									rows={3}
 									autofocus
 								/>
 								<div class="flex items-center gap-2 mt-2">
 									<button
 										onclick={() => handleSaveNote(match.MatchId)}
-										class="px-3 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+										class="px-3 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-[#facc15] transition-colors"
 									>
 										Save
 									</button>
@@ -134,16 +134,16 @@
 									{/if}
 									<button
 										onclick={handleCancelEditing}
-										class="px-3 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors"
+										class="px-3 py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors"
 									>
 										Cancel
 									</button>
 								</div>
 							</div>
 						{:else if hasNote}
-							<div class="mt-3 pt-3 border-t border-[#454654]">
-								<div class="text-xs text-[#9fa2ab] mb-1">Note:</div>
-								<div class="text-sm text-[#c0c2c8] whitespace-pre-wrap">{note}</div>
+							<div class="mt-3 pt-3 border-t border-charcoal-700">
+								<div class="text-xs text-charcoal-300 mb-1">Note:</div>
+								<div class="text-sm text-charcoal-200 whitespace-pre-wrap">{note}</div>
 							</div>
 						{/if}
 					</div>
@@ -155,7 +155,7 @@
 	<!-- Upcoming Matches -->
 	{#if upcomingMatches.length > 0}
 		<div>
-			<h3 class="text-sm font-semibold text-[#f8f8f9] mb-3 uppercase tracking-wider">
+			<h3 class="text-sm font-semibold text-charcoal-50 mb-3 uppercase tracking-wider">
 				Upcoming Matches
 			</h3>
 			<div class="space-y-2">
@@ -164,21 +164,21 @@
 					{@const isEditing = editingMatchId === match.MatchId}
 					{@const note = matchNotes.getNote(match.MatchId)}
 					
-					<div class="px-4 py-3 rounded-lg border border-[#454654] bg-[#3b3c48] hover:border-[#525463] transition-colors">
+					<div class="px-4 py-3 rounded-lg border border-charcoal-700 bg-charcoal-800 hover:border-charcoal-600 transition-colors">
 						<div class="flex items-start justify-between mb-2">
 							<div class="flex-1">
 								<div class="flex items-center justify-between mb-2">
-									<div class="text-sm font-semibold text-[#f8f8f9]">
+									<div class="text-sm font-semibold text-charcoal-50">
 										{formatMatchTime(match.ScheduledStartDateTime)}
 									</div>
 									<div class="text-xs font-medium text-[#facc15]">
 										{match.CourtName}
 									</div>
 								</div>
-								<div class="text-base font-bold text-[#f8f8f9]">
+								<div class="text-base font-bold text-charcoal-50">
 									vs {getOpponent(match)}
 								</div>
-								<div class="text-xs text-[#9fa2ab] mt-1">
+								<div class="text-xs text-charcoal-300 mt-1">
 									{match.Division.CodeAlias}
 								</div>
 							</div>
@@ -186,7 +186,7 @@
 							<!-- Notes Button -->
 							<button
 								onclick={() => isEditing ? handleCancelEditing() : handleStartEditing(match.MatchId)}
-								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-[#eab308] text-[#18181b] hover:bg-[#facc15]' : 'bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border border-[#525463]'}"
+								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-gold-500 text-charcoal-950 hover:bg-[#facc15]' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border border-charcoal-600'}"
 								title={hasNote ? 'Edit note' : 'Add note'}
 							>
 								{hasNote ? '📝' : '📄'}
@@ -195,18 +195,18 @@
 
 						<!-- Note Display/Edit -->
 						{#if isEditing}
-							<div class="mt-3 pt-3 border-t border-[#454654]">
+							<div class="mt-3 pt-3 border-t border-charcoal-700">
 								<textarea
 									bind:value={noteText}
 									placeholder="Add notes about this match..."
-									class="w-full px-3 py-2 text-sm bg-[#454654] border border-[#525463] rounded text-[#c0c2c8] focus:border-[#eab308] focus:outline-none resize-none"
+									class="w-full px-3 py-2 text-sm bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-[#eab308] focus:outline-none resize-none"
 									rows={3}
 									autofocus
 								/>
 								<div class="flex items-center gap-2 mt-2">
 									<button
 										onclick={() => handleSaveNote(match.MatchId)}
-										class="px-3 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+										class="px-3 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-[#facc15] transition-colors"
 									>
 										Save
 									</button>
@@ -220,16 +220,16 @@
 									{/if}
 									<button
 										onclick={handleCancelEditing}
-										class="px-3 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors"
+										class="px-3 py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors"
 									>
 										Cancel
 									</button>
 								</div>
 							</div>
 						{:else if hasNote}
-							<div class="mt-3 pt-3 border-t border-[#454654]">
-								<div class="text-xs text-[#9fa2ab] mb-1">Note:</div>
-								<div class="text-sm text-[#c0c2c8] whitespace-pre-wrap">{note}</div>
+							<div class="mt-3 pt-3 border-t border-charcoal-700">
+								<div class="text-xs text-charcoal-300 mb-1">Note:</div>
+								<div class="text-sm text-charcoal-200 whitespace-pre-wrap">{note}</div>
 							</div>
 						{/if}
 					</div>
@@ -241,7 +241,7 @@
 	<!-- Past Matches -->
 	{#if pastMatches.length > 0}
 		<div>
-			<h3 class="text-sm font-semibold text-[#9fa2ab] mb-3 uppercase tracking-wider">
+			<h3 class="text-sm font-semibold text-charcoal-300 mb-3 uppercase tracking-wider">
 				Match History
 			</h3>
 			<div class="space-y-2">
@@ -250,21 +250,21 @@
 					{@const isEditing = editingMatchId === match.MatchId}
 					{@const note = matchNotes.getNote(match.MatchId)}
 					
-					<div class="px-4 py-3 rounded-lg border border-[#454654] bg-[#3b3c48]/50 opacity-75 transition-colors">
+					<div class="px-4 py-3 rounded-lg border border-charcoal-700 bg-charcoal-800/50 opacity-75 transition-colors">
 						<div class="flex items-start justify-between mb-2">
 							<div class="flex-1">
 								<div class="flex items-center justify-between mb-2">
-									<div class="text-xs font-semibold text-[#f8f8f9]">
+									<div class="text-xs font-semibold text-charcoal-50">
 										{formatMatchDate(match.ScheduledStartDateTime)} • {formatMatchTime(match.ScheduledStartDateTime)}
 									</div>
 									<div class="text-xs font-medium text-[#facc15]">
 										{match.CourtName}
 									</div>
 								</div>
-								<div class="text-sm font-bold text-[#f8f8f9]">
+								<div class="text-sm font-bold text-charcoal-50">
 									vs {getOpponent(match)}
 								</div>
-								<div class="text-xs text-[#9fa2ab] mt-1">
+								<div class="text-xs text-charcoal-300 mt-1">
 									{match.Division.CodeAlias}
 								</div>
 							</div>
@@ -272,7 +272,7 @@
 							<!-- Notes Button -->
 							<button
 								onclick={() => isEditing ? handleCancelEditing() : handleStartEditing(match.MatchId)}
-								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-[#eab308] text-[#18181b] hover:bg-[#facc15]' : 'bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] border border-[#525463]'}"
+								class="ml-2 px-2 py-1 text-xs rounded transition-colors flex-shrink-0 {hasNote || isEditing ? 'bg-gold-500 text-charcoal-950 hover:bg-[#facc15]' : 'bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 border border-charcoal-600'}"
 								title={hasNote ? 'Edit note' : 'Add note'}
 							>
 								{hasNote ? '📝' : '📄'}
@@ -281,18 +281,18 @@
 
 						<!-- Note Display/Edit -->
 						{#if isEditing}
-							<div class="mt-3 pt-3 border-t border-[#454654]">
+							<div class="mt-3 pt-3 border-t border-charcoal-700">
 								<textarea
 									bind:value={noteText}
 									placeholder="Add notes about this match..."
-									class="w-full px-3 py-2 text-sm bg-[#454654] border border-[#525463] rounded text-[#c0c2c8] focus:border-[#eab308] focus:outline-none resize-none"
+									class="w-full px-3 py-2 text-sm bg-charcoal-700 border border-charcoal-600 rounded text-charcoal-200 focus:border-[#eab308] focus:outline-none resize-none"
 									rows={3}
 									autofocus
 								/>
 								<div class="flex items-center gap-2 mt-2">
 									<button
 										onclick={() => handleSaveNote(match.MatchId)}
-										class="px-3 py-1 text-xs font-medium rounded bg-[#eab308] text-[#18181b] hover:bg-[#facc15] transition-colors"
+										class="px-3 py-1 text-xs font-medium rounded bg-gold-500 text-charcoal-950 hover:bg-[#facc15] transition-colors"
 									>
 										Save
 									</button>
@@ -306,16 +306,16 @@
 									{/if}
 									<button
 										onclick={handleCancelEditing}
-										class="px-3 py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] hover:bg-[#525463] transition-colors"
+										class="px-3 py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 hover:bg-charcoal-600 transition-colors"
 									>
 										Cancel
 									</button>
 								</div>
 							</div>
 						{:else if hasNote}
-							<div class="mt-3 pt-3 border-t border-[#454654]">
-								<div class="text-xs text-[#9fa2ab] mb-1">Note:</div>
-								<div class="text-sm text-[#c0c2c8] whitespace-pre-wrap">{note}</div>
+							<div class="mt-3 pt-3 border-t border-charcoal-700">
+								<div class="text-xs text-charcoal-300 mb-1">Note:</div>
+								<div class="text-sm text-charcoal-200 whitespace-pre-wrap">{note}</div>
 							</div>
 						{/if}
 					</div>
@@ -325,7 +325,7 @@
 	{/if}
 
 	{#if teamMatches.length === 0}
-		<div class="text-center py-12 text-[#9fa2ab] text-sm">
+		<div class="text-center py-12 text-charcoal-300 text-sm">
 			No matches found for {teamName}
 		</div>
 	{/if}

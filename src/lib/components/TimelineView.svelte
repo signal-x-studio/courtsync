@@ -282,7 +282,7 @@
 </script>
 
 {#if filteredMatches.length === 0}
-	<div class="text-center py-12 text-[#9fa2ab] text-sm">
+	<div class="text-center py-12 text-charcoal-300 text-sm">
 		{$filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || $filters.timeRange.start || $filters.timeRange.end
 			? 'No matches found for selected filters'
 			: 'No matches found'}
@@ -293,23 +293,23 @@
 		<div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
 			<!-- Wave Filter -->
 			<div class="flex items-center gap-2">
-				<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Wave:</span>
-				<div class="flex gap-1 bg-[#454654] rounded-lg p-1">
+				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Wave:</span>
+				<div class="flex gap-1 bg-charcoal-700 rounded-lg p-1">
 					<button
 						onclick={() => updateFilter('wave', 'all')}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'all' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'all' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						All
 					</button>
 					<button
 						onclick={() => updateFilter('wave', 'morning')}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'morning' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'morning' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Morning
 					</button>
 					<button
 						onclick={() => updateFilter('wave', 'afternoon')}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'afternoon' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.wave === 'afternoon' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Afternoon
 					</button>
@@ -319,11 +319,11 @@
 			<!-- Division Filter -->
 			{#if divisions.length > 1}
 				<div class="flex items-center gap-2">
-					<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Division:</span>
+					<span class="text-xs text-charcoal-300 uppercase tracking-wider">Division:</span>
 					<select
 						value={$filters.division || ''}
 						onchange={(e) => updateFilter('division', e.target.value || null)}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none min-h-[44px] sm:min-h-0"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none min-h-[44px] sm:min-h-0"
 					>
 						<option value="">All Divisions{$filters.wave !== 'all' ? ` (${$filters.wave})` : ''}</option>
 						{#each divisions as div}
@@ -336,7 +336,7 @@
 			<!-- Team Filter -->
 			{#if teams.length > 0}
 				<div class="flex items-center gap-2">
-					<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Team:</span>
+					<span class="text-xs text-charcoal-300 uppercase tracking-wider">Team:</span>
 					<select
 						multiple
 						value={$filters.teams}
@@ -344,7 +344,7 @@
 							const selected = Array.from(e.target.selectedOptions, option => option.value);
 							updateFilter('teams', selected);
 						}}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none min-h-[44px] sm:min-h-0 min-w-[120px]"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none min-h-[44px] sm:min-h-0 min-w-[120px]"
 						size={Math.min(teams.length, 4)}
 					>
 						{#each teams as team}
@@ -356,23 +356,23 @@
 			
 			<!-- Time Range Filter -->
 			<div class="flex items-center gap-2">
-				<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Time:</span>
-				<div class="flex gap-1 bg-[#454654] rounded-lg p-1">
+				<span class="text-xs text-charcoal-300 uppercase tracking-wider">Time:</span>
+				<div class="flex gap-1 bg-charcoal-700 rounded-lg p-1">
 					<button
 						onclick={() => updateFilter('timeRange', { start: null, end: null })}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === null && $filters.timeRange.end === null ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === null && $filters.timeRange.end === null ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						All
 					</button>
 					<button
 						onclick={() => updateFilter('timeRange', { start: '08:00', end: '14:30' })}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === '08:00' && $filters.timeRange.end === '14:30' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === '08:00' && $filters.timeRange.end === '14:30' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Morning
 					</button>
 					<button
 						onclick={() => updateFilter('timeRange', { start: '14:30', end: '23:59' })}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === '14:30' && $filters.timeRange.end === '23:59' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {$filters.timeRange.start === '14:30' && $filters.timeRange.end === '23:59' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Afternoon
 					</button>
@@ -382,11 +382,11 @@
 			<!-- Priority Filter - Media Only -->
 			{#if $isMedia}
 				<div class="flex items-center gap-2">
-					<span class="text-xs text-[#9fa2ab] uppercase tracking-wider">Priority:</span>
+					<span class="text-xs text-charcoal-300 uppercase tracking-wider">Priority:</span>
 					<select
 						value={$filters.priority || 'all'}
 						onchange={(e) => updateFilter('priority', e.target.value === 'all' ? 'all' : e.target.value as any)}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none min-h-[44px] sm:min-h-0"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-gold-500 focus:outline-none min-h-[44px] sm:min-h-0"
 					>
 						<option value="all">All Priorities</option>
 						<option value="must-cover">Must Cover</option>
@@ -401,14 +401,14 @@
 				<div class="flex items-center gap-2">
 					<button
 						onclick={() => highlightGaps = !highlightGaps}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {highlightGaps ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {highlightGaps ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
 						title="Highlight all time gaps"
 					>
 						{highlightGaps ? '✓' : ''} Highlight Gaps
 					</button>
 					<button
 						onclick={() => showGapsOnly = !showGapsOnly}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {showGapsOnly ? 'bg-[#eab308] text-[#18181b]' : 'bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {showGapsOnly ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600'}"
 						title="Show only matches with gaps"
 					>
 						{showGapsOnly ? '✓' : ''} Gaps Only
@@ -420,7 +420,7 @@
 			{#if $filters.division || $filters.wave !== 'all' || $filters.teams.length > 0 || $filters.timeRange.start || $filters.timeRange.end || ($filters.priority && $filters.priority !== 'all') || ($filters.coverageStatus && $filters.coverageStatus !== 'all')}
 				<button
 					onclick={resetFilters}
-					class="px-3 py-2 sm:py-1 text-xs font-medium rounded-lg transition-colors text-[#9fa2ab] hover:text-[#f8f8f9] hover:bg-[#454654] border border-[#525463] min-h-[44px] sm:min-h-0"
+					class="px-3 py-2 sm:py-1 text-xs font-medium rounded-lg transition-colors text-charcoal-300 hover:text-charcoal-50 hover:bg-charcoal-700 border border-charcoal-600 min-h-[44px] sm:min-h-0"
 				>
 					Clear
 				</button>
@@ -429,7 +429,7 @@
 		
 		<!-- Timeline Header -->
 		<div class="flex items-center justify-between">
-			<div class="text-xs text-[#9fa2ab]">
+			<div class="text-xs text-charcoal-300">
 				Timeline: {formatMatchTime(earliestTime)} - {formatMatchTime(latestTime)}
 				{#if gapFilteredMatches.length !== matches.length}
 					<span class="ml-2">
@@ -444,13 +444,13 @@
 			</div>
 			{#if highlightedTeam}
 				<div class="flex items-center gap-2">
-					<span class="text-xs text-[#9fa2ab]">Showing:</span>
-					<span class="px-2 py-1 text-xs font-semibold rounded bg-[#eab308]/20 text-[#facc15] border border-[#eab308]/50">
+					<span class="text-xs text-charcoal-300">Showing:</span>
+					<span class="px-2 py-1 text-xs font-semibold rounded bg-gold-500/20 text-[#facc15] border border-gold-500/50">
 						Team {highlightedTeam}
 					</span>
 					<button
 						onclick={() => highlightedTeam = null}
-						class="text-xs text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+						class="text-xs text-charcoal-300 hover:text-charcoal-50 transition-colors"
 						aria-label="Clear highlight"
 					>
 						✕
@@ -464,17 +464,17 @@
 			<div class="space-y-4 min-w-max sm:min-w-0">
 				{#each courts as courtName}
 					{@const courtMatches = matchesByCourt[courtName]}
-					<div class="border-b border-[#454654] pb-4 last:border-b-0 last:pb-0 min-w-[600px] sm:min-w-0">
+					<div class="border-b border-charcoal-700 pb-4 last:border-b-0 last:pb-0 min-w-[600px] sm:min-w-0">
 						<!-- Court Header -->
 						<div class="flex items-center justify-between mb-2">
-							<div class="text-base font-semibold text-[#f8f8f9]">{courtName}</div>
-							<div class="text-xs text-[#808593]">
+							<div class="text-base font-semibold text-charcoal-50">{courtName}</div>
+							<div class="text-xs text-charcoal-400">
 								{courtMatches.length} match{courtMatches.length !== 1 ? 'es' : ''}
 							</div>
 						</div>
 						
 						<!-- Timeline Bar -->
-						<div class="relative h-20 sm:h-20 rounded-lg border overflow-hidden bg-[#3b3c48] border-[#454654]">
+						<div class="relative h-20 sm:h-20 rounded-lg border overflow-hidden bg-charcoal-800 border-charcoal-700">
 							<!-- Time gaps visualization -->
 							{#each calculateGaps(courtMatches) as gap, gapIndex}
 								{@const gapStart = getPosition(gap.before.ScheduledEndDateTime)}
@@ -584,7 +584,7 @@
 											
 											<div class="flex items-center gap-1 mt-0.5">
 												{#if completedSets.length > 0}
-													<div class="text-[8px] text-[#9fa2ab]">
+													<div class="text-[8px] text-charcoal-300">
 														({team1Wins}-{team2Wins})
 													</div>
 												{/if}

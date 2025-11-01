@@ -13,6 +13,7 @@ export interface FilterState {
 	conflictsOnly: boolean;
 	coverageStatus: 'all' | 'covered' | 'uncovered' | 'planned';
 	priority: 'all' | 'must-cover' | 'priority' | 'optional' | null;
+	myTeamsOnly: boolean; // For spectators: filter to only followed teams
 }
 
 const DEFAULT_FILTERS: FilterState = {
@@ -25,7 +26,8 @@ const DEFAULT_FILTERS: FilterState = {
 	},
 	conflictsOnly: false,
 	coverageStatus: 'all',
-	priority: 'all'
+	priority: 'all',
+	myTeamsOnly: false // Default to false - don't auto-filter by followed teams
 };
 
 const STORAGE_KEY = 'matchFilters';
@@ -39,6 +41,7 @@ function createFilters() {
 			const stored = localStorage.getItem(STORAGE_KEY);
 			if (stored) {
 				const savedFilters = JSON.parse(stored);
+				// Merge with defaults to ensure new fields (like myTeamsOnly) are included
 				set({ ...DEFAULT_FILTERS, ...savedFilters });
 			}
 		} catch (error) {

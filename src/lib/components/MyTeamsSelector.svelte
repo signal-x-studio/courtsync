@@ -46,9 +46,9 @@
 <div class="relative">
 	<button
 		onclick={() => isOpen = !isOpen}
-		class="px-3 py-2 text-sm font-medium rounded-lg bg-[#454654] text-[#c0c2c8] hover:text-[#f8f8f9] border border-[#525463] hover:border-[#eab308] transition-colors"
+		class="px-3 py-2 text-sm font-medium rounded-lg bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 border border-charcoal-600 hover:border-[#eab308] transition-colors"
 	>
-		My Teams ({$followedTeams.followedTeams.length})
+		My Teams ({$followedTeams?.length || 0})
 	</button>
 
 	{#if isOpen}
@@ -59,29 +59,29 @@
 		/>
 		
 		<!-- Dropdown -->
-		<div class="absolute top-full left-0 mt-2 w-80 bg-[#3b3c48] border border-[#454654] rounded-lg shadow-lg z-50 max-h-[500px] overflow-y-auto">
+		<div class="absolute top-full left-0 mt-2 w-80 bg-charcoal-800 border border-charcoal-700 rounded-lg shadow-lg z-50 max-h-[500px] overflow-y-auto">
 			<div class="p-4">
 				<div class="flex items-center justify-between mb-3">
-					<h3 class="text-sm font-semibold text-[#f8f8f9]">Followed Teams</h3>
+					<h3 class="text-sm font-semibold text-charcoal-50">Followed Teams</h3>
 					<button
 						onclick={() => isOpen = false}
-						class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors"
+						class="text-charcoal-300 hover:text-charcoal-50 transition-colors"
 					>
 						✕
 					</button>
 				</div>
 
 				<!-- Followed Teams List -->
-				{#if $followedTeams.followedTeams.length > 0}
+				{#if $followedTeams && $followedTeams.length > 0}
 					<div class="mb-4 space-y-2">
-						{#each $followedTeams.followedTeams as team, index}
-							<div class="flex items-center gap-2 px-3 py-2 rounded bg-[#454654] border border-[#525463]">
+						{#each $followedTeams as team, index}
+							<div class="flex items-center gap-2 px-3 py-2 rounded bg-charcoal-700 border border-charcoal-600">
 								<!-- Color Picker -->
 								<div class="flex-shrink-0 flex items-center gap-1">
 									{#each AVAILABLE_COLORS as color}
 										<button
 											onclick={() => handleColorChange(team.teamId, color)}
-											class="w-4 h-4 rounded border-2 transition-all {$followedTeams.getTeamColor(team.teamId) === color ? 'border-white scale-110' : 'border-[#525463] hover:border-[#9fa2ab]'}"
+											class="w-4 h-4 rounded border-2 transition-all {$followedTeams.getTeamColor(team.teamId) === color ? 'border-white scale-110' : 'border-charcoal-600 hover:border-[#9fa2ab]'}"
 											style="background-color: {color}"
 											title={color}
 										/>
@@ -90,7 +90,7 @@
 
 								<!-- Team Name -->
 								<div class="flex-1 min-w-0">
-									<div class="text-sm font-medium text-[#f8f8f9] truncate">
+									<div class="text-sm font-medium text-charcoal-50 truncate">
 										{team.teamName}
 									</div>
 								</div>
@@ -100,7 +100,7 @@
 									{#if index > 0}
 										<button
 											onclick={() => followedTeams.reorderTeams(team.teamId, 'up')}
-											class="text-[#9fa2ab] hover:text-[#f8f8f9] text-xs"
+											class="text-charcoal-300 hover:text-charcoal-50 text-xs"
 											title="Move up"
 										>
 											↑
@@ -109,16 +109,16 @@
 									{#if index === 0}
 										<button
 											onclick={() => followedTeams.reorderTeams(team.teamId, 'top')}
-											class="text-[#eab308] hover:text-[#facc15] text-xs"
+											class="text-gold-500 hover:text-[#facc15] text-xs"
 											title="Pinned"
 										>
 											📌
 										</button>
 									{/if}
-									{#if index < $followedTeams.followedTeams.length - 1}
+									{#if index < ($followedTeams?.length || 0) - 1}
 										<button
 											onclick={() => followedTeams.reorderTeams(team.teamId, 'down')}
-											class="text-[#9fa2ab] hover:text-[#f8f8f9] text-xs"
+											class="text-charcoal-300 hover:text-charcoal-50 text-xs"
 											title="Move down"
 										>
 											↓
@@ -129,7 +129,7 @@
 								<!-- Unfollow Button -->
 								<button
 									onclick={() => handleTeamToggle(team.teamId, team.teamName)}
-									class="flex-shrink-0 text-[#9fa2ab] hover:text-red-400 transition-colors"
+									class="flex-shrink-0 text-charcoal-300 hover:text-red-400 transition-colors"
 									title="Unfollow"
 								>
 									✕
@@ -140,15 +140,15 @@
 				{/if}
 
 				<!-- Available Teams -->
-				<div class="border-t border-[#454654] pt-3">
-					<h4 class="text-xs font-medium text-[#9fa2ab] mb-2 uppercase tracking-wider">
+				<div class="border-t border-charcoal-700 pt-3">
+					<h4 class="text-xs font-medium text-charcoal-300 mb-2 uppercase tracking-wider">
 						Available Teams
 					</h4>
 					<div class="space-y-1 max-h-48 overflow-y-auto">
 						{#each availableTeams.filter(team => !followedTeams.isFollowing(team.id)) as team}
 							<button
 								onclick={() => handleTeamToggle(team.id, team.name)}
-								class="w-full px-3 py-2 text-left text-sm text-[#c0c2c8] hover:text-[#f8f8f9] hover:bg-[#454654] rounded transition-colors"
+								class="w-full px-3 py-2 text-left text-sm text-charcoal-200 hover:text-charcoal-50 hover:bg-charcoal-700 rounded transition-colors"
 							>
 								+ {team.name}
 							</button>

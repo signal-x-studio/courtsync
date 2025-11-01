@@ -1,0 +1,232 @@
+<script lang="ts">
+	import { filters, updateFilter, resetFilters, getUniqueDivisions, getUniqueTeams } from '$lib/stores/filters';
+	import { userRole } from '$lib/stores/userRole';
+	
+	export let matches: any[];
+	export let divisions: string[];
+	export let teams: string[];
+	export let open: boolean = false;
+	export let onClose: () => void;
+	
+	function getActiveFilterCount(): number {
+		let count = 0;
+		if ($filters.wave !== 'all') count++;
+		if ($filters.division) count++;
+		if ($filters.teams.length > 0) count++;
+		if ($filters.timeRange.start || $filters.timeRange.end) count++;
+		if ($filters.priority && $filters.priority !== 'all') count++;
+		if ($filters.coverageStatus && $filters.coverageStatus !== 'all') count++;
+		return count;
+	}
+	
+	$: activeFilterCount = getActiveFilterCount();
+</script>
+
+{#if open}
+	<!-- Backdrop -->
+	<div
+		class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity"
+		onclick={onClose}
+		role="dialog"
+		aria-modal="true"
+		aria-label="Filter matches"
+	>
+		<!-- Bottom Sheet -->
+		<div
+			class="fixed bottom-0 left-0 right-0 max-h-[80vh] bg-charcoal-950 rounded-t-lg border-t border-charcoal-900 overflow-y-auto transform transition-transform backdrop-blur-sm"
+			style="backdrop-filter: blur(8px);"
+			onclick={(e) => e.stopPropagation()}
+		>
+			<!-- Header -->
+			<div class="sticky top-0 bg-charcoal-950 border-b border-charcoal-900 px-4 py-3 flex items-center justify-between z-10">
+				<h2 class="text-lg font-semibold text-[#f5f5f7]">Filters</h2>
+				<div class="flex items-center gap-2">
+					{#if activeFilterCount > 0}
+						<span class="px-2 py-1 rounded-full bg-gold-500 text-charcoal-950 text-xs font-medium">
+							{activeFilterCount}
+						</span>
+					{/if}
+					<button
+						onclick={onClose}
+						class="w-8 h-8 flex items-center justify-center rounded-lg text-[#a1a1a6] hover:text-[#f5f5f7] hover:bg-charcoal-900 transition-colors"
+						aria-label="Close filters"
+					>
+						×
+					</button>
+				</div>
+			</div>
+			
+			<!-- Filter Content -->
+			<div class="p-4 space-y-4">
+				<!-- Wave Filter -->
+				<div>
+					<label class="block text-xs font-medium text-[#a1a1a6] uppercase tracking-wider mb-2">
+						Wave
+					</label>
+					<div class="flex gap-2">
+						<button
+							onclick={() => updateFilter('wave', 'all')}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'all' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-900 text-[#a1a1a6] hover:text-[#f5f5f7] border border-charcoal-900'}"
+						>
+							All
+						</button>
+						<button
+							onclick={() => updateFilter('wave', 'morning')}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'morning' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-900 text-[#a1a1a6] hover:text-[#f5f5f7] border border-charcoal-900'}"
+						>
+							Morning
+						</button>
+						<button
+							onclick={() => updateFilter('wave', 'afternoon')}
+							class="flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] {$filters.wave === 'afternoon' ? 'bg-gold-500 text-charcoal-950' : 'bg-charcoal-900 text-[#a1a1a6] hover:text-[#f5f5f7] border border-charcoal-900'}"
+						>
+							Afternoon
+						</button>
+					</div>
+				</div>
+				
+				<!-- Division Filter -->
+				<div>
+					<label for="division-filter" class="block text-xs font-medium text-[#a1a1a6] uppercase tracking-wider mb-2">
+						Division
+					</label>
+					<select
+						id="division-filter"
+						value={$filters.division || ''}
+						onchange={(e) => updateFilter('division', e.target.value || null)}
+						class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none"
+						style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
+					>
+						<option value="">All Divisions</option>
+						{#each divisions as division}
+							<option value={division}>{division}</option>
+						{/each}
+					</select>
+				</div>
+				
+				<!-- Team Filter -->
+				<div>
+					<label for="team-filter" class="block text-xs font-medium text-[#a1a1a6] uppercase tracking-wider mb-2">
+						Team
+					</label>
+					<select
+						id="team-filter"
+						value={$filters.teams[0] || ''}
+						onchange={(e) => updateFilter('teams', e.target.value ? [e.target.value] : [])}
+						class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none"
+						style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
+					>
+						<option value="">All Teams</option>
+						{#each teams as team}
+							<option value={team}>{team}</option>
+						{/each}
+					</select>
+				</div>
+				
+				<!-- Time Range Filter -->
+				<div>
+					<label class="block text-xs font-medium text-[#a1a1a6] uppercase tracking-wider mb-2">
+						Time Range
+					</label>
+					<div class="grid grid-cols-2 gap-2">
+						<div>
+							<label for="time-start" class="block text-xs text-charcoal-500 mb-1">Start</label>
+							<input
+								id="time-start"
+								type="time"
+								value={$filters.timeRange.start || ''}
+								onchange={(e) => updateFilter('timeRange', { ...$filters.timeRange, start: e.target.value || null })}
+								class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none"
+								style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
+							/>
+						</div>
+						<div>
+							<label for="time-end" class="block text-xs text-charcoal-500 mb-1">End</label>
+							<input
+								id="time-end"
+								type="time"
+								value={$filters.timeRange.end || ''}
+								onchange={(e) => updateFilter('timeRange', { ...$filters.timeRange, end: e.target.value || null })}
+								class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none"
+								style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
+							/>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Priority Filter (Media Only) -->
+				{#if $userRole === 'media'}
+					<div>
+						<label class="block text-xs font-medium text-[#a1a1a6] uppercase tracking-wider mb-2">
+							Priority
+						</label>
+						<select
+							value={$filters.priority || 'all'}
+							onchange={(e) => updateFilter('priority', e.target.value === 'all' ? null : e.target.value)}
+							class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none"
+							style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
+						>
+							<option value="all">All Priorities</option>
+							<option value="must-cover">Must Cover</option>
+							<option value="priority">Priority</option>
+							<option value="optional">Optional</option>
+						</select>
+					</div>
+				{/if}
+				
+				<!-- Coverage Status Filter (Media Only) -->
+				{#if $userRole === 'media'}
+					<div>
+						<label class="block text-xs font-medium text-[#a1a1a6] uppercase tracking-wider mb-2">
+							Coverage Status
+						</label>
+						<select
+							value={$filters.coverageStatus || 'all'}
+							onchange={(e) => updateFilter('coverageStatus', e.target.value === 'all' ? null : e.target.value)}
+							class="w-full px-3 py-2 rounded-lg text-sm min-h-[44px] focus:border-gold-500 focus:outline-none"
+							style="background-color: #252529; color: #f5f5f7; border: 1px solid #2a2a2f;"
+						>
+							<option value="all">All Status</option>
+							<option value="uncovered">Uncovered</option>
+							<option value="planned">Planned</option>
+							<option value="covered">Covered</option>
+						</select>
+					</div>
+				{/if}
+			</div>
+			
+			<!-- Footer Actions -->
+			<div class="sticky bottom-0 bg-charcoal-950 border-t border-charcoal-900 px-4 py-3 flex gap-3">
+				<button
+					onclick={() => { resetFilters(); }}
+					class="flex-1 px-4 py-2 rounded-lg bg-charcoal-900 text-[#f5f5f7] border border-charcoal-900 font-medium transition-colors hover:bg-[#3a3a3f] min-h-[44px]"
+				>
+					Clear Filters
+				</button>
+				<button
+					onclick={onClose}
+					class="flex-1 px-4 py-2 rounded-lg bg-gold-500 text-charcoal-950 font-medium transition-colors hover:bg-[#facc15] min-h-[44px]"
+				>
+					Apply Filters
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+<style>
+	/* Smooth slide-up animation */
+	:global(.bottom-sheet-enter) {
+		animation: slideUp 0.3s ease-out;
+	}
+	
+	@keyframes slideUp {
+		from {
+			transform: translateY(100%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
+</style>
+

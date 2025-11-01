@@ -15,6 +15,7 @@
 	import TimelineView from '$lib/components/TimelineView.svelte';
 	import CoveragePlanPanel from '$lib/components/CoveragePlanPanel.svelte';
 	import CoachView from '$lib/components/CoachView.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
 	// TODO: Import other components as they're migrated
 	
 	let eventId = 'PTAwMDAwNDEzMTQ90';
@@ -29,6 +30,39 @@
 	let selectedTeam: FilteredMatch | null = null;
 	let showCoveragePlan = false;
 	let eventInfo: { name?: string; startDate?: string; endDate?: string } | null = null;
+	let headerCollapsed = true; // Mobile: start collapsed
+	let lastScrollY = 0;
+	let sidebarCollapsed = false; // Desktop: start expanded
+	
+	// Auto-collapse header on scroll (mobile only)
+	function handleScroll() {
+		if (typeof window === 'undefined') return;
+		const currentScrollY = window.scrollY;
+		
+		// Only auto-collapse on mobile
+		if (window.innerWidth < 768) {
+			if (currentScrollY > lastScrollY && currentScrollY > 100) {
+				// Scrolling down - collapse header
+				headerCollapsed = true;
+			} else if (currentScrollY < lastScrollY) {
+				// Scrolling up - can expand
+				// Don't auto-expand, let user control
+			}
+		}
+		
+		lastScrollY = currentScrollY;
+	}
+	
+	onMount(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('scroll', handleScroll, { passive: true });
+		}
+		return () => {
+			if (typeof window !== 'undefined') {
+				window.removeEventListener('scroll', handleScroll);
+			}
+		};
+	});
 	
 	// Auto-update coverage status when plan changes
 	$: if (matches.length > 0) {
@@ -212,21 +246,71 @@
 	}
 </script>
 
-<div class="min-h-screen" style="background-color: #18181b;">
+<div class="min-h-screen bg-charcoal-950">
 	<!-- Compact Header -->
-	<header data-header class="border-b sticky top-0 z-10" style="border-color: #454654; background-color: rgba(59, 60, 72, 0.5);">
+	<header 
+		data-header 
+		class="border-b sticky top-0 z-10 transition-all duration-300 sm:transition-none border-charcoal-700 glass-medium" 
+		class:collapsed={headerCollapsed}
+		class:glassmorphism={!headerCollapsed}
+	>
+		<!-- Glassmorphism effect -->
+		<style>
+			/* Mobile: Lighter glassmorphism */
+			@media (max-width: 639px) {
+				header.glassmorphism {
+					backdrop-filter: blur(10px);
+					background-color: rgba(37, 37, 41, 0.85);
+					border-bottom-color: rgba(58, 58, 63, 0.4);
+				}
+			}
+			/* Desktop: Stronger glassmorphism */
+			@media (min-width: 640px) {
+				header.glassmorphism {
+					backdrop-filter: blur(20px);
+					background-color: rgba(37, 37, 41, 0.8);
+					border-bottom-color: rgba(58, 58, 63, 0.5);
+					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+				}
+			}
+		</style>
 		<div class="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
-			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+			<!-- Mobile: Collapsed State -->
+			<div class="flex items-center justify-between gap-2 sm:hidden">
+				<div class="flex items-center gap-2 min-w-0 flex-1">
+					<h1 class="text-base font-semibold truncate text-charcoal-50">
+						630 Volleyball
+					</h1>
+					{#if matches.length > 0}
+						<span class="text-xs whitespace-nowrap text-charcoal-300">
+							{matches.length}
+							{#if conflictCount > 0}
+								<span class="ml-1 text-warning-500">• {conflictCount}</span>
+							{/if}
+						</span>
+					{/if}
+				</div>
+				<button
+					onclick={() => headerCollapsed = !headerCollapsed}
+					class="w-10 h-10 flex items-center justify-center rounded-lg transition-colors text-charcoal-300 bg-charcoal-900"
+					aria-label={headerCollapsed ? 'Expand header' : 'Collapse header'}
+				>
+					{headerCollapsed ? '▼' : '▲'}
+				</button>
+			</div>
+			
+			<!-- Mobile: Expanded State / Desktop: Always Visible -->
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4" class:hidden={headerCollapsed}>
 				<div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 sm:gap-4 min-w-0 flex-1">
 					<div class="flex items-center gap-2 min-w-0">
-						<h1 class="text-base sm:text-lg font-semibold truncate" style="color: #f8f8f9;">
+						<h1 class="text-base sm:text-lg font-semibold truncate text-charcoal-50">
 							630 Volleyball Coverage
 						</h1>
 						{#if matches.length > 0}
-							<span class="text-xs whitespace-nowrap hidden sm:inline" style="color: #9fa2ab;">
+							<span class="text-xs whitespace-nowrap hidden sm:inline text-charcoal-300">
 								{matches.length} matches
 								{#if conflictCount > 0}
-									<span class="ml-2" style="color: #ef4444;">• {conflictCount} conflicts</span>
+									<span class="ml-2 text-warning-500">• {conflictCount} conflicts</span>
 								{/if}
 							</span>
 						{/if}
@@ -234,7 +318,7 @@
 					
 					<!-- Event Name and Date Range -->
 					{#if eventInfo && (eventInfo.name || eventInfo.startDate)}
-						<div class="flex items-center gap-2 text-xs" style="color: #9fa2ab;">
+						<div class="flex items-center gap-2 text-xs text-charcoal-300">
 							{#if eventInfo.name}
 								<span class="font-medium truncate max-w-[200px] sm:max-w-none">
 									{eventInfo.name}
@@ -273,10 +357,10 @@
 					
 					<!-- Mobile: Show match count below -->
 					{#if matches.length > 0}
-						<span class="text-xs sm:hidden" style="color: #9fa2ab;">
+						<span class="text-xs sm:hidden text-charcoal-300">
 							{matches.length} matches
 							{#if conflictCount > 0}
-								<span class="ml-2" style="color: #ef4444;">• {conflictCount} conflicts</span>
+								<span class="ml-2 text-warning-500">• {conflictCount} conflicts</span>
 							{/if}
 						</span>
 					{/if}
@@ -286,12 +370,11 @@
 				<div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
 					<!-- User Role Selector -->
 					<div class="flex items-center gap-1">
-						<label class="text-xs hidden sm:inline" style="color: #9fa2ab;">Role:</label>
+						<label class="text-xs hidden sm:inline text-charcoal-300">Role:</label>
 						<select
 							value={userRoleValue}
 							onchange={(e) => userRole.setRole(e.target.value as 'media' | 'spectator' | 'coach')}
-							class="px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0"
-							style="background-color: #454654; color: #c0c2c8; border: 1px solid #525463;"
+							class="px-2 py-2 sm:py-1.5 text-xs rounded-lg transition-colors min-h-[44px] sm:min-h-0 bg-charcoal-700 text-charcoal-200 border border-charcoal-600"
 							title="Select your role"
 						>
 							<option value="media">Media</option>
@@ -303,7 +386,7 @@
 					{#if matches.length > 0}
 						<!-- View Mode Toggle - Hide for Coach role -->
 						{#if !isCoachValue}
-							<div class="flex items-center gap-1 rounded-lg p-1" style="background-color: #454654;">
+							<div class="flex items-center gap-1 rounded-lg p-1 bg-charcoal-700">
 								<button
 									onclick={() => viewMode = 'list'}
 									class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0"
@@ -311,7 +394,6 @@
 									class:text-charcoal-950={viewMode === 'list'}
 									class:text-charcoal-300={viewMode !== 'list'}
 									class:hover:text-charcoal-50={viewMode !== 'list'}
-									style={viewMode === 'list' ? 'background-color: #eab308; color: #18181b;' : 'color: #c0c2c8;'}
 								>
 									List
 								</button>
@@ -322,7 +404,6 @@
 									class:text-charcoal-950={viewMode === 'timeline'}
 									class:text-charcoal-300={viewMode !== 'timeline'}
 									class:hover:text-charcoal-50={viewMode !== 'timeline'}
-									style={viewMode === 'timeline' ? 'background-color: #eab308; color: #18181b;' : 'color: #c0c2c8;'}
 								>
 									Timeline
 								</button>
@@ -333,9 +414,11 @@
 						{#if isMediaValue && selectedCountValue > 0}
 							<button
 								onclick={() => showCoveragePlan = !showCoveragePlan}
-								class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0"
+								class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0 border"
+								class:bg-gold-500={showCoveragePlan}
 								class:text-charcoal-950={showCoveragePlan}
-								style={showCoveragePlan ? 'background-color: #eab308; color: #18181b;' : 'background-color: #454654; color: #c0c2c8;'}
+								class:text-gold-500={!showCoveragePlan}
+								style={showCoveragePlan ? '' : 'background-color: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2);'}
 							>
 								Plan ({selectedCountValue})
 							</button>
@@ -344,16 +427,14 @@
 						<!-- Export Buttons -->
 						<button
 							onclick={handleExportJSON}
-							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors hover:text-[#f8f8f9] min-h-[44px] sm:min-h-0"
-							style="background-color: #454654; color: #c0c2c8;"
+							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0"
 							title="Export JSON"
 						>
 							JSON
 						</button>
 						<button
 							onclick={handleExportCSV}
-							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors hover:text-[#f8f8f9] min-h-[44px] sm:min-h-0"
-							style="background-color: #454654; color: #c0c2c8;"
+							class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors bg-charcoal-700 text-charcoal-200 hover:text-charcoal-50 min-h-[44px] sm:min-h-0"
 							title="Export CSV"
 						>
 							CSV
@@ -364,8 +445,10 @@
 					<button
 						onclick={() => showConfig = !showConfig}
 						class="px-3 py-2 sm:py-1.5 text-xs font-medium rounded-lg transition-colors min-h-[44px] sm:min-h-0"
+						class:bg-gold-500={showConfig}
 						class:text-charcoal-950={showConfig}
-						style={showConfig ? 'background-color: #eab308; color: #18181b;' : 'background-color: #454654; color: #c0c2c8;'}
+						class:bg-charcoal-700={!showConfig}
+						class:text-charcoal-200={!showConfig}
 					>
 						{showConfig ? 'Hide' : 'Config'}
 					</button>
@@ -376,8 +459,8 @@
 
 	<!-- Progressive Disclosure: Config Panel -->
 	{#if showConfig}
-		<div class="border-b" style="border-color: #454654; background-color: rgba(59, 60, 72, 0.3);">
-			<div class="container mx-auto px-3 sm:px-4 py-4">
+		<div class="border-b border-charcoal-700 bg-charcoal-800/30">
+			<div class="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
 				<EventInput
 					{eventId}
 					{date}
@@ -388,12 +471,37 @@
 			</div>
 		</div>
 	{/if}
+	
+	<style>
+		header.collapsed {
+			max-height: 56px;
+			overflow: hidden;
+		}
+		
+		@media (max-width: 767px) {
+			header.collapsed {
+				max-height: 56px;
+			}
+			header:not(.collapsed) {
+				max-height: 500px; /* Allow expansion */
+			}
+		}
+	</style>
 
 	<!-- Main Content -->
-	<main class="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+	<div class="flex flex-col lg:flex-row">
+		<!-- Sidebar (Desktop Only) -->
+		<Sidebar
+			{matches}
+			collapsed={sidebarCollapsed}
+			onToggle={() => sidebarCollapsed = !sidebarCollapsed}
+		/>
+		
+        <!-- Main Content Area -->
+        <main class="flex-1 container mx-auto px-4 py-6 lg:px-6">
 		{#if loading}
 			<div class="text-center py-12">
-				<div class="inline-block animate-pulse" style="color: #9fa2ab;">
+				<div class="inline-block animate-pulse text-charcoal-300">
 					Loading matches...
 				</div>
 			</div>
@@ -407,7 +515,7 @@
 		{/if}
 
 		{#if !loading && matches.length === 0 && !error}
-			<div class="text-center py-12" style="color: #9fa2ab;">
+			<div class="text-center py-12 text-charcoal-300">
 				<div class="text-sm">No matches found for 630 Volleyball</div>
 				<div class="text-xs mt-2" style="color: #808593;">
 					Click "Config" to change event parameters
@@ -428,5 +536,6 @@
 		{#if showCoveragePlan}
 			<CoveragePlanPanel {matches} onClose={() => showCoveragePlan = false} />
 		{/if}
-	</main>
+		</main>
+	</div>
 </div>

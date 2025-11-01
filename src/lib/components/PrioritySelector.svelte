@@ -23,8 +23,8 @@
 	}
 </script>
 
-<div class="bg-[#3b3c48] border border-[#454654] rounded-lg p-2 shadow-lg min-w-[160px]">
-	<div class="text-xs font-medium text-[#9fa2ab] uppercase tracking-wider mb-2 px-1">
+<div class="bg-charcoal-800 border border-charcoal-700 rounded-lg p-2 shadow-lg min-w-[160px]">
+	<div class="text-xs font-medium text-charcoal-300 uppercase tracking-wider mb-2 px-1">
 		Set Priority
 	</div>
 	<div class="space-y-1">
@@ -35,7 +35,7 @@
 				onclick={() => handlePriorityClick(option.value)}
 				onmouseenter={() => hoveredPriority = option.value}
 				onmouseleave={() => hoveredPriority = null}
-				class="w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 {isSelected ? 'bg-[#eab308]/20 text-[#facc15] border border-[#eab308]/50' : isHovered ? 'bg-[#454654] text-[#f8f8f9]' : 'text-[#c0c2c8] hover:bg-[#454654]'}"
+				class="w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-colors flex items-center gap-2 {isSelected ? 'bg-gold-500/20 text-[#facc15] border border-[#eab308]/50' : isHovered ? 'bg-charcoal-700 text-charcoal-50' : 'text-charcoal-200 hover:bg-charcoal-700'}"
 			>
 				<span>{option.icon}</span>
 				<span>{option.label}</span>

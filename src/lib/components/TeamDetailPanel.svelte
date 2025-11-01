@@ -278,15 +278,22 @@
 	})();
 </script>
 
-<div class="mt-2 border border-[#454654] rounded-lg bg-[#3b3c48] overflow-hidden">
-	<div class="p-3 sm:p-4">
-		<div class="flex items-center justify-between mb-3 sm:mb-4">
-			<h4 class="text-xs sm:text-sm font-semibold text-[#f8f8f9] truncate pr-2">
-				{teamInfo?.TeamText || teamName} - Full Schedule
-			</h4>
+<div class="mt-8 border border-charcoal-700 rounded-lg bg-charcoal-800 overflow-hidden">
+	<div class="p-4">
+		<div class="flex items-center justify-between mb-6">
+			<div>
+				<h4 class="text-sm sm:text-base font-semibold text-charcoal-50 truncate pr-2">
+					Full Schedule
+				</h4>
+				{#if teamInfo?.TeamText || teamName}
+					<div class="text-xs text-charcoal-300 mt-1">
+						{teamInfo?.TeamText || teamName}
+					</div>
+				{/if}
+			</div>
 			<button
 				onclick={onClose}
-				class="text-[#9fa2ab] hover:text-[#f8f8f9] transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+				class="text-charcoal-300 hover:text-charcoal-50 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
 				aria-label="Close panel"
 			>
 				<svg class="w-5 h-5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,7 +303,7 @@
 		</div>
 
 		{#if loading}
-			<div class="text-center py-8 text-[#9fa2ab] text-sm">
+			<div class="text-center py-8 text-charcoal-300 text-sm">
 				Loading schedule...
 			</div>
 		{/if}
@@ -310,23 +317,23 @@
 		{#if !loading && teamInfo}
 			<div class="space-y-4">
 				<!-- View Mode Toggle -->
-				<div class="flex items-center gap-2 border-b border-[#454654] pb-2">
+				<div class="flex items-center gap-2 border-b border-charcoal-700 pb-2">
 					<button
 						onclick={() => viewMode = 'schedule'}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'schedule' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'schedule' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Schedule
 					</button>
 					<button
 						onclick={() => viewMode = 'poolsheet'}
-						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'poolsheet' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+						class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'poolsheet' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 					>
 						Pool Sheet
 					</button>
 					{#if matches.length > 0 && teamId}
 						<button
 							onclick={() => viewMode = 'stats'}
-							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'stats' ? 'bg-[#eab308] text-[#18181b]' : 'text-[#c0c2c8] hover:text-[#f8f8f9]'}"
+							class="px-3 py-2 sm:py-1 text-xs font-medium rounded transition-colors min-h-[44px] sm:min-h-0 {viewMode === 'stats' ? 'bg-gold-500 text-charcoal-950' : 'text-charcoal-200 hover:text-charcoal-50'}"
 						>
 							Statistics
 						</button>
@@ -343,10 +350,7 @@
 				{:else if viewMode === 'schedule'}
 					<!-- Full Schedule Timeline -->
 					<div>
-						<h5 class="text-xs font-semibold text-[#9fa2ab] uppercase tracking-wider mb-2">
-							Complete Schedule
-						</h5>
-						<div class="space-y-4">
+						<div class="space-y-8">
 							{#if sortedDates.length === 0}
 								<div class="text-xs text-[#808593] py-4 text-center">
 									No schedule data available
@@ -354,75 +358,94 @@
 							{:else}
 								{#each sortedDates as dateKey}
 									{@const dateMatches = matchesByDate[dateKey]}
-									<div class="space-y-1">
+									<div class="space-y-4">
 										<!-- Date Header -->
-										<div class="flex items-center gap-2 mb-2 pb-1 border-b border-[#454654]">
-											<h6 class="text-xs font-semibold text-[#f8f8f9]">{dateKey}</h6>
-											<span class="text-[10px] text-[#808593]">
+										<div class="flex items-center gap-2 mb-6 pb-3 border-b border-charcoal-700">
+											<h6 class="text-sm font-semibold text-charcoal-50">{dateKey}</h6>
+											<span class="text-xs text-[#808593]">
 												({dateMatches.length} match{dateMatches.length !== 1 ? 'es' : ''})
 											</span>
 										</div>
 										<!-- Matches for this date -->
-										{#each dateMatches as scheduleMatch}
+										<div class="space-y-4">
+										{#each dateMatches as scheduleMatch, index}
 											{@const matchData = renderMatch(scheduleMatch, scheduleMatch.type === 'work')}
+											{@const previousMatch = index > 0 ? renderMatch(dateMatches[index - 1], dateMatches[index - 1].type === 'work') : null}
+											{@const showDate = !previousMatch || previousMatch.matchDate !== matchData.matchDate}
 											<div
-												class="flex items-center gap-3 px-3 py-2 rounded border {matchData.isWork ? 'border-[#525463] bg-[#454654]/30' : matchData.isPlaying ? 'border-[#eab308]/50 bg-[#eab308]/5' : 'border-[#454654] bg-[#3b3c48]/30'}"
+												class="flex items-center gap-4 px-4 py-3 rounded border {matchData.isWork ? 'border-charcoal-600 bg-charcoal-700/30' : matchData.isPlaying ? 'border-[#eab308]/50 bg-gold-500/5' : 'border-charcoal-700 bg-charcoal-800/30'}"
 											>
 												<!-- Status Indicator -->
-												<div class="flex-shrink-0 w-1 h-full rounded-full {matchData.isWork ? 'bg-[#808593]' : matchData.isPlaying ? 'bg-[#eab308]' : 'bg-[#525463]'}" />
+												<div class="flex-shrink-0 w-1 h-full rounded-full {matchData.isWork ? 'bg-[#808593]' : matchData.isPlaying ? 'bg-gold-500' : 'bg-[#525463]'}" />
 												
-												<!-- Date -->
-												<div class="flex-shrink-0 w-16 text-xs font-medium text-[#9fa2ab]">
-													{matchData.matchDate}
-												</div>
+												<!-- Date (only show if different from previous) -->
+												{#if showDate}
+													<div class="flex-shrink-0 w-16 text-xs font-medium text-charcoal-300">
+														{matchData.matchDate}
+													</div>
+												{:else}
+													<div class="flex-shrink-0 w-16"></div>
+												{/if}
 												
-												<!-- Scheduled Start Time -->
-												<div class="flex-shrink-0 w-20 text-sm font-semibold text-[#f8f8f9]">
+												<!-- Scheduled Start Time - BOLD and PROMINENT, LEFT ALIGNED -->
+												<div class="flex-shrink-0 w-24 text-base font-bold text-charcoal-50 text-left">
 													{matchData.startTimeDisplay}
 												</div>
 												
-												<!-- Court -->
+												<!-- Court - Right aligned -->
 												{#if matchData.scheduleMatch.Court}
-													<div class="flex-shrink-0 w-20 text-xs text-[#facc15] font-medium">
+													<div class="flex-shrink-0 w-24 text-xs text-[#facc15] font-semibold text-right">
 														{matchData.scheduleMatch.Court.Name}
 													</div>
 												{/if}
 												
-												<!-- Match Info -->
-												<div class="flex-1 min-w-0">
-													<div class="text-xs">
-														{#if matchData.isWork}
-															<span class="text-[#808593] font-medium">WORK</span>
-															<span class="text-[#808593] ml-2">
-																{matchData.scheduleMatch.Division?.CompleteShortName || matchData.scheduleMatch.Division?.FullName || matchData.scheduleMatch.FirstTeamText}
-															</span>
-														{:else if matchData.isPlaying}
-															<span class="text-[#eab308] font-semibold">PLAY</span>
-															<span class="text-[#c0c2c8] ml-2">
-																{matchData.scheduleMatch.FirstTeamText}
-																{#if matchData.scheduleMatch.SecondTeamText}
-																	<span class="text-[#808593] mx-1">vs</span>
-																	{matchData.scheduleMatch.SecondTeamText}
-																{/if}
-															</span>
-														{:else}
-															<span class="text-[#808593] font-medium">WATCH</span>
-															<span class="text-[#808593] ml-2">
-																{matchData.scheduleMatch.FirstTeamText}
-																{#if matchData.scheduleMatch.SecondTeamText}
-																	<span class="mx-1">vs</span>
-																	{matchData.scheduleMatch.SecondTeamText}
-																{/if}
-															</span>
-														{/if}
-													</div>
+												<!-- Match Info - Right aligned -->
+												<div class="flex-1 min-w-0 pr-2 text-right">
+													{#if matchData.isWork}
+														<div class="text-xs space-y-0.5">
+															<div>
+																<span class="text-[#808593] font-medium">WORK</span>
+																<span class="text-[#808593] ml-2">
+																	{matchData.scheduleMatch.Division?.CompleteShortName || matchData.scheduleMatch.Division?.FullName || matchData.scheduleMatch.FirstTeamText}
+																</span>
+															</div>
+														</div>
+													{:else if matchData.isPlaying}
+														<div class="text-xs space-y-0.5">
+															<div>
+																<span class="text-gold-500 font-semibold">PLAY</span>
+																<span class="text-charcoal-200 ml-2">
+																	{matchData.scheduleMatch.FirstTeamText}
+																</span>
+															</div>
+															{#if matchData.scheduleMatch.SecondTeamText}
+																<div class="text-[#808593] ml-8">
+																	vs {matchData.scheduleMatch.SecondTeamText}
+																</div>
+															{/if}
+														</div>
+													{:else}
+														<div class="text-xs space-y-0.5">
+															<div>
+																<span class="text-[#808593] font-medium">WATCH</span>
+																<span class="text-[#808593] ml-2">
+																	{matchData.scheduleMatch.FirstTeamText}
+																</span>
+															</div>
+															{#if matchData.scheduleMatch.SecondTeamText}
+																<div class="text-[#808593] ml-8">
+																	vs {matchData.scheduleMatch.SecondTeamText}
+																</div>
+															{/if}
+														</div>
+													{/if}
 												</div>
 												
 												<!-- Division Badge -->
 												{#if matchData.scheduleMatch.Division}
 													<div class="flex-shrink-0">
 														<span
-															class="px-2 py-0.5 text-[10px] font-semibold rounded"
+															class="px-2 py-0.5 text-xs font-semibold rounded"
 															style="background-color: {matchData.scheduleMatch.Division.ColorHex}20; color: {matchData.scheduleMatch.Division.ColorHex}; border: 1px solid {matchData.scheduleMatch.Division.ColorHex}40;"
 														>
 															{matchData.scheduleMatch.Division.CodeAlias}
@@ -431,6 +454,7 @@
 												{/if}
 											</div>
 										{/each}
+										</div>
 									</div>
 								{/each}
 							{/if}
@@ -439,7 +463,7 @@
 				{:else}
 					<!-- Pool Sheet View -->
 					<div>
-						<h5 class="text-xs font-semibold text-[#9fa2ab] uppercase tracking-wider mb-2">
+						<h5 class="text-xs font-semibold text-charcoal-300 uppercase tracking-wider mb-2">
 							Pool Standings
 						</h5>
 						
@@ -451,11 +475,11 @@
 							<!-- Pool Selector -->
 							{#if relevantPools.length > 1}
 								<div class="mb-4">
-									<label class="text-xs text-[#9fa2ab] mb-1 block">Pool:</label>
+									<label class="text-xs text-charcoal-300 mb-1 block">Pool:</label>
 									<select
 										value={selectedPlayId || ''}
 										onchange={(e) => selectedPlayId = Number(e.target.value)}
-										class="w-full px-3 py-2.5 sm:py-2 text-sm font-medium rounded bg-[#454654] text-[#c0c2c8] border border-[#525463] focus:border-[#eab308] focus:outline-none min-h-[44px] sm:min-h-0"
+										class="w-full px-3 py-2.5 sm:py-2 text-sm font-medium rounded bg-charcoal-700 text-charcoal-200 border border-charcoal-600 focus:border-[#eab308] focus:outline-none min-h-[44px] sm:min-h-0"
 									>
 										{#each relevantPools as play}
 											<option value={play.PlayId}>
@@ -470,9 +494,9 @@
 								<div class="space-y-4">
 									<!-- Pool Standings -->
 									{#if poolSheet.Pool && poolSheet.Pool.Teams && poolSheet.Pool.Teams.length > 0}
-										<div class="border border-[#454654] rounded-lg bg-[#3b3c48] overflow-hidden">
-											<div class="px-3 sm:px-4 py-2 bg-[#454654] border-b border-[#525463]">
-												<h6 class="text-xs sm:text-sm font-semibold text-[#f8f8f9]">
+										<div class="border border-charcoal-700 rounded-lg bg-charcoal-800 overflow-hidden">
+											<div class="px-3 sm:px-4 py-2 bg-charcoal-700 border-b border-charcoal-600">
+												<h6 class="text-xs sm:text-sm font-semibold text-charcoal-50">
 													{poolSheet.Pool.CompleteFullName || poolSheet.Pool.FullName} - Standings
 												</h6>
 											</div>
@@ -481,37 +505,37 @@
 											<div class="overflow-x-auto">
 												<table class="w-full text-xs min-w-[500px]">
 													<thead>
-														<tr class="border-b border-[#454654] bg-[#454654]/50">
-															<th class="px-2 sm:px-3 py-2 text-left text-[#9fa2ab] font-semibold">Rank</th>
-															<th class="px-2 sm:px-3 py-2 text-left text-[#9fa2ab] font-semibold">Team</th>
-															<th class="px-2 sm:px-3 py-2 text-center text-[#9fa2ab] font-semibold">W</th>
-															<th class="px-2 sm:px-3 py-2 text-center text-[#9fa2ab] font-semibold">L</th>
-															<th class="px-2 sm:px-3 py-2 text-center text-[#9fa2ab] font-semibold">Sets</th>
-															<th class="px-2 sm:px-3 py-2 text-center text-[#9fa2ab] font-semibold">Points</th>
+														<tr class="border-b border-charcoal-700 bg-charcoal-700/50">
+															<th class="px-2 sm:px-3 py-2 text-left text-charcoal-300 font-semibold">Rank</th>
+															<th class="px-2 sm:px-3 py-2 text-left text-charcoal-300 font-semibold">Team</th>
+															<th class="px-2 sm:px-3 py-2 text-center text-charcoal-300 font-semibold">W</th>
+															<th class="px-2 sm:px-3 py-2 text-center text-charcoal-300 font-semibold">L</th>
+															<th class="px-2 sm:px-3 py-2 text-center text-charcoal-300 font-semibold">Sets</th>
+															<th class="px-2 sm:px-3 py-2 text-center text-charcoal-300 font-semibold">Points</th>
 														</tr>
 													</thead>
 													<tbody>
 														{#each poolSheet.Pool.Teams as team}
 															{@const isOurTeam = team.TeamText?.includes('630')}
-															<tr class="border-b border-[#454654] {isOurTeam ? 'bg-[#eab308]/10' : ''}">
-																<td class="px-2 sm:px-3 py-2 text-[#f8f8f9] font-medium">
+															<tr class="border-b border-charcoal-700 {isOurTeam ? 'bg-gold-500/10' : ''}">
+																<td class="px-2 sm:px-3 py-2 text-charcoal-50 font-medium">
 																	{team.FinishRank || team.OverallRank || '-'}
 																</td>
 																<td class="px-2 sm:px-3 py-2">
-																	<div class="{isOurTeam ? 'text-[#facc15] font-semibold' : 'text-[#c0c2c8]'}">
+																	<div class="{isOurTeam ? 'text-[#facc15] font-semibold' : 'text-charcoal-200'}">
 																		{team.TeamText}
 																	</div>
 																</td>
-																<td class="px-2 sm:px-3 py-2 text-center text-[#c0c2c8]">
+																<td class="px-2 sm:px-3 py-2 text-center text-charcoal-200">
 																	{team.MatchesWon ?? '-'}
 																</td>
-																<td class="px-2 sm:px-3 py-2 text-center text-[#c0c2c8]">
+																<td class="px-2 sm:px-3 py-2 text-center text-charcoal-200">
 																	{team.MatchesLost ?? '-'}
 																</td>
-																<td class="px-2 sm:px-3 py-2 text-center text-[#c0c2c8]">
+																<td class="px-2 sm:px-3 py-2 text-center text-charcoal-200">
 																	{team.SetsWon ?? '-'}-{team.SetsLost ?? '-'}
 																</td>
-																<td class="px-2 sm:px-3 py-2 text-center text-[#c0c2c8]">
+																<td class="px-2 sm:px-3 py-2 text-center text-charcoal-200">
 																	{team.PointRatio && team.PointRatio !== 'NaN' ? team.PointRatio : '-'}
 																</td>
 															</tr>
@@ -524,9 +548,9 @@
 									
 									<!-- Pool Schedule -->
 									{#if poolSheet.Pool && poolSheet.Pool.Matches && poolSheet.Pool.Matches.length > 0}
-										<div class="border border-[#454654] rounded-lg bg-[#3b3c48] overflow-hidden">
-											<div class="px-3 sm:px-4 py-2 bg-[#454654] border-b border-[#525463]">
-												<h6 class="text-xs sm:text-sm font-semibold text-[#f8f8f9]">
+										<div class="border border-charcoal-700 rounded-lg bg-charcoal-800 overflow-hidden">
+											<div class="px-3 sm:px-4 py-2 bg-charcoal-700 border-b border-charcoal-600">
+												<h6 class="text-xs sm:text-sm font-semibold text-charcoal-50">
 													Pool Schedule
 												</h6>
 											</div>
@@ -534,8 +558,8 @@
 												{#each poolSheet.Pool.Matches as poolMatch}
 													{@const startTime = typeof poolMatch.ScheduledStartDateTime === 'string' ? new Date(poolMatch.ScheduledStartDateTime).getTime() : poolMatch.ScheduledStartDateTime}
 													{@const isPlaying = poolMatch.FirstTeamText?.includes('630') || poolMatch.SecondTeamText?.includes('630')}
-													<div class="flex items-center gap-3 px-3 py-2 rounded border {isPlaying ? 'border-[#eab308]/50 bg-[#eab308]/5' : 'border-[#454654] bg-[#3b3c48]/30'}">
-														<div class="flex-shrink-0 w-20 text-sm font-semibold text-[#f8f8f9]">
+													<div class="flex items-center gap-3 px-3 py-2 rounded border {isPlaying ? 'border-[#eab308]/50 bg-gold-500/5' : 'border-charcoal-700 bg-charcoal-800/30'}">
+														<div class="flex-shrink-0 w-20 text-sm font-semibold text-charcoal-50">
 															{formatMatchTime(startTime)}
 														</div>
 														{#if poolMatch.Court}
@@ -543,7 +567,7 @@
 																{poolMatch.Court.Name}
 															</div>
 														{/if}
-														<div class="flex-1 min-w-0 text-xs text-[#c0c2c8]">
+														<div class="flex-1 min-w-0 text-xs text-charcoal-200">
 															{poolMatch.FirstTeamText}
 															{#if poolMatch.SecondTeamText}
 																<span class="text-[#808593] mx-1">vs</span>

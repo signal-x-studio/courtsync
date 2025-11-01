@@ -43,9 +43,9 @@
 
 <div class="space-y-6">
 	<!-- Header -->
-	<div class="border-b border-[#454654] pb-4">
-		<h2 class="text-xl font-bold text-[#f8f8f9]">Work Assignments</h2>
-		<div class="text-sm text-[#9fa2ab] mt-1">
+	<div class="border-b border-charcoal-700 pb-4">
+		<h2 class="text-xl font-bold text-charcoal-50">Work Assignments</h2>
+		<div class="text-sm text-charcoal-300 mt-1">
 			{teamName} • {workAssignments.length} assignment{workAssignments.length !== 1 ? 's' : ''}
 		</div>
 	</div>
@@ -55,24 +55,24 @@
 		<div class="space-y-4">
 			{#each dates as date}
 				<div>
-					<h3 class="text-sm font-semibold text-[#9fa2ab] mb-2 uppercase tracking-wider">
+					<h3 class="text-sm font-semibold text-charcoal-300 mb-2 uppercase tracking-wider">
 						{date}
 					</h3>
 					<div class="space-y-2">
 						{#each assignmentsByDate[date] as match}
-							<div class="px-4 py-3 rounded-lg border border-[#525463] bg-[#454654]/30">
+							<div class="px-4 py-3 rounded-lg border border-charcoal-600 bg-charcoal-700/30">
 								<div class="flex items-center justify-between mb-2">
-									<div class="text-sm font-semibold text-[#f8f8f9]">
+									<div class="text-sm font-semibold text-charcoal-50">
 										{formatMatchTime(match.ScheduledStartDateTime)}
 									</div>
-									<div class="text-xs font-medium text-[#9fa2ab]">
+									<div class="text-xs font-medium text-charcoal-300">
 										{match.CourtName}
 									</div>
 								</div>
-								<div class="text-sm text-[#c0c2c8]">
+								<div class="text-sm text-charcoal-200">
 									{match.FirstTeamText} vs {match.SecondTeamText}
 								</div>
-								<div class="text-xs text-[#9fa2ab] mt-1">
+								<div class="text-xs text-charcoal-300 mt-1">
 									{match.Division.CodeAlias} • Work Assignment
 								</div>
 							</div>
@@ -82,9 +82,9 @@
 			{/each}
 		</div>
 	{:else}
-		<div class="text-center py-12 text-[#9fa2ab] text-sm">
+		<div class="text-center py-12 text-charcoal-300 text-sm">
 			No work assignments found for {teamName}
-			<div class="text-xs text-[#808593] mt-2">
+			<div class="text-xs text-charcoal-400 mt-2">
 				Work assignments will appear here when assigned by tournament officials.
 			</div>
 		</div>
