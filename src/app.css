@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@source "../**/*.{svelte,js,ts}";
+
+@theme {
+  /* Charcoal Palette */
+  --color-charcoal-50: #f8f8f9;
+  --color-charcoal-100: #e4e4e7;
+  --color-charcoal-200: #c0c2c8;
+  --color-charcoal-300: #9fa2ab;
+  --color-charcoal-400: #808593;
+  --color-charcoal-500: #6b6d7a;
+  --color-charcoal-600: #525463;
+  --color-charcoal-700: #454654;
+  --color-charcoal-800: #3b3c48;
+  --color-charcoal-900: #2a2b35;
+  --color-charcoal-950: #18181b;
+
+  /* Gold Palette */
+  --color-gold-50: #fefce8;
+  --color-gold-100: #fef9c3;
+  --color-gold-200: #fef08a;
+  --color-gold-300: #fde047;
+  --color-gold-400: #facc15;
+  --color-gold-500: #eab308;
+  --color-gold-600: #ca8a04;
+  --color-gold-700: #a16207;
+  --color-gold-800: #854d0e;
+  --color-gold-900: #713f12;
+  --color-gold-950: #422006;
+
+  /* Semantic Colors */
+  --color-background: #18181b;
+  --color-foreground: #f8f8f9;
+  --color-border: #454654;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: var(--color-border);
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  /* Focus Styles */
+  *:focus-visible {
+    outline: 2px solid #eab308;
+    outline-offset: 2px;
+  }
+
+  /* Scrollbar Styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #3b3c48;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #525463;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b6d7a;
+  }
+}
+
+@layer utilities {
+  /* Print Styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    body {
+      background: white;
+      color: black;
+    }
+
+    .match-card,
+    .time-block {
+      page-break-inside: avoid;
+    }
+  }
+}
