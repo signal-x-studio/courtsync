@@ -1,0 +1,59 @@
+# Cursor Rules
+
+This file contains rules for Cursor AI when working on this codebase.
+
+## Development Guides - REQUIRED READING
+
+Before making any changes, **MUST** read and follow these guides:
+
+1. **Tech Stack Guide**: `docs/agent-guide-tech-stack.md`
+2. **Tailwind CSS Guide**: `docs/agent-guide-tailwind-css.md`
+3. **Design System Guide**: `docs/agent-guide-design-system.md`
+4. **AES API Guide**: `docs/agent-guide-aes-api.md`
+
+## Critical Rules
+
+- **Framework**: SvelteKit (`.svelte` files), NOT React
+- **Language**: TypeScript only, no JavaScript
+- **Styling**: Tailwind CSS v4 - CSS `@theme` configuration, NO `tailwind.config.js`
+- **Imports**: Always use `$lib/` alias
+- **Colors**: Use `charcoal-*` and `gold-*` tokens
+- **Responsive**: Always include `sm:`, `md:`, `lg:` breakpoints
+- **Touch Targets**: `min-h-[44px] sm:min-h-0` for mobile
+
+## Code Patterns
+
+### Component
+```svelte
+<script lang="ts">
+  import type { FilteredMatch } from '$lib/types';
+  export let match: FilteredMatch;
+  $: computed = match.MatchId * 2;
+</script>
+<div class="bg-charcoal-800 rounded-lg border border-charcoal-600 p-4">
+  <!-- Use Tailwind classes -->
+</div>
+```
+
+### API Call
+```typescript
+import { fetchCourtSchedule } from '$lib/services/api';
+try {
+  const schedule = await fetchCourtSchedule(eventId, date, timeWindow);
+} catch (error) {
+  // Handle error
+}
+```
+
+## Never Do
+
+- ❌ Create React components (`.tsx` with hooks)
+- ❌ Create `tailwind.config.js`
+- ❌ Use inline styles for static colors
+- ❌ Skip error handling
+- ❌ Use `any` type
+- ❌ Forget responsive classes
+
+## Reference
+
+See `docs/agent-guide-*.md` for complete guidelines.
