@@ -1,0 +1,13 @@
+/* Reference: https://tailwindcss.com/blog/tailwindcss-v4 */
+/* Purpose: Import Tailwind CSS v4 and define CourtSync theme */
+/* Note: v4 uses CSS-first configuration with @theme directive */
+
+@import "tailwindcss";
+
+@theme {
+	/* CourtSync Custom Colors */
+	--color-court-dark: #1a1a1a;
+	--color-court-charcoal: #2d2d2d;
+	--color-court-gold: #d4af37;
+	--color-court-gold-dark: #b8941f;
+}
