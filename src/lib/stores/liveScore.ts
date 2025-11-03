@@ -11,16 +11,12 @@ export function liveScore(matchId: number) {
 	return readable<MatchScore | null>(null, (set) => {
 		// Fetch initial score
 		const fetchInitial = async () => {
-			try {
-				const { data } = await supabase
-					.from('match_scores')
-					.select('*')
-					.eq('match_id', matchId)
-					.single();
-				set(data);
-			} catch {
-				set(null);
-			}
+			const { data } = await supabase
+				.from('match_scores')
+				.select('*')
+				.eq('match_id', matchId)
+				.maybeSingle();
+			set(data);
 		};
 
 		fetchInitial();

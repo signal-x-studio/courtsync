@@ -55,7 +55,7 @@ export async function updateScore(
 		.from('match_scores')
 		.select('sets')
 		.eq('match_id', matchId)
-		.single();
+		.maybeSingle();
 
 	if (!current) return;
 
@@ -89,13 +89,14 @@ export async function updateScore(
 
 /**
  * Get current match score from database
+ * Uses maybeSingle() to return null if no score exists yet (avoids 406 error)
  */
 export async function getMatchScore(matchId: number): Promise<MatchScore | null> {
 	const { data } = await supabase
 		.from('match_scores')
 		.select('*')
 		.eq('match_id', matchId)
-		.single();
+		.maybeSingle();
 
 	return data;
 }
