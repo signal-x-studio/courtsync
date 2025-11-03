@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
+	import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
 	import { lockMatch, unlockMatch, updateScore, getMatchScore } from '$lib/supabase/actions';
 	import { liveScore } from '$lib/stores/liveScore';
 	import { clientId } from '$lib/stores/clientId';
@@ -39,13 +39,17 @@
 		error = '';
 
 		try {
-			const today = new Date();
-			const dateStr = today.toISOString().split('T')[0];
+			// First get event info to find the event dates
+			const eventInfo = await fetchEventInfo($eventId);
+
+			// Use the event's start date
+			const eventDate = new Date(eventInfo.StartDate);
+			const dateStr = eventDate.toISOString().split('T')[0];
 			if (!dateStr) {
 				throw new Error('Invalid date format');
 			}
 
-			const schedule = await fetchCourtSchedule($eventId, dateStr, 1440);
+			const schedule = await fetchCourtSchedule($eventId, dateStr, 300);
 			const allMatches = flattenCourtScheduleMatches(schedule);
 			const foundMatch = allMatches.find((m) => m.MatchId === matchId);
 

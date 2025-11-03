@@ -3,7 +3,7 @@
 <!-- Note: Shows coverage statistics, timeline view, and conflict warnings -->
 
 <script lang="ts">
-	import { fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
+	import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
 	import { eventId } from '$lib/stores/event';
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
@@ -43,13 +43,17 @@
 		error = '';
 
 		try {
-			const today = new Date();
-			const dateStr = today.toISOString().split('T')[0];
+			// First get event info to find the event dates
+			const eventInfo = await fetchEventInfo($eventId);
+
+			// Use the event's start date
+			const eventDate = new Date(eventInfo.StartDate);
+			const dateStr = eventDate.toISOString().split('T')[0];
 			if (!dateStr) {
 				throw new Error('Invalid date format');
 			}
 
-			const schedule = await fetchCourtSchedule($eventId, dateStr, 1440);
+			const schedule = await fetchCourtSchedule($eventId, dateStr, 300);
 			allMatches = flattenCourtScheduleMatches(schedule);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load matches';

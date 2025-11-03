@@ -56,13 +56,27 @@ export const fetchCourtSchedule = async (
 	fetchFn: typeof fetch = globalThis.fetch
 ): Promise<CourtSchedule> => {
 	const url = `${API_BASE_URL}/event/${eventId}/courts/${date}/${timeWindow}`;
-	const response = await fetchFn(url);
 
-	if (!response.ok) {
-		throw new Error(`Failed to fetch court schedule: ${response.statusText}`);
+	try {
+		const response = await fetchFn(url);
+
+		if (!response.ok) {
+			// Try to get error details
+			const text = await response.text();
+			console.error('Court schedule API error:', {
+				url,
+				status: response.status,
+				statusText: response.statusText,
+				body: text.substring(0, 500)
+			});
+			throw new Error(`Failed to fetch court schedule: ${response.statusText}`);
+		}
+
+		return response.json();
+	} catch (err) {
+		console.error('Court schedule fetch error:', err);
+		throw err;
 	}
-
-	return response.json();
 };
 
 // ========================================

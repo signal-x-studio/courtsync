@@ -3,7 +3,7 @@
 // Note: Fetches court schedule using SvelteKit's fetch for SSR support
 
 import type { PageServerLoad } from './$types';
-import { fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
+import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
 import { eventId } from '$lib/stores/event';
 import { get } from 'svelte/store';
 
@@ -19,17 +19,20 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		};
 	}
 
-	// Get current date in YYYY-MM-DD format
-	const today = new Date();
-	const dateStr = today.toISOString().split('T')[0];
-
-	if (!dateStr) {
-		throw new Error('Invalid date format');
-	}
-
 	try {
-		// Fetch court schedule for the event (24 hours = 1440 minutes)
-		const schedule = await fetchCourtSchedule(currentEventId, dateStr, 1440, fetch);
+		// First get event info to find the event dates
+		const eventInfo = await fetchEventInfo(currentEventId, fetch);
+
+		// Use the event's start date
+		const eventDate = new Date(eventInfo.StartDate);
+		const dateStr = eventDate.toISOString().split('T')[0];
+
+		if (!dateStr) {
+			throw new Error('Invalid date format');
+		}
+
+		// Fetch court schedule with 5-hour window (300 minutes)
+		const schedule = await fetchCourtSchedule(currentEventId, dateStr, 300, fetch);
 
 		// Flatten matches from all courts
 		const allMatches = flattenCourtScheduleMatches(schedule);
