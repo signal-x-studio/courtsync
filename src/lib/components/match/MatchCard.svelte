@@ -74,7 +74,7 @@
 	</div>
 
 	<a
-		href="/match/{match.MatchId}"
+		href="/match/{match.MatchId}?divisionId={match.Division.DivisionId}&teamId={match.FirstTeamId || match.SecondTeamId || 0}"
 		class="block hover:opacity-80 transition-opacity"
 		aria-label="View match details for {match.FirstTeamText} vs {match.SecondTeamText}"
 	>

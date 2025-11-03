@@ -77,5 +77,17 @@
 				></span>
 			{/if}
 		</a>
+
+		<a
+			href="/settings"
+			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px]"
+			class:text-court-gold={currentPath.includes('/settings')}
+			class:text-gray-400={!currentPath.includes('/settings')}
+			aria-label="Settings"
+			aria-current={currentPath.includes('/settings') ? 'page' : undefined}
+		>
+			<span class="text-xl" aria-hidden="true">⚙️</span>
+			<span class="text-xs">Settings</span>
+		</a>
 	</div>
 </nav>

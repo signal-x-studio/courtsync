@@ -4,8 +4,7 @@
 <!-- Note: Handles match locking, score updates, and live subscription -->
 
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
+	import type { PageData } from './$types';
 	import { lockMatch, unlockMatch, updateScore, getMatchScore } from '$lib/supabase/actions';
 	import { liveScore } from '$lib/stores/liveScore';
 	import { clientId } from '$lib/stores/clientId';
@@ -14,65 +13,32 @@
 	import { getMatchStatus } from '$lib/utils/filterMatches';
 	import { format } from 'date-fns';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
-	import type { Match } from '$lib/types/aes';
 
-	let matchId = $derived(Number($page.params.matchId));
-	let score = liveScore(matchId);
+	// Get data from server-side load
+	let { data }: { data: PageData } = $props();
 
-	let loading = $state(true);
-	let error = $state('');
-	let match = $state<Match | null>(null);
+	let matchId = $derived(data.matchId);
+	let match = $derived(data.match);
+	let score = $derived(liveScore(matchId));
+
+	let error = $state(data.error || '');
 	let isLocked = $state(false);
 	let canEdit = $state(false);
 	let currentSet = $state(1);
 
 	let status = $derived(match ? getMatchStatus(match) : 'upcoming');
 
-	async function loadMatch() {
-		if (!$eventId) {
-			error = 'Please select an event first';
-			loading = false;
-			return;
-		}
-
-		loading = true;
-		error = '';
-
-		try {
-			// First get event info to find the event dates
-			const eventInfo = await fetchEventInfo($eventId);
-
-			// Use the event's start date
-			const eventDate = new Date(eventInfo.StartDate);
-			const dateStr = eventDate.toISOString().split('T')[0];
-			if (!dateStr) {
-				throw new Error('Invalid date format');
-			}
-
-			const schedule = await fetchCourtSchedule($eventId, dateStr, 300);
-			const allMatches = flattenCourtScheduleMatches(schedule);
-			const foundMatch = allMatches.find((m) => m.MatchId === matchId);
-
-			if (!foundMatch) {
-				error = 'Match not found';
-				match = null;
-			} else {
-				match = foundMatch;
-
-				// Check if match is locked
-				const matchScore = await getMatchScore(matchId);
+	// Check lock status on mount
+	$effect(() => {
+		if (match) {
+			getMatchScore(matchId).then((matchScore) => {
 				isLocked = matchScore?.locked_by !== null;
 				canEdit =
 					($persona === 'media' || $persona === 'spectator') &&
 					(!isLocked || matchScore?.locked_by === $clientId);
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load match';
-			match = null;
-		} finally {
-			loading = false;
+			});
 		}
-	}
+	});
 
 	async function handleLock() {
 		if (!$eventId) {
@@ -111,20 +77,11 @@
 	function formatTime(timestamp: number): string {
 		return format(timestamp, 'EEEE, MMMM d • h:mm a');
 	}
-
-	// Load match when component mounts
-	$effect(() => {
-		loadMatch();
-	});
 </script>
 
 <div class="max-w-4xl mx-auto p-4">
-	<ErrorBoundary {error} retry={loadMatch}>
-		{#if loading}
-			<div class="flex justify-center py-12">
-				<div class="text-gray-400">Loading match details...</div>
-			</div>
-		{:else if match}
+	<ErrorBoundary {error}>
+		{#if match}
 			<!-- Match Header -->
 			<div class="mb-6">
 				<button

@@ -3,20 +3,18 @@
 <!-- Note: Shows coverage statistics, timeline view, and conflict warnings -->
 
 <script lang="ts">
-	import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
-	import { eventId } from '$lib/stores/event';
+	import type { PageData } from './$types';
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
 	import { groupByTime, detectConflicts } from '$lib/utils/filterMatches';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
-	import MatchCardSkeleton from '$lib/components/ui/MatchCardSkeleton.svelte';
-	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
-	import type { Match } from '$lib/types/aes';
 	import type { CoverageStats } from '$lib/types/app';
 
-	let loading = $state(true);
-	let error = $state('');
-	let allMatches = $state<Match[]>([]);
+	// Get data from server-side load
+	let { data }: { data: PageData } = $props();
+
+	// Use matches from server-side load
+	let allMatches = $derived(data.allMatches);
 
 	// Derived reactive values
 	let coverageMatches = $derived(
@@ -30,42 +28,6 @@
 		divisions: new Set(coverageMatches.map((m) => m.Division.DivisionId)).size,
 		courts: new Set(coverageMatches.map((m) => m.CourtName).filter((c): c is string => !!c))
 			.size
-	});
-
-	async function loadMatches() {
-		if (!$eventId) {
-			error = 'Please select an event first';
-			loading = false;
-			return;
-		}
-
-		loading = true;
-		error = '';
-
-		try {
-			// First get event info to find the event dates
-			const eventInfo = await fetchEventInfo($eventId);
-
-			// Use the event's start date
-			const eventDate = new Date(eventInfo.StartDate);
-			const dateStr = eventDate.toISOString().split('T')[0];
-			if (!dateStr) {
-				throw new Error('Invalid date format');
-			}
-
-			const schedule = await fetchCourtSchedule($eventId, dateStr, 300);
-			allMatches = flattenCourtScheduleMatches(schedule);
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load matches';
-			allMatches = [];
-		} finally {
-			loading = false;
-		}
-	}
-
-	// Load matches when component mounts
-	$effect(() => {
-		loadMatches();
 	});
 </script>
 
@@ -82,15 +44,7 @@
 		{/if}
 	</div>
 
-	<ErrorBoundary {error} retry={loadMatches}>
-		{#if loading}
-			<div class="space-y-4">
-				{#each Array(3) as _}
-					<MatchCardSkeleton />
-				{/each}
-			</div>
-		{:else}
-			<!-- Coverage Stats -->
+	<!-- Coverage Stats -->
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
 					<div class="text-2xl font-bold text-court-gold">{stats.totalMatches}</div>
@@ -168,6 +122,4 @@
 					</button>
 				</div>
 			{/if}
-		{/if}
-	</ErrorBoundary>
 </div>
