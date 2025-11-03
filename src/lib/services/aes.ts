@@ -170,7 +170,21 @@ export const fetchTeamSchedule = async (
 		throw new Error(`Failed to fetch team schedule: ${response.statusText}`);
 	}
 
-	const data = await response.json();
+	// Check if response has content before parsing JSON
+	const text = await response.text();
+	if (!text || text.trim() === '') {
+		console.warn(`Empty response for ${scheduleType} schedule (team ${teamId})`);
+		return [];
+	}
+
+	// Parse JSON with error handling
+	let data;
+	try {
+		data = JSON.parse(text);
+	} catch (err) {
+		console.error(`Invalid JSON response for ${scheduleType} schedule:`, text.substring(0, 100));
+		return [];
+	}
 
 	// Team schedule API returns nested structure: Array of plays, each with Matches array
 	// Extract and flatten all matches, converting ISO timestamps to Unix milliseconds

@@ -24,7 +24,7 @@ describe('fetchTeamSchedule', () => {
 		// Mock the fetch response
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponse
+			text: async () => JSON.stringify(mockTeamScheduleResponse)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -45,7 +45,7 @@ describe('fetchTeamSchedule', () => {
 	it('should convert ISO timestamp strings to Unix milliseconds', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponse
+			text: async () => JSON.stringify(mockTeamScheduleResponse)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -70,7 +70,7 @@ describe('fetchTeamSchedule', () => {
 	it('should add Division object to each match', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponse
+			text: async () => JSON.stringify(mockTeamScheduleResponse)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -93,7 +93,7 @@ describe('fetchTeamSchedule', () => {
 	it('should add HasOutcome field based on HasScores and TypeOfOutcome', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponse
+			text: async () => JSON.stringify(mockTeamScheduleResponse)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -118,7 +118,7 @@ describe('fetchTeamSchedule', () => {
 	it('should add CourtName from Court.Name', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponse
+			text: async () => JSON.stringify(mockTeamScheduleResponse)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -137,7 +137,7 @@ describe('fetchTeamSchedule', () => {
 	it('should handle empty response array', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponseEmpty
+			text: async () => JSON.stringify(mockTeamScheduleResponseEmpty)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -154,7 +154,7 @@ describe('fetchTeamSchedule', () => {
 	it('should handle plays with no matches', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponseNoMatches
+			text: async () => JSON.stringify(mockTeamScheduleResponseNoMatches)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -182,7 +182,7 @@ describe('fetchTeamSchedule', () => {
 	it('should match expected transformed output exactly', async () => {
 		mockFetch.mockResolvedValueOnce({
 			ok: true,
-			json: async () => mockTeamScheduleResponse
+			text: async () => JSON.stringify(mockTeamScheduleResponse)
 		});
 
 		const result = await fetchTeamSchedule(
@@ -208,7 +208,7 @@ describe('fetchTeamSchedule', () => {
 		for (const scheduleType of scheduleTypes) {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			});
 
 			const result = await fetchTeamSchedule(
@@ -224,6 +224,60 @@ describe('fetchTeamSchedule', () => {
 				`https://results.advancedeventsystems.com/api/event/PTAwMDAwNDEzMTQ90/division/197487/team/126569/schedule/${scheduleType}`
 			);
 		}
+	});
+
+	it('should handle empty response gracefully', async () => {
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			text: async () => ''
+		});
+
+		const result = await fetchTeamSchedule(
+			'PTAwMDAwNDEzMTQ90',
+			mockDivision,
+			126569,
+			'future',
+			mockFetch
+		);
+
+		// Should return empty array instead of throwing
+		expect(result).toEqual([]);
+	});
+
+	it('should handle malformed JSON gracefully', async () => {
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			text: async () => '{invalid json'
+		});
+
+		const result = await fetchTeamSchedule(
+			'PTAwMDAwNDEzMTQ90',
+			mockDivision,
+			126569,
+			'future',
+			mockFetch
+		);
+
+		// Should return empty array instead of throwing
+		expect(result).toEqual([]);
+	});
+
+	it('should handle whitespace-only response', async () => {
+		mockFetch.mockResolvedValueOnce({
+			ok: true,
+			text: async () => '   \n  '
+		});
+
+		const result = await fetchTeamSchedule(
+			'PTAwMDAwNDEzMTQ90',
+			mockDivision,
+			126569,
+			'future',
+			mockFetch
+		);
+
+		// Should return empty array instead of throwing
+		expect(result).toEqual([]);
 	});
 });
 

@@ -28,11 +28,11 @@ describe('Club Page Load Function', () => {
 			// Mock fetchTeamSchedule responses (one for each team)
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			});
 
 		const result = await load({
@@ -62,11 +62,11 @@ describe('Club Page Load Function', () => {
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			});
 
 		const result = await load({
@@ -96,11 +96,11 @@ describe('Club Page Load Function', () => {
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			});
 
 		const result = await load({
@@ -129,11 +129,11 @@ describe('Club Page Load Function', () => {
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse
+				text: async () => JSON.stringify(mockTeamScheduleResponse)
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => mockTeamScheduleResponse // Same matches
+				text: async () => JSON.stringify(mockTeamScheduleResponse) // Same matches
 			});
 
 		const result = await load({
@@ -183,11 +183,11 @@ describe('Club Page Load Function', () => {
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => [] // No matches
+				text: async () => JSON.stringify([]) // No matches
 			})
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => [] // No matches
+				text: async () => JSON.stringify([]) // No matches
 			});
 
 		const result = await load({
