@@ -60,10 +60,37 @@
 				a.Name.localeCompare(b.Name)
 			);
 
-			// Get teams
-			teams = schedule.TeamAssignments.sort((a, b) => {
+			// Extract unique teams from matches
+			const teamsMap = new Map<number, TeamAssignment>();
+			for (const match of schedule.Matches) {
+				// Add first team
+				if (match.FirstTeamId) {
+					teamsMap.set(match.FirstTeamId, {
+						TeamId: match.FirstTeamId,
+						TeamName: match.FirstTeamText,
+						TeamCode: '',
+						ClubId: 0,
+						ClubName: '',
+						DivisionId: match.Division.DivisionId,
+						DivisionName: match.Division.Name
+					});
+				}
+				// Add second team
+				if (match.SecondTeamId) {
+					teamsMap.set(match.SecondTeamId, {
+						TeamId: match.SecondTeamId,
+						TeamName: match.SecondTeamText,
+						TeamCode: '',
+						ClubId: 0,
+						ClubName: '',
+						DivisionId: match.Division.DivisionId,
+						DivisionName: match.Division.Name
+					});
+				}
+			}
+			teams = Array.from(teamsMap.values()).sort((a, b) => {
 				// First sort by division
-				const divCompare = (a.DivisionName || '').localeCompare(b.DivisionName || '');
+				const divCompare = a.DivisionName.localeCompare(b.DivisionName);
 				if (divCompare !== 0) return divCompare;
 				// Then by team name
 				return a.TeamName.localeCompare(b.TeamName);

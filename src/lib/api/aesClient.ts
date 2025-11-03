@@ -25,6 +25,7 @@ class AESClient {
 	 * Get court schedule for a specific date and time window
 	 * @param timeWindow - Minutes to look ahead (default 1440 = 24 hours)
 	 * Uses SvelteKit API route to avoid CORS
+	 * Flattens CourtSchedules into a single Matches array for convenience
 	 */
 	async getCourtSchedule(
 		eventId: string,
@@ -38,7 +39,24 @@ class AESClient {
 			const error = await response.json();
 			throw new Error(error.error || 'Failed to fetch schedule');
 		}
-		return response.json();
+		const data = await response.json();
+
+		// Flatten matches from all courts and add CourtName/CourtId
+		const allMatches: Match[] = [];
+		for (const court of data.CourtSchedules || []) {
+			for (const match of court.CourtMatches || []) {
+				allMatches.push({
+					...match,
+					CourtName: court.Name,
+					CourtId: court.CourtId
+				});
+			}
+		}
+
+		return {
+			...data,
+			Matches: allMatches
+		};
 	}
 
 	/**

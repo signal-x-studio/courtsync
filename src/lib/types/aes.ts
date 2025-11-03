@@ -21,6 +21,7 @@ export interface Match {
 	ScheduledEndDateTime: number;
 	HasOutcome: boolean;
 	CourtName?: string;
+	CourtId?: number;
 }
 
 export interface TeamAssignment {
@@ -34,20 +35,29 @@ export interface TeamAssignment {
 }
 
 export interface EventInfo {
-	EventId: string;
-	EventName: string;
-	VenueName: string;
-	Name: string;
-	StartDate: number;
-	EndDate: number;
+	Key?: string; // The encoded event ID
+	EventId: number; // Numeric event ID
+	Name: string; // Event name
+	StartDate: string; // ISO date string
+	EndDate: string; // ISO date string
+	Location?: string; // Venue location
 	Clubs: Array<{ ClubId: number; Name: string }>;
+	Divisions?: Array<{
+		IsFinished: boolean;
+		DivisionId: number;
+		Name: string;
+		TeamCount: number;
+		CodeAlias: string;
+		ColorHex: string;
+	}>;
 }
 
 export interface CourtSchedule {
 	EarliestStartTime: number;
 	LatestEndTime: number;
+	// Flattened for convenience
 	Matches: Match[];
-	TeamAssignments: TeamAssignment[];
+	// Original nested structure
 	CourtSchedules: Array<{
 		CourtId: number;
 		Name: string;

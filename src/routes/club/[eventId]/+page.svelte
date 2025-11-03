@@ -50,23 +50,8 @@
 			// Load court schedule for the event
 			const schedule = await aesClient.getCourtSchedule(eventId, dateStr, 1440);
 
-			// Filter matches for this club
-			const clubMatches = schedule.Matches.filter((match) => {
-				// Check if either team belongs to this club
-				const team1Assignment = schedule.TeamAssignments.find(
-					(ta) => ta.TeamId === match.FirstTeamId
-				);
-				const team2Assignment = schedule.TeamAssignments.find(
-					(ta) => ta.TeamId === match.SecondTeamId
-				);
-
-				return (
-					team1Assignment?.ClubId === clubId ||
-					team2Assignment?.ClubId === clubId
-				);
-			});
-
-			allMatches = clubMatches;
+			// Show all matches (users can filter by teams on My Teams page)
+			allMatches = schedule.Matches;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load matches';
 			allMatches = [];

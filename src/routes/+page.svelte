@@ -15,7 +15,7 @@
 	let loading = $state(false);
 	let error = $state('');
 	let eventInfo = $state<EventInfo | null>(null);
-	let clubs = $state<Array<{ ClubId: number; ClubName: string }>>([]);
+	let clubs = $state<Array<{ ClubId: number; Name: string }>>([]);
 
 	async function loadEvent() {
 		if (!eventId.trim()) {
@@ -29,24 +29,12 @@
 		clubs = [];
 
 		try {
-			// Load event info
+			// Load event info (includes Clubs array)
 			const info = await aesClient.getEvent(eventId);
 			eventInfo = info;
 
-			// Load all team assignments to get unique clubs
-			const assignments = await aesClient.getTeamAssignments(eventId, 0); // ClubId 0 gets all
-
-			// Extract unique clubs
-			const clubMap = new Map<number, string>();
-			for (const assignment of assignments) {
-				if (assignment.ClubId && assignment.ClubName) {
-					clubMap.set(assignment.ClubId, assignment.ClubName);
-				}
-			}
-
-			clubs = Array.from(clubMap.entries())
-				.map(([ClubId, ClubName]) => ({ ClubId, ClubName }))
-				.sort((a, b) => a.ClubName.localeCompare(b.ClubName));
+			// Extract clubs from event info
+			clubs = (info.Clubs || []).sort((a, b) => a.Name.localeCompare(b.Name));
 
 			if (clubs.length === 0) {
 				error = 'No clubs found for this event';
@@ -106,8 +94,10 @@
 
 			{#if eventInfo}
 				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
-					<h3 class="text-xl font-semibold text-court-gold mb-2">{eventInfo.EventName}</h3>
-					<p class="text-gray-400 text-sm">{eventInfo.VenueName}</p>
+					<h3 class="text-xl font-semibold text-court-gold mb-2">{eventInfo.Name}</h3>
+					{#if eventInfo.Location}
+						<p class="text-gray-400 text-sm">{eventInfo.Location}</p>
+					{/if}
 				</div>
 			{/if}
 
@@ -123,7 +113,7 @@
 					>
 						<option value={null}>Choose a club...</option>
 						{#each clubs as club (club.ClubId)}
-							<option value={club.ClubId}>{club.ClubName}</option>
+							<option value={club.ClubId}>{club.Name}</option>
 						{/each}
 					</select>
 				</div>

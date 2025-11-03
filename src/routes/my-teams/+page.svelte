@@ -52,7 +52,39 @@
 			// Load court schedule
 			const schedule = await aesClient.getCourtSchedule($eventId, dateStr, 1440);
 			allMatches = schedule.Matches;
-			availableTeams = schedule.TeamAssignments;
+
+			// Extract unique teams from matches
+			const teamsMap = new Map<number, TeamAssignment>();
+			for (const match of schedule.Matches) {
+				// Add first team
+				if (match.FirstTeamId) {
+					teamsMap.set(match.FirstTeamId, {
+						TeamId: match.FirstTeamId,
+						TeamName: match.FirstTeamText,
+						TeamCode: '',
+						ClubId: 0,
+						ClubName: '',
+						DivisionId: match.Division.DivisionId,
+						DivisionName: match.Division.Name
+					});
+				}
+				// Add second team
+				if (match.SecondTeamId) {
+					teamsMap.set(match.SecondTeamId, {
+						TeamId: match.SecondTeamId,
+						TeamName: match.SecondTeamText,
+						TeamCode: '',
+						ClubId: 0,
+						ClubName: '',
+						DivisionId: match.Division.DivisionId,
+						DivisionName: match.Division.Name
+					});
+				}
+			}
+			availableTeams = Array.from(teamsMap.values()).sort((a, b) => {
+				const divCompare = a.DivisionName.localeCompare(b.DivisionName);
+				return divCompare !== 0 ? divCompare : a.TeamName.localeCompare(b.TeamName);
+			});
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load data';
 			allMatches = [];
