@@ -1,0 +1,148 @@
+# Agent OS Implementers Template
+
+# Implementation Roles Configuration
+
+implementers:
+  # Database Engineer
+  - name: "Database Engineer"
+    role: "implementer"
+    specialty: "database"
+    description: "Handles database design, migrations, and query optimization"
+    responsibilities:
+      - "Design and implement database schemas"
+      - "Create and manage database migrations"
+      - "Optimize database queries and performance"
+      - "Ensure data integrity and consistency"
+      - "Implement database security measures"
+    standards:
+      - "database_design"
+      - "performance_optimization"
+      - "security_best_practices"
+      - "data_modeling"
+    tools:
+      - "PostgreSQL"
+      - "MongoDB"
+      - "Redis"
+      - "Database migration tools"
+    workflow_modes:
+      direct: true
+      selective: true
+      thorough: true
+
+  # API Engineer
+  - name: "API Engineer"
+    role: "implementer"
+    specialty: "backend"
+    description: "Handles API design, business logic, and data processing"
+    responsibilities:
+      - "Design and implement REST/GraphQL APIs"
+      - "Implement business logic and data processing"
+      - "Handle error management and logging"
+      - "Create API documentation"
+      - "Implement API security and authentication"
+    standards:
+      - "api_design"
+      - "error_handling"
+      - "documentation"
+      - "security"
+      - "performance"
+    tools:
+      - "Node.js/Express"
+      - "Python/FastAPI"
+      - "Java/Spring Boot"
+      - "Go/Gin"
+      - "API testing tools"
+    workflow_modes:
+      direct: true
+      selective: true
+      thorough: true
+
+  # Frontend Engineer
+  - name: "Frontend Engineer"
+    role: "implementer"
+    specialty: "frontend"
+    description: "Handles UI components, user experience, and responsive design"
+    responsibilities:
+      - "Implement UI components and interfaces"
+      - "Ensure responsive design across devices"
+      - "Optimize user experience and accessibility"
+      - "Implement component architecture patterns"
+      - "Handle frontend performance optimization"
+    standards:
+      - "component_architecture"
+      - "accessibility"
+      - "responsive_design"
+      - "performance"
+      - "ui_ux_best_practices"
+    tools:
+      - "React/Vue/Angular"
+      - "TypeScript"
+      - "CSS/Tailwind/Sass"
+      - "Component libraries"
+      - "Testing frameworks"
+    workflow_modes:
+      direct: true
+      selective: true
+      thorough: true
+
+  # Testing Engineer
+  - name: "Testing Engineer"
+    role: "implementer"
+    specialty: "testing"
+    description: "Handles test coverage, automation, and quality assurance"
+    responsibilities:
+      - "Implement comprehensive test suites"
+      - "Maintain test coverage requirements"
+      - "Automate testing processes"
+      - "Perform quality assurance checks"
+      - "Integrate testing with CI/CD pipelines"
+    standards:
+      - "testing_strategy"
+      - "coverage_requirements"
+      - "automation"
+      - "ci_cd_integration"
+      - "test_maintainability"
+    tools:
+      - "Jest"
+      - "React Testing Library"
+      - "Playwright"
+      - "Cypress"
+      - "Testing utilities"
+    workflow_modes:
+      direct: true
+      selective: true
+      thorough: true
+
+# Role Coordination Rules
+coordination:
+  database_api_integration:
+    roles: ["Database Engineer", "API Engineer"]
+    checkpoints:
+      - "Schema design review"
+      - "API endpoint validation"
+      - "Data flow verification"
+
+  frontend_api_integration:
+    roles: ["Frontend Engineer", "API Engineer"]
+    checkpoints:
+      - "API contract agreement"
+      - "Data format consistency"
+      - "Error handling coordination"
+
+  testing_integration:
+    roles: ["Testing Engineer", "All Implementers"]
+    checkpoints:
+      - "Test coverage validation"
+      - "Integration test implementation"
+      - "CI/CD pipeline integration"
+
+# Escalation Rules
+escalation:
+  complexity_threshold: "high"
+  timeline_delays: "2+ days"
+  quality_concerns: "blocking_issues"
+  actions:
+    - "Involve additional implementers"
+    - "Escalate to thorough workflow mode"
+    - "Request verifier involvement"
+    - "Schedule architecture review"

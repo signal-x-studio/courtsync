@@ -1,0 +1,134 @@
+# Compliance Framework Configuration
+# Add this section to your .agent-os/config.yml file
+
+# Compliance Framework (MANDATORY)
+compliance:
+  enabled: true
+  version: "1.0.0"
+
+  # Strategic Positioning & Business Model
+  strategic_positioning:
+    enabled: true
+    document: "{STRATEGIC_DOC_PATH}"  # Path to your mission/vision document
+    instructions: ".agent-os/instructions/compliance/mission-alignment.md"
+    core_principles:
+      - "{CORE_PRINCIPLE_1}"  # e.g., "Internal consulting platform (NOT client-facing SaaS)"
+      - "{CORE_PRINCIPLE_2}"  # e.g., "Service generation engine"
+      - "{CORE_PRINCIPLE_3}"  # e.g., "Consultant-mediated workflows"
+      - "{CORE_PRINCIPLE_4}"  # e.g., "Primary framework (0-100 score, etc.)"
+    validation:
+      - "Feature aligns with {PRINCIPLE_1_NAME}"
+      - "Feature supports {PRINCIPLE_2_NAME}"
+      - "Feature does NOT {ANTI_PATTERN_1}"
+      - "Feature enhances {PRIMARY_FRAMEWORK}"
+
+  # Roadmap & Phase Alignment
+  roadmap_alignment:
+    enabled: true
+    document: "{ROADMAP_DOC_PATH}"  # Path to your roadmap document
+    instructions: ".agent-os/instructions/compliance/roadmap-compliance.md"
+    current_phase:
+      name: "{CURRENT_PHASE_NAME}"  # e.g., "Phase 1: MVP Core Features"
+      timeline: "{CURRENT_PHASE_TIMELINE}"  # e.g., "Weeks 1-4"
+      status: "{CURRENT_PHASE_STATUS}"  # IN PROGRESS | COMPLETE | NOT STARTED
+      priority: "{CURRENT_PHASE_PRIORITY}"  # ⭐⭐⭐ CRITICAL | ⭐⭐ HIGH | ⭐ MEDIUM
+    enforce:
+      - "Work only on current phase deliverables"
+      - "Respect phase dependencies"
+      - "Update phase status on completion"
+      - "No future phase features implemented early"
+
+  # Design System (for UI projects - OPTIONAL, delete if not applicable)
+  design_system:
+    enabled: true  # Set to false for backend-only projects
+    source: "{DESIGN_SYSTEM_SOURCE}"  # e.g., "tailwind.config.ts" or "design-tokens.json"
+    instructions: ".agent-os/instructions/compliance/design-system.md"
+    required_for:
+      - "All UI components"
+      - "All styling changes"
+      - "New pages/routes"
+      - "{VISUALIZATION_CONTEXT} visualizations"
+    validation:
+      - "Uses {COMPONENT_LIBRARY} components ({COMPONENT_PATH}/)"
+      - "Colors from {COLOR_SYSTEM} palette"
+      - "Typography scale followed ({TYPOGRAPHY_SYSTEM})"
+      - "Font families ({FONT_FAMILIES})"
+      - "Spacing from {CSS_FRAMEWORK} scale"
+      - "Accessibility: WCAG {WCAG_LEVEL} ({CONTRAST_RATIO} contrast)"
+      - "Performance: animations < {MAX_ANIMATION_DURATION}ms"
+
+  # Auto-rejection enforcement
+  auto_reject:
+    enabled: true
+    triggers:
+      strategic_violations:
+        - "{STRATEGIC_VIOLATION_1}"  # e.g., "Client self-service signup flows"
+        - "{STRATEGIC_VIOLATION_2}"  # e.g., "Public subscription pricing pages"
+        - "{STRATEGIC_VIOLATION_3}"  # e.g., "Features positioning as wrong product type"
+        - "{STRATEGIC_VIOLATION_4}"  # e.g., "Competing with market tool X"
+        - "{STRATEGIC_VIOLATION_5}"  # e.g., "Standalone tool without mediation"
+
+      business_model_violations:
+        - "{BUSINESS_VIOLATION_1}"  # e.g., "Features designed for wrong user type"
+        - "{BUSINESS_VIOLATION_2}"  # e.g., "Selling tool access instead of services"
+        - "{BUSINESS_VIOLATION_3}"  # e.g., "Marketing to wrong audience"
+        - "{BUSINESS_VIOLATION_4}"  # e.g., "Freemium tier implementations"
+
+      framework_violations:  # If you have a specific framework (scores, metrics, etc.)
+        - "{FRAMEWORK_VIOLATION_1}"  # e.g., "Score calculation not matching algorithm"
+        - "{FRAMEWORK_VIOLATION_2}"  # e.g., "Weights not totaling 100%"
+        - "{FRAMEWORK_VIOLATION_3}"  # e.g., "Missing competitive benchmarking"
+        - "{FRAMEWORK_VIOLATION_4}"  # e.g., "Score ranges not matching framework"
+
+      roadmap_violations:
+        - "Phase {N}+ features during Phase {M}"
+        - "{FUTURE_FEATURE_1} before Phase {P}"
+        - "Features not in {TOTAL_TIMELINE} roadmap"
+        - "Work on phases with incomplete dependencies"
+
+      design_violations:  # Delete this section if design_system.enabled is false
+        - "Not using {COMPONENT_LIBRARY} components"
+        - "Random hex colors (not from design system)"
+        - "Custom font imports (use {FONT_FAMILIES})"
+        - "Contrast ratios < {CONTRAST_RATIO}"
+        - "Inline styles (not using {CSS_FRAMEWORK})"
+
+# Update existing quality gates to include compliance checks
+quality:
+  pre_flight:
+    - "git status clean or approved"
+    - "{BUILD_COMMAND} passing"
+    - "{TEST_COMMAND} passing"
+    - "✅ Strategic positioning verified (.agent-os/instructions/compliance/mission-alignment.md)"
+    - "✅ Roadmap phase verified (.agent-os/instructions/compliance/roadmap-compliance.md)"
+    - "✅ Design system patterns identified (for UI work) (.agent-os/instructions/compliance/design-system.md)"
+
+  post_flight:
+    required:
+      - "{BUILD_COMMAND}"
+      - "{TEST_COMMAND}"
+      - "{LINT_COMMAND}"
+      - "✅ Strategic positioning cited in commit"
+      - "✅ Roadmap phase cited in commit"
+      - "✅ Design system compliance verified (for UI work)"
+    conditional:
+      {NORMAL_MODE_NAME}:
+        - "{INTEGRATION_TEST_COMMAND}"
+        - "comprehensive compliance review"
+      {CAREFUL_MODE_NAME}:
+        - "{INTEGRATION_TEST_COMMAND}"
+        - "{E2E_TEST_COMMAND}"
+        - "{SECURITY_AUDIT_COMMAND}"
+        - "comprehensive compliance review"
+
+  rollback_on:
+    - "{LANGUAGE} compilation errors"
+    - "Test failures (non-fixable in 3 attempts)"
+    - "Build failures"
+    - "Security concerns detected"
+    - "Time exceeded (>12 hours)"
+    - "Strategic positioning violations (see compliance/mission-alignment.md)"
+    - "{ANTI_PATTERN_1} anti-patterns ({POSITIONING_1} only)"
+    - "{ANTI_PATTERN_2} features ({POSITIONING_2})"
+    - "Out of roadmap phase (see compliance/roadmap-compliance.md)"
+    - "Design system violations (for UI work) (see compliance/design-system.md)"

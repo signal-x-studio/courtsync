@@ -22,8 +22,10 @@ export interface TimeBlock {
 export interface CoverageStats {
 	totalMatches: number;
 	conflicts: number;
-	teamsCovered: number;
-	totalTeams: number;
-	coveredTeamIds: number[];
-	uncoveredTeamIds: number[];
+	divisions: number;
+	courts: number;
+	teamsCovered?: number;
+	totalTeams?: number;
+	coveredTeamIds?: number[];
+	uncoveredTeamIds?: number[];
 }

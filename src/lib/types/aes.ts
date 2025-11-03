@@ -2,13 +2,15 @@
 // Purpose: Type definitions for Advanced Event Systems (AES) API responses
 // Note: These types match the actual AES API structure for volleyball tournaments
 
+export interface Division {
+	DivisionId: number;
+	Name: string;
+	ColorHex: string;
+}
+
 export interface Match {
 	MatchId: number;
-	Division: {
-		DivisionId: number;
-		Name: string;
-		ColorHex: string;
-	};
+	Division: Division;
 	FirstTeamText: string;
 	SecondTeamText: string;
 	WorkTeamText?: string;
@@ -33,6 +35,8 @@ export interface TeamAssignment {
 
 export interface EventInfo {
 	EventId: string;
+	EventName: string;
+	VenueName: string;
 	Name: string;
 	StartDate: number;
 	EndDate: number;
@@ -42,6 +46,8 @@ export interface EventInfo {
 export interface CourtSchedule {
 	EarliestStartTime: number;
 	LatestEndTime: number;
+	Matches: Match[];
+	TeamAssignments: TeamAssignment[];
 	CourtSchedules: Array<{
 		CourtId: number;
 		Name: string;

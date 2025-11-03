@@ -1,0 +1,90 @@
+# Agent OS Configuration - AES Project
+# Cost-Optimized Agentic Coding Workflows
+
+version: "3.0.0"
+
+# Project Configuration
+project:
+  name: "aes"
+  type: "agentic-system"
+  description: "Agentic Engineering System - Framework for AI-assisted development workflows"
+  initialized: "2025-10-26"
+
+# Technology Stack
+tech_stack:
+  primary: "Node.js/TypeScript"
+  testing: "jest"
+  build: "tsc"
+  lint: "eslint"
+  format: "prettier"
+
+# Workflow Modes (Simplified)
+workflow:
+  default_mode: "fast"
+
+  fast_mode:
+    validations: ["lint", "type-check", "unit-tests", "build"]
+    manual_reviews: []
+    token_budget: 1000
+    time_estimate: "5-15 minutes"
+
+  careful_mode:
+    validations: ["lint", "type-check", "unit-tests", "integration-tests", "security", "build"]
+    manual_reviews: ["security", "architecture"]
+    token_budget: 5000
+    time_estimate: "30-60 minutes"
+
+# Quality Gates (Automated First)
+quality_gates:
+  always_automated:
+    - "linting"
+    - "type_checking"
+    - "unit_tests"
+    - "build_verification"
+
+  conditional_manual:
+    - trigger: "auth|security|credentials"
+      review: "security_review"
+    - trigger: "architecture|system|design"
+      review: "architecture_review"
+
+# Agent Model
+agents:
+  primary: "claude_code"
+  specialists:
+    - name: "coding-standards-reviewer"
+      purpose: "Code quality and standards compliance"
+      trigger: "code_review_requested"
+    - name: "technical-writer"
+      purpose: "Documentation generation and maintenance"
+      trigger: "feature_complete"
+    - name: "architects-voice-auditor"
+      purpose: "Voice and tone compliance for technical writing"
+      trigger: "documentation_complete"
+
+# Token Optimization
+token_optimization:
+  batch_operations: true
+  caching: true
+  fail_fast: true
+  max_redundant_reviews: 0
+  parallel_tool_limit: 5
+
+# Success Metrics
+metrics:
+  efficiency:
+    token_cost_per_task: "< 1000"
+    feedback_time: "< 10 minutes"
+    false_positives: "< 5%"
+
+  quality:
+    defect_detection: "> 90%"
+    deployment_success: "> 95%"
+    resolution_time: "< 2 hours"
+
+# IDE Methodology Integration
+ide:
+  enabled: true
+  sequential_features: true
+  checkpoint_required: true
+  phases: ["research", "design", "implement", "integrate", "test", "document"]

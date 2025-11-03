@@ -103,3 +103,42 @@ export function getMatchStatus(match: Match): 'upcoming' | 'live' | 'completed' 
 
 	return 'upcoming';
 }
+
+/**
+ * Applies filters to match list based on divisions, teams, and coverage
+ */
+export function applyFilters(
+	matches: Match[],
+	filters: {
+		divisionIds: number[];
+		teamIds: number[];
+		showOnlyUncovered?: boolean;
+	}
+): Match[] {
+	return matches.filter((match) => {
+		// Division filter
+		if (
+			filters.divisionIds.length > 0 &&
+			!filters.divisionIds.includes(match.Division.DivisionId)
+		) {
+			return false;
+		}
+
+		// Team filter
+		if (filters.teamIds.length > 0) {
+			const matchTeamIds = [match.FirstTeamId, match.SecondTeamId, match.WorkTeamId].filter(
+				(id): id is number => id !== undefined
+			);
+			if (!matchTeamIds.some((id) => filters.teamIds.includes(id))) {
+				return false;
+			}
+		}
+
+		return true;
+	});
+}
+
+/**
+ * Alias for groupMatchesByTime for consistency with page imports
+ */
+export const groupByTime = groupMatchesByTime;

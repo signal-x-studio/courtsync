@@ -1,0 +1,48 @@
+# Fast Mode Configuration (Cost-Optimized)
+# Use for 95% of development work - minimal token overhead
+
+version: "3.0.0"
+mode: "fast"
+
+# Core validations - automated only, no manual reviews
+validations:
+  automated:
+    - name: "code-quality"
+      tool: "eslint"
+      timeout: 30
+      fail_fast: true
+      token_cost: "low"
+
+    - name: "type-check"
+      tool: "tsc"
+      timeout: 60
+      fail_fast: true
+      token_cost: "low"
+
+    - name: "unit-tests"
+      tool: "jest"
+      timeout: 120
+      fail_fast: true
+      token_cost: "medium"
+
+    - name: "build"
+      tool: "webpack"
+      timeout: 180
+      fail_fast: true
+      token_cost: "medium"
+
+# No manual reviews in fast mode - trust automation
+reviews:
+  manual: []
+
+# Success criteria - must pass all automated checks
+success_criteria:
+  - "All automated validations pass"
+  - "No critical security issues"
+  - "Build completes successfully"
+
+# Token optimization
+token_budget:
+  max_per_task: 1000
+  priority: "speed"
+  caching: true

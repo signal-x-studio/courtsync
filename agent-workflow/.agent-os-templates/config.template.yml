@@ -1,0 +1,75 @@
+# Agent OS Configuration Template (Cost-Optimized)
+
+version: "3.0.0"
+
+# Project Configuration
+project:
+  name: "PROJECT_NAME"
+  type: "web-fullstack"  # web-fullstack, api-service, mobile-app, data-science
+  description: "PROJECT_DESCRIPTION"
+
+# Technology Stack (Minimal)
+tech_stack:
+  framework: "FRAMEWORK"  # React, Node.js, Python, etc.
+  testing: "jest"         # Primary testing framework
+  build: "webpack"        # Build tool
+  lint: "eslint"          # Linting tool
+
+# Workflow Modes (Simplified)
+workflow:
+  default_mode: "fast"    # Use fast mode for 95% of work
+
+  fast_mode:
+    validations: ["lint", "type-check", "unit-tests", "build"]
+    manual_reviews: []    # No manual reviews
+    token_budget: 1000
+    time_estimate: "5-15 minutes"
+
+  careful_mode:
+    validations: ["lint", "type-check", "unit-tests", "integration-tests", "security", "performance", "build"]
+    manual_reviews: ["security", "performance", "architecture"]  # Only when triggered
+    token_budget: 5000
+    time_estimate: "30-60 minutes"
+
+# Quality Gates (Automated First)
+quality_gates:
+  always_automated:
+    - "linting"
+    - "type_checking"
+    - "unit_tests"
+    - "build_verification"
+
+  conditional_manual:
+    - trigger: "auth|security"
+      review: "security_review"
+    - trigger: "performance|scaling"
+      review: "performance_review"
+    - trigger: "architecture|system"
+      review: "architecture_review"
+
+# Agent Model (Simplified)
+agents:
+  primary: "single_agent"  # One agent handles most work
+  specialists:             # Called only for specific domains
+    - "security"
+    - "performance"
+    - "architecture"
+
+# Token Optimization
+token_optimization:
+  batch_operations: true
+  caching: true
+  fail_fast: true
+  max_redundant_reviews: 0
+
+# Success Metrics (Streamlined)
+metrics:
+  efficiency:
+    token_cost_per_task: "< 1000"
+    feedback_time: "< 10 minutes"
+    false_positives: "< 5%"
+
+  quality:
+    defect_detection: "> 90%"
+    deployment_success: "> 95%"
+    resolution_time: "< 2 hours"

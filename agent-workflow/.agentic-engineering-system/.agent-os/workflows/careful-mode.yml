@@ -1,0 +1,74 @@
+# Careful Mode Configuration (Cost-Optimized)
+# Use for 5% of high-risk work - essential checks only
+
+version: "3.0.0"
+mode: "careful"
+
+# Essential validations - automated first, selective manual
+validations:
+  automated:
+    - name: "code-quality"
+      tool: "eslint"
+      timeout: 30
+      fail_fast: true
+      token_cost: "low"
+
+    - name: "type-check"
+      tool: "tsc"
+      timeout: 60
+      fail_fast: true
+      token_cost: "low"
+
+    - name: "unit-tests"
+      tool: "jest"
+      timeout: 120
+      fail_fast: true
+      token_cost: "medium"
+
+    - name: "integration-tests"
+      tool: "jest"
+      args: ["--testPathPattern=integration"]
+      timeout: 300
+      fail_fast: false
+      token_cost: "medium"
+
+    - name: "security-scan"
+      tool: "npm audit"
+      timeout: 120
+      fail_fast: false
+      token_cost: "medium"
+
+    - name: "build"
+      tool: "tsc"
+      timeout: 300
+      fail_fast: true
+      token_cost: "medium"
+
+# Selective manual reviews - only for high-value, high-risk areas
+reviews:
+  manual:
+    - name: "security-review"
+      trigger: "auth|security|database|credentials"
+      required: true
+      specialist: "security"
+      token_cost: "high"
+
+    - name: "architecture-review"
+      trigger: "architecture|system|design|refactor"
+      required: false
+      specialist: "architecture"
+      token_cost: "high"
+
+# Success criteria - comprehensive but efficient
+success_criteria:
+  - "All automated validations pass"
+  - "Security scan clean or accepted risks documented"
+  - "Required manual reviews completed"
+  - "Build completes successfully"
+
+# Token optimization with higher budget for critical work
+token_budget:
+  max_per_task: 5000
+  priority: "quality"
+  caching: true
+  batch_operations: true

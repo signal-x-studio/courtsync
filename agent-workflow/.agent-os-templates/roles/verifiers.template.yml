@@ -1,0 +1,192 @@
+# Agent OS Verifiers Template
+
+# Verification Roles Configuration
+
+verifiers:
+  # Backend Verifier
+  - name: "Backend Verifier"
+    role: "verifier"
+    specialty: "backend"
+    description: "Verifies server-side implementations, security, and performance"
+    responsibilities:
+      - "Review server-side code implementations"
+      - "Verify security implementations and best practices"
+      - "Validate performance optimizations"
+      - "Ensure API contract compliance"
+      - "Check data integrity and consistency"
+    standards:
+      - "security_best_practices"
+      - "performance_optimization"
+      - "api_contracts"
+      - "data_integrity"
+      - "error_handling"
+    tools:
+      - "Security scanning tools"
+      - "Performance profiling tools"
+      - "API testing tools"
+      - "Code review tools"
+    workflow_modes:
+      direct: false  # Not involved in low-risk changes
+      selective: true
+      thorough: true
+    review_focus:
+      - "Security vulnerabilities"
+      - "Performance bottlenecks"
+      - "API contract violations"
+      - "Data consistency issues"
+
+  # Frontend Verifier
+  - name: "Frontend Verifier"
+    role: "verifier"
+    specialty: "frontend"
+    description: "Verifies UI implementations, accessibility, and user experience"
+    responsibilities:
+      - "Review UI component implementations"
+      - "Verify accessibility compliance"
+      - "Validate user experience patterns"
+      - "Ensure design system compliance"
+      - "Check responsive behavior across devices"
+    standards:
+      - "accessibility_standards"
+      - "ui_ux_best_practices"
+      - "design_system_compliance"
+      - "responsive_design"
+      - "component_architecture"
+    tools:
+      - "Accessibility testing tools"
+      - "Design system validators"
+      - "Cross-browser testing tools"
+      - "Performance monitoring tools"
+    workflow_modes:
+      direct: false  # Not involved in low-risk changes
+      selective: true
+      thorough: true
+    review_focus:
+      - "WCAG accessibility compliance"
+      - "Design system violations"
+      - "User experience issues"
+      - "Performance regressions"
+
+  # Security Verifier
+  - name: "Security Verifier"
+    role: "verifier"
+    specialty: "security"
+    description: "Specialized security review and vulnerability assessment"
+    responsibilities:
+      - "Conduct security code reviews"
+      - "Identify security vulnerabilities"
+      - "Review authentication and authorization"
+      - "Validate security configurations"
+      - "Assess third-party dependency risks"
+    standards:
+      - "owasp_top_10"
+      - "secure_coding_practices"
+      - "authentication_security"
+      - "data_protection"
+      - "dependency_security"
+    tools:
+      - "Static security analysis tools"
+      - "Dependency vulnerability scanners"
+      - "Penetration testing tools"
+      - "Security audit frameworks"
+    workflow_modes:
+      direct: false
+      selective: false  # Only for medium-risk with security implications
+      thorough: true    # Always involved in high-risk changes
+    review_focus:
+      - "Critical security vulnerabilities"
+      - "Authentication bypass risks"
+      - "Data exposure issues"
+      - "Injection attack vectors"
+
+  # Performance Verifier
+  - name: "Performance Verifier"
+    role: "verifier"
+    specialty: "performance"
+    description: "Validates performance requirements and optimization effectiveness"
+    responsibilities:
+      - "Review performance optimization implementations"
+      - "Validate performance benchmarks"
+      - "Assess scalability considerations"
+      - "Monitor resource utilization"
+      - "Review caching and optimization strategies"
+    standards:
+      - "performance_benchmarks"
+      - "scalability_requirements"
+      - "resource_optimization"
+      - "caching_strategies"
+      - "monitoring_best_practices"
+    tools:
+      - "Performance profiling tools"
+      - "Load testing frameworks"
+      - "Monitoring and analytics tools"
+      - "Resource usage analyzers"
+    workflow_modes:
+      direct: false
+      selective: true   # For performance-critical features
+      thorough: true
+    review_focus:
+      - "Performance regression detection"
+      - "Scalability bottleneck identification"
+      - "Resource utilization optimization"
+      - "Caching effectiveness validation"
+
+# Verification Workflow
+verification_process:
+  pre_implementation:
+    - "Requirement review"
+    - "Risk assessment"
+    - "Success criteria definition"
+
+  during_implementation:
+    - "Code review checkpoints"
+    - "Automated testing validation"
+    - "Integration verification"
+
+  post_implementation:
+    - "Final verification review"
+    - "Performance validation"
+    - "Security assessment"
+    - "Documentation review"
+
+# Quality Gates
+quality_gates:
+  minimum_requirements:
+    backend:
+      - "Security scan passed"
+      - "Performance benchmarks met"
+      - "API contracts validated"
+    frontend:
+      - "Accessibility score > 95"
+      - "Performance score > 90"
+      - "Design system compliance"
+    security:
+      - "No critical vulnerabilities"
+      - "Authentication properly implemented"
+      - "Data protection verified"
+
+  blocking_conditions:
+    - "Critical security vulnerabilities"
+    - "Performance regression > 10%"
+    - "Accessibility compliance < 90%"
+    - "API contract violations"
+
+# Escalation Protocols
+escalation:
+  automatic_escalation:
+    - "Critical security findings"
+    - "Performance degradation"
+    - "Accessibility violations"
+    - "Data integrity issues"
+
+  manual_escalation:
+    - "Architecture concerns"
+    - "Design inconsistencies"
+    - "Integration complexities"
+    - "Timeline delays"
+
+  resolution_actions:
+    - "Immediate code fixes"
+    - "Architecture review scheduling"
+    - "Additional verifier involvement"
+    - "Workflow mode escalation"
