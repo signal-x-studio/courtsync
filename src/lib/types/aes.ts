@@ -24,7 +24,8 @@ export interface Match {
 	CourtId?: number;
 }
 
-export interface TeamAssignment {
+// Simple team info (flattened from TeamAssignment for UI use)
+export interface SimpleTeam {
 	TeamId: number;
 	TeamName: string;
 	TeamCode: string;
@@ -32,6 +33,55 @@ export interface TeamAssignment {
 	ClubName: string;
 	DivisionId: number;
 	DivisionName: string;
+}
+
+// Full OData team assignment response
+export interface TeamAssignment {
+	TeamId: number;
+	TeamName: string;
+	TeamCode: string;
+	TeamText: string;
+	OpponentTeamName?: string;
+	OpponentTeamText?: string;
+	OpponentTeamId?: number;
+	SearchableTeamName?: string;
+	NextPendingReseed?: boolean;
+	NextWorkMatchDate?: string;
+	TeamClub: {
+		ClubId: number;
+		Name: string;
+	};
+	TeamDivision: {
+		DivisionId: number;
+		Name: string;
+		TeamCount: number;
+		CodeAlias: string;
+		ColorHex: string;
+	};
+	OpponentClub?: {
+		ClubId: number;
+		Name: string;
+	};
+	NextMatch?: {
+		MatchId: number;
+		ScheduledStartDateTime: string;
+		ScheduledEndDateTime: string;
+		Court: {
+			CourtId: number;
+			Name: string;
+			VideoLink: string;
+		};
+	};
+	WorkMatchs?: Array<{
+		MatchId: number;
+		ScheduledStartDateTime: string;
+		ScheduledEndDateTime: string;
+		Court: {
+			CourtId: number;
+			Name: string;
+			VideoLink: string;
+		};
+	}>;
 }
 
 export interface EventInfo {

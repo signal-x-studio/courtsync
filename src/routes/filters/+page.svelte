@@ -6,7 +6,7 @@
 	import { filters } from '$lib/stores/filters';
 	import { persona } from '$lib/stores/persona';
 	import type { PageData } from './$types';
-	import type { TeamAssignment } from '$lib/types/aes';
+	import type { SimpleTeam } from '$lib/types/aes';
 
 	// Get data from load function
 	let { data }: { data: PageData } = $props();
@@ -26,7 +26,7 @@
 				acc[team.DivisionId]?.push(team);
 				return acc;
 			},
-			{} as Record<number, TeamAssignment[]>
+			{} as Record<number, SimpleTeam[]>
 		)
 	);
 

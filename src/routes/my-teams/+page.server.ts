@@ -1,75 +1,67 @@
 // Reference: https://svelte.dev/docs/kit/load
 // Purpose: Server-side load function for my teams page
-// Note: Fetches court schedule using SvelteKit's fetch for SSR support
+// Note: Uses team-centric approach - gets teams by club, then schedules
 
 import type { PageServerLoad } from './$types';
-import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
-import { eventId } from '$lib/stores/event';
+import { fetchTeamAssignments, fetchTeamSchedule } from '$lib/services/aes';
+import { eventId, clubId } from '$lib/stores/event';
 import { get } from 'svelte/store';
+import type { Match } from '$lib/types/aes';
 
 export const load: PageServerLoad = async ({ fetch }) => {
-	// Get event ID from store
+	// Get event ID and club ID from stores
 	const currentEventId = get(eventId);
+	const currentClubId = get(clubId);
 
-	if (!currentEventId) {
+	if (!currentEventId || !currentClubId) {
 		return {
 			allMatches: [],
 			availableTeams: [],
-			eventId: ''
+			eventId: currentEventId
 		};
 	}
 
 	try {
-		// First get event info to find the event dates
-		const eventInfo = await fetchEventInfo(currentEventId, fetch);
+		// Step 1: Get all teams for this club using OData endpoint
+		const teams = await fetchTeamAssignments(currentEventId, currentClubId, fetch);
 
-		// Use the event's start date
-		const eventDate = new Date(eventInfo.StartDate);
-		const dateStr = eventDate.toISOString().split('T')[0];
+		// Step 2: Get current schedule for each team
+		const allMatches: Match[] = [];
+		const matchIds = new Set<number>();
 
-		if (!dateStr) {
-			throw new Error('Invalid date format');
-		}
+		for (const team of teams) {
+			try {
+				const teamSchedule = await fetchTeamSchedule(
+					currentEventId,
+					team.TeamDivision.DivisionId,
+					team.TeamId,
+					'current',
+					fetch
+				);
 
-		// Fetch court schedule with 5-hour window (300 minutes)
-		const schedule = await fetchCourtSchedule(currentEventId, dateStr, 300, fetch);
-
-		// Flatten matches from all courts for easier processing
-		const allMatches = flattenCourtScheduleMatches(schedule);
-
-		// Extract unique teams from matches
-		const teamsMap = new Map<number, any>();
-		for (const match of allMatches) {
-			// Add first team
-			if (match.FirstTeamId) {
-				teamsMap.set(match.FirstTeamId, {
-					TeamId: match.FirstTeamId,
-					TeamName: match.FirstTeamText,
-					TeamCode: '',
-					ClubId: 0,
-					ClubName: '',
-					DivisionId: match.Division.DivisionId,
-					DivisionName: match.Division.Name
-				});
-			}
-			// Add second team
-			if (match.SecondTeamId) {
-				teamsMap.set(match.SecondTeamId, {
-					TeamId: match.SecondTeamId,
-					TeamName: match.SecondTeamText,
-					TeamCode: '',
-					ClubId: 0,
-					ClubName: '',
-					DivisionId: match.Division.DivisionId,
-					DivisionName: match.Division.Name
-				});
+				if (Array.isArray(teamSchedule)) {
+					for (const match of teamSchedule) {
+						if (!matchIds.has(match.MatchId)) {
+							matchIds.add(match.MatchId);
+							allMatches.push(match);
+						}
+					}
+				}
+			} catch (err) {
+				console.warn(`Failed to get schedule for team ${team.TeamId}:`, err);
 			}
 		}
 
-		const availableTeams = Array.from(teamsMap.values()).sort((a, b) => {
-			const divCompare = a.DivisionName.localeCompare(b.DivisionName);
-			return divCompare !== 0 ? divCompare : a.TeamName.localeCompare(b.TeamName);
-		});
+		// Convert OData team assignments to simpler format for UI
+		const availableTeams = teams.map((t) => ({
+			TeamId: t.TeamId,
+			TeamName: t.TeamName,
+			TeamCode: t.TeamCode,
+			ClubId: t.TeamClub.ClubId,
+			ClubName: t.TeamClub.Name,
+			DivisionId: t.TeamDivision.DivisionId,
+			DivisionName: t.TeamDivision.Name
+		}));
 
 		return {
 			allMatches,
@@ -77,7 +69,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			eventId: currentEventId
 		};
 	} catch (err) {
-		console.error('Failed to load data:', err);
+		console.error('Failed to load team data:', err);
 		throw err;
 	}
 };

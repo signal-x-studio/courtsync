@@ -1,37 +1,65 @@
 // Reference: https://svelte.dev/docs/kit/load
 // Purpose: Server-side load function for club hub page
-// Note: Fetches court schedule using SvelteKit's fetch for SSR support
+// Note: Uses team-centric approach - gets teams by club, then schedules for each team
 
 import type { PageServerLoad } from './$types';
-import { fetchEventInfo, fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
+import { fetchTeamAssignments, fetchTeamSchedule } from '$lib/services/aes';
+import type { Match } from '$lib/types/aes';
 
-export const load: PageServerLoad = async ({ fetch, params }) => {
+export const load: PageServerLoad = async ({ fetch, params, url }) => {
 	const { eventId } = params;
+	const clubId = Number(url.searchParams.get('clubId'));
+
+	if (!clubId) {
+		return {
+			allMatches: [],
+			eventId
+		};
+	}
 
 	try {
-		// First get event info to find the event dates
-		const eventInfo = await fetchEventInfo(eventId, fetch);
+		// Step 1: Get all teams for this club using OData endpoint
+		const teams = await fetchTeamAssignments(eventId, clubId, fetch);
 
-		// Use the event's start date
-		const eventDate = new Date(eventInfo.StartDate);
-		const dateStr = eventDate.toISOString().split('T')[0];
+		console.log(`Found ${teams.length} teams for club ${clubId}`);
 
-		if (!dateStr) {
-			throw new Error('Invalid date format');
+		// Step 2: Get current schedule for each team
+		const allMatches: Match[] = [];
+		const matchIds = new Set<number>(); // Track unique match IDs
+
+		for (const team of teams) {
+			try {
+				// Get current matches for this team
+				const teamSchedule = await fetchTeamSchedule(
+					eventId,
+					team.TeamDivision.DivisionId,
+					team.TeamId,
+					'current',
+					fetch
+				);
+
+				// Add matches to our collection (avoiding duplicates)
+				if (Array.isArray(teamSchedule)) {
+					for (const match of teamSchedule) {
+						if (!matchIds.has(match.MatchId)) {
+							matchIds.add(match.MatchId);
+							allMatches.push(match);
+						}
+					}
+				}
+			} catch (err) {
+				console.warn(`Failed to get schedule for team ${team.TeamId}:`, err);
+			}
 		}
 
-		// Fetch court schedule with 5-hour window (300 minutes)
-		const schedule = await fetchCourtSchedule(eventId, dateStr, 300, fetch);
-
-		// Flatten matches from all courts for easier processing
-		const allMatches = flattenCourtScheduleMatches(schedule);
+		console.log(`Built schedule with ${allMatches.length} unique matches`);
 
 		return {
 			allMatches,
 			eventId
 		};
 	} catch (err) {
-		console.error('Failed to load court schedule:', err);
+		console.error('Failed to load team schedules:', err);
 		throw err;
 	}
 };

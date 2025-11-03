@@ -6,7 +6,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { fetchEventInfo } from '$lib/services/aes';
-	import { eventId as eventIdStore } from '$lib/stores/event';
+	import { eventId as eventIdStore, clubId as clubIdStore } from '$lib/stores/event';
 	import type { EventInfo } from '$lib/types/aes';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
 
@@ -54,8 +54,9 @@
 			return;
 		}
 
-		// Store event ID in the store
+		// Store event ID and club ID in stores
 		eventIdStore.set(eventId);
+		clubIdStore.set(selectedClubId);
 
 		// Navigate to club hub
 		goto(`/club/${eventId}?clubId=${selectedClubId}`);
