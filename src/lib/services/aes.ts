@@ -154,6 +154,7 @@ export const fetchTeamsByClubAndDivision = async (
  * @param scheduleType - Type of schedule to fetch
  * @param fetchFn - Fetch function (use load function's fetch for SSR)
  * @returns Array of matches for the team
+ * @note Team schedule API returns ISO strings, we convert to Unix timestamps for consistency
  */
 export const fetchTeamSchedule = async (
 	eventId: string,
@@ -169,7 +170,25 @@ export const fetchTeamSchedule = async (
 		throw new Error(`Failed to fetch team schedule: ${response.statusText}`);
 	}
 
-	return response.json();
+	const data = await response.json();
+
+	// Team schedule API returns ISO strings, convert to Unix timestamps
+	// for consistency with court schedule API format
+	if (Array.isArray(data)) {
+		return data.map((match: any) => ({
+			...match,
+			ScheduledStartDateTime:
+				typeof match.ScheduledStartDateTime === 'string'
+					? new Date(match.ScheduledStartDateTime).getTime()
+					: match.ScheduledStartDateTime,
+			ScheduledEndDateTime:
+				typeof match.ScheduledEndDateTime === 'string'
+					? new Date(match.ScheduledEndDateTime).getTime()
+					: match.ScheduledEndDateTime
+		}));
+	}
+
+	return data;
 };
 
 /**

@@ -38,7 +38,16 @@
 	}
 
 	function formatTime(timestamp: number): string {
-		return format(timestamp, 'h:mm a');
+		// Validate timestamp before formatting
+		if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
+			return 'TBD';
+		}
+		try {
+			return format(timestamp, 'h:mm a');
+		} catch (err) {
+			console.error('Error formatting timestamp:', timestamp, err);
+			return 'Invalid Time';
+		}
 	}
 </script>
 

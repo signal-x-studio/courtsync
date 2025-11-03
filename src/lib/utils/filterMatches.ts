@@ -39,7 +39,13 @@ export function matchBelongsToClub(match: Match, filter: MatchFilter): boolean {
 export function groupMatchesByTime(matches: Match[]): TimeBlock[] {
 	const grouped = new Map<number, Match[]>();
 
-	matches.forEach((match) => {
+	// Filter out matches with invalid timestamps
+	const validMatches = matches.filter((match) => {
+		const time = match.ScheduledStartDateTime;
+		return time && !isNaN(time) && time > 0;
+	});
+
+	validMatches.forEach((match) => {
 		const time = match.ScheduledStartDateTime;
 		if (!grouped.has(time)) {
 			grouped.set(time, []);
@@ -49,14 +55,25 @@ export function groupMatchesByTime(matches: Match[]): TimeBlock[] {
 
 	return Array.from(grouped.entries())
 		.sort(([a], [b]) => a - b)
-		.map(([timestamp, matches]) => ({
-			time: new Date(timestamp).toLocaleTimeString('en-US', {
-				hour: 'numeric',
-				minute: '2-digit'
-			}),
-			timestamp,
-			matches
-		}));
+		.map(([timestamp, matches]) => {
+			try {
+				return {
+					time: new Date(timestamp).toLocaleTimeString('en-US', {
+						hour: 'numeric',
+						minute: '2-digit'
+					}),
+					timestamp,
+					matches
+				};
+			} catch (err) {
+				console.error('Error formatting time block:', timestamp, err);
+				return {
+					time: 'TBD',
+					timestamp,
+					matches
+				};
+			}
+		});
 }
 
 /**
@@ -96,6 +113,16 @@ export function getMatchStatus(match: Match): 'upcoming' | 'live' | 'completed' 
 	const now = Date.now();
 
 	if (match.HasOutcome) return 'completed';
+
+	// Handle invalid timestamps
+	if (
+		!match.ScheduledStartDateTime ||
+		!match.ScheduledEndDateTime ||
+		isNaN(match.ScheduledStartDateTime) ||
+		isNaN(match.ScheduledEndDateTime)
+	) {
+		return 'upcoming';
+	}
 
 	if (match.ScheduledStartDateTime <= now && match.ScheduledEndDateTime >= now) {
 		return 'live';
