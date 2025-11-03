@@ -1,28 +1,19 @@
 // Reference: https://supabase.com/docs/reference/javascript/introduction
-// Purpose: Type definitions for Supabase database tables (match scores, locks)
-// Note: These types correspond to the database schema in Phase 8
+// Purpose: Type definitions for Supabase database tables
+// Note: Matches actual migration schema (supabase/migrations/001_create_match_scores.sql)
 
 export interface MatchScore {
+	id: string; // UUID
 	match_id: number;
 	event_id: string;
-	sets: SetScore[];
-	status: 'not-started' | 'in-progress' | 'completed';
 	locked_by: string | null;
-	locked_until: string | null;
-	last_updated: string;
-	last_updated_by: string | null;
+	locked_at: string | null; // ISO timestamp when lock was acquired
+	sets: SetScore[]; // JSONB array
+	created_at: string;
+	updated_at: string; // Auto-updated by trigger
 }
 
 export interface SetScore {
-	setNumber: number;
 	team1Score: number;
 	team2Score: number;
-	completedAt?: string;
-}
-
-export interface MatchLock {
-	match_id: number;
-	locked_by: string;
-	locked_at: string;
-	expires_at: string;
 }
