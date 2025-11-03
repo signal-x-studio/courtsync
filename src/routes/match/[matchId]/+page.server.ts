@@ -3,7 +3,7 @@
 // Note: Uses team-centric approach - gets match via team schedule
 
 import type { PageServerLoad } from './$types';
-import { fetchTeamSchedule } from '$lib/services/aes';
+import { fetchTeamSchedule, fetchEventInfo } from '$lib/services/aes';
 import { eventId } from '$lib/stores/event';
 import { get } from 'svelte/store';
 import type { Match } from '$lib/types/aes';
@@ -25,12 +25,24 @@ export const load: PageServerLoad = async ({ params, url, fetch }) => {
 	}
 
 	try {
+		// Get event info to find division details
+		const eventInfo = await fetchEventInfo(currentEventId, fetch);
+		const division = eventInfo.Divisions?.find((d) => d.DivisionId === divisionId);
+
+		if (!division) {
+			return {
+				matchId,
+				match: null,
+				error: 'Division not found'
+			};
+		}
+
 		// Fetch all schedules for this team (current, work, future, past)
 		const [current, work, future, past] = await Promise.all([
-			fetchTeamSchedule(currentEventId, divisionId, teamId, 'current', fetch),
-			fetchTeamSchedule(currentEventId, divisionId, teamId, 'work', fetch),
-			fetchTeamSchedule(currentEventId, divisionId, teamId, 'future', fetch),
-			fetchTeamSchedule(currentEventId, divisionId, teamId, 'past', fetch)
+			fetchTeamSchedule(currentEventId, division, teamId, 'current', fetch),
+			fetchTeamSchedule(currentEventId, division, teamId, 'work', fetch),
+			fetchTeamSchedule(currentEventId, division, teamId, 'future', fetch),
+			fetchTeamSchedule(currentEventId, division, teamId, 'past', fetch)
 		]);
 
 		// Combine all matches and find the one we want

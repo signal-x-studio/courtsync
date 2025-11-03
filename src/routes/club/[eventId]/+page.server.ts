@@ -32,7 +32,7 @@ export const load: PageServerLoad = async ({ fetch, params, url }) => {
 				// Get current matches for this team
 				const teamSchedule = await fetchTeamSchedule(
 					eventId,
-					team.TeamDivision.DivisionId,
+					team.TeamDivision,
 					team.TeamId,
 					'current',
 					fetch

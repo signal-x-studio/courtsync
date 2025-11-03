@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ fetch }) => {
 			try {
 				const teamSchedule = await fetchTeamSchedule(
 					currentEventId,
-					team.TeamDivision.DivisionId,
+					team.TeamDivision,
 					team.TeamId,
 					'current',
 					fetch

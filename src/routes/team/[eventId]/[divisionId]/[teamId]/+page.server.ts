@@ -7,7 +7,8 @@ import {
 	fetchTeamSchedule,
 	fetchTeamRoster,
 	fetchPoolSheet,
-	fetchDivisionPlays
+	fetchDivisionPlays,
+	fetchEventInfo
 } from '$lib/services/aes';
 
 export const load: PageServerLoad = async ({ params, fetch }) => {
@@ -16,12 +17,20 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 	const teamId = Number(params.teamId);
 
 	try {
+		// Get event info to find division details
+		const eventInfo = await fetchEventInfo(eventId, fetch);
+		const division = eventInfo.Divisions?.find((d) => d.DivisionId === divisionId);
+
+		if (!division) {
+			throw new Error('Division not found');
+		}
+
 		// Fetch all schedule types in parallel
 		const [current, work, future, past, roster] = await Promise.all([
-			fetchTeamSchedule(eventId, divisionId, teamId, 'current', fetch),
-			fetchTeamSchedule(eventId, divisionId, teamId, 'work', fetch),
-			fetchTeamSchedule(eventId, divisionId, teamId, 'future', fetch),
-			fetchTeamSchedule(eventId, divisionId, teamId, 'past', fetch),
+			fetchTeamSchedule(eventId, division, teamId, 'current', fetch),
+			fetchTeamSchedule(eventId, division, teamId, 'work', fetch),
+			fetchTeamSchedule(eventId, division, teamId, 'future', fetch),
+			fetchTeamSchedule(eventId, division, teamId, 'past', fetch),
 			fetchTeamRoster(eventId, divisionId, teamId, fetch).catch(() => [])
 		]);
 

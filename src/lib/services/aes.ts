@@ -149,7 +149,7 @@ export const fetchTeamsByClubAndDivision = async (
 /**
  * Fetch schedule for a specific team filtered by type
  * @param eventId - Base64-encoded event ID
- * @param divisionId - Division ID number
+ * @param division - Division object with DivisionId, Name, ColorHex
  * @param teamId - Team ID number
  * @param scheduleType - Type of schedule to fetch
  * @param fetchFn - Fetch function (use load function's fetch for SSR)
@@ -158,12 +158,12 @@ export const fetchTeamsByClubAndDivision = async (
  */
 export const fetchTeamSchedule = async (
 	eventId: string,
-	divisionId: number,
+	division: { DivisionId: number; Name: string; ColorHex: string },
 	teamId: number,
 	scheduleType: 'current' | 'work' | 'future' | 'past',
 	fetchFn: typeof fetch = globalThis.fetch
 ): Promise<Match[]> => {
-	const url = `${API_BASE_URL}/event/${eventId}/division/${divisionId}/team/${teamId}/schedule/${scheduleType}`;
+	const url = `${API_BASE_URL}/event/${eventId}/division/${division.DivisionId}/team/${teamId}/schedule/${scheduleType}`;
 	const response = await fetchFn(url);
 
 	if (!response.ok) {
@@ -172,23 +172,47 @@ export const fetchTeamSchedule = async (
 
 	const data = await response.json();
 
-	// Team schedule API returns ISO strings, convert to Unix timestamps
-	// for consistency with court schedule API format
+	// Team schedule API returns nested structure: Array of plays, each with Matches array
+	// Extract and flatten all matches, converting ISO timestamps to Unix milliseconds
 	if (Array.isArray(data)) {
-		return data.map((match: any) => ({
-			...match,
-			ScheduledStartDateTime:
-				typeof match.ScheduledStartDateTime === 'string'
-					? new Date(match.ScheduledStartDateTime).getTime()
-					: match.ScheduledStartDateTime,
-			ScheduledEndDateTime:
-				typeof match.ScheduledEndDateTime === 'string'
-					? new Date(match.ScheduledEndDateTime).getTime()
-					: match.ScheduledEndDateTime
-		}));
+		const allMatches: Match[] = [];
+
+		for (const playItem of data) {
+			if (playItem.Matches && Array.isArray(playItem.Matches)) {
+				for (const match of playItem.Matches) {
+					// Add Division info since API doesn't include it
+					const processedMatch = {
+						...match,
+						// Add Division object (not included in team schedule API)
+						Division: {
+							DivisionId: division.DivisionId,
+							Name: division.Name,
+							ColorHex: division.ColorHex
+						},
+						// Convert ISO strings to Unix timestamps for consistency
+						ScheduledStartDateTime:
+							typeof match.ScheduledStartDateTime === 'string'
+								? new Date(match.ScheduledStartDateTime).getTime()
+								: match.ScheduledStartDateTime,
+						ScheduledEndDateTime:
+							typeof match.ScheduledEndDateTime === 'string'
+								? new Date(match.ScheduledEndDateTime).getTime()
+								: match.ScheduledEndDateTime,
+						// Ensure HasOutcome exists
+						HasOutcome: match.HasScores || match.TypeOfOutcome > 0 || false,
+						// Add CourtName for consistency with court schedule API
+						CourtName: match.Court?.Name
+					};
+
+					allMatches.push(processedMatch as Match);
+				}
+			}
+		}
+
+		return allMatches;
 	}
 
-	return data;
+	return [];
 };
 
 /**
@@ -196,11 +220,11 @@ export const fetchTeamSchedule = async (
  */
 export const fetchTeamSchedulePast = async (
 	eventId: string,
-	divisionId: number,
+	division: { DivisionId: number; Name: string; ColorHex: string },
 	teamId: number,
 	fetchFn: typeof fetch = globalThis.fetch
 ): Promise<Match[]> => {
-	return fetchTeamSchedule(eventId, divisionId, teamId, 'past', fetchFn);
+	return fetchTeamSchedule(eventId, division, teamId, 'past', fetchFn);
 };
 
 /**
