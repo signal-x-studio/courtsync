@@ -1,7 +1,7 @@
 // Reference: docs/product-requirements.md (AES API integration)
 // Reference: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
-// Purpose: Client for Advanced Event Systems (AES) API
-// Note: All endpoints return JSON; errors throw with descriptive messages
+// Purpose: Client for Advanced Event Systems (AES) API via SvelteKit proxy
+// Note: Uses local API routes to avoid CORS issues with AES API
 
 import type { EventInfo, CourtSchedule, TeamAssignment, Match } from '$lib/types/aes';
 
@@ -10,16 +10,21 @@ const AES_BASE_URL = 'https://results.advancedeventsystems.com';
 class AESClient {
 	/**
 	 * Get event information including clubs and dates
+	 * Uses SvelteKit API route to avoid CORS
 	 */
 	async getEvent(eventId: string): Promise<EventInfo> {
-		const response = await fetch(`${AES_BASE_URL}/api/event/${eventId}`);
-		if (!response.ok) throw new Error('Failed to fetch event');
+		const response = await fetch(`/api/aes/event/${eventId}`);
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to fetch event');
+		}
 		return response.json();
 	}
 
 	/**
 	 * Get court schedule for a specific date and time window
 	 * @param timeWindow - Minutes to look ahead (default 1440 = 24 hours)
+	 * Uses SvelteKit API route to avoid CORS
 	 */
 	async getCourtSchedule(
 		eventId: string,
@@ -27,21 +32,25 @@ class AESClient {
 		timeWindow: number = 1440
 	): Promise<CourtSchedule> {
 		const response = await fetch(
-			`${AES_BASE_URL}/api/event/${eventId}/courts/${date}/${timeWindow}`
+			`/api/aes/schedule/${eventId}?date=${date}&timeWindow=${timeWindow}`
 		);
-		if (!response.ok) throw new Error('Failed to fetch schedule');
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to fetch schedule');
+		}
 		return response.json();
 	}
 
 	/**
 	 * Get team assignments for a specific club
-	 * Uses OData endpoint with filtering
+	 * Uses SvelteKit API route to avoid CORS
 	 */
 	async getTeamAssignments(eventId: string, clubId: number): Promise<TeamAssignment[]> {
-		const response = await fetch(
-			`${AES_BASE_URL}/odata/${eventId}/nextassignments(dId=null,cId=${clubId},tIds=[])?$skip=0&$orderby=TeamName,TeamCode`
-		);
-		if (!response.ok) throw new Error('Failed to fetch teams');
+		const response = await fetch(`/api/aes/assignments/${eventId}?clubId=${clubId}`);
+		if (!response.ok) {
+			const error = await response.json();
+			throw new Error(error.error || 'Failed to fetch teams');
+		}
 		const data = await response.json();
 		return data.value || [];
 	}
