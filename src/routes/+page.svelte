@@ -5,9 +5,9 @@
 
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { aesClient } from '$lib/api/aesClient';
+	import { fetchEventInfo } from '$lib/services/aes';
 	import { eventId as eventIdStore } from '$lib/stores/event';
-	import type { EventInfo, TeamAssignment } from '$lib/types/aes';
+	import type { EventInfo } from '$lib/types/aes';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
 
 	let eventId = $state('');
@@ -30,7 +30,7 @@
 
 		try {
 			// Load event info (includes Clubs array)
-			const info = await aesClient.getEvent(eventId);
+			const info = await fetchEventInfo(eventId);
 			eventInfo = info;
 
 			// Extract clubs from event info

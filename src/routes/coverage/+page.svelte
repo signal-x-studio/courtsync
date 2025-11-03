@@ -3,7 +3,7 @@
 <!-- Note: Shows coverage statistics, timeline view, and conflict warnings -->
 
 <script lang="ts">
-	import { aesClient } from '$lib/api/aesClient';
+	import { fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
 	import { eventId } from '$lib/stores/event';
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
@@ -49,8 +49,8 @@
 				throw new Error('Invalid date format');
 			}
 
-			const schedule = await aesClient.getCourtSchedule($eventId, dateStr, 1440);
-			allMatches = schedule.Matches;
+			const schedule = await fetchCourtSchedule($eventId, dateStr, 1440);
+			allMatches = flattenCourtScheduleMatches(schedule);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to load matches';
 			allMatches = [];

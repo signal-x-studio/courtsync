@@ -5,7 +5,7 @@
 
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { aesClient } from '$lib/api/aesClient';
+	import { fetchCourtSchedule, flattenCourtScheduleMatches } from '$lib/services/aes';
 	import { lockMatch, unlockMatch, updateScore, getMatchScore } from '$lib/supabase/actions';
 	import { liveScore } from '$lib/stores/liveScore';
 	import { clientId } from '$lib/stores/clientId';
@@ -45,8 +45,9 @@
 				throw new Error('Invalid date format');
 			}
 
-			const schedule = await aesClient.getCourtSchedule($eventId, dateStr, 1440);
-			const foundMatch = schedule.Matches.find((m) => m.MatchId === matchId);
+			const schedule = await fetchCourtSchedule($eventId, dateStr, 1440);
+			const allMatches = flattenCourtScheduleMatches(schedule);
+			const foundMatch = allMatches.find((m) => m.MatchId === matchId);
 
 			if (!foundMatch) {
 				error = 'Match not found';

@@ -85,3 +85,65 @@ export interface PoolStandings {
 		PointsAgainst: number;
 	}>;
 }
+
+export interface SetScore {
+	FirstTeamScore: number | null;
+	SecondTeamScore: number | null;
+	ScoreText: string;
+	IsDecidingSet: boolean;
+}
+
+export interface PoolsheetResponse {
+	Pool: {
+		Teams: Array<{
+			TeamId: number;
+			TeamName: string;
+			TeamCode: string;
+			TeamText: string;
+			MatchesWon: number;
+			MatchesLost: number;
+			MatchPercent: number;
+			SetsWon: number;
+			SetsLost: number;
+			SetPercent: number;
+			PointRatio: number;
+			FinishRank: number;
+			FinishRankText: string;
+			Club: {
+				ClubId: number;
+				Name: string;
+			};
+			Division: {
+				DivisionId: number;
+				Name: string;
+				TeamCount: number;
+				CodeAlias: string;
+				ColorHex: string;
+			};
+		}>;
+		Courts: Array<{
+			CourtId: number;
+			Name: string;
+			VideoLink: string;
+		}>;
+		PlayId: number;
+	};
+	Matches: Array<{
+		MatchId: number;
+		FirstTeamId: number;
+		FirstTeamName: string;
+		FirstTeamText: string;
+		SecondTeamId: number;
+		SecondTeamName: string;
+		SecondTeamText: string;
+		HasScores: boolean;
+		Sets: SetScore[];
+		Court: {
+			CourtId: number;
+			Name: string;
+			VideoLink: string;
+		};
+		ScheduledStartDateTime: string;
+		ScheduledEndDateTime: string;
+	}>;
+}

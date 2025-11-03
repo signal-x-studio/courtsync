@@ -3,22 +3,20 @@
 <!-- Note: Allows users to add/remove favorite teams and see their schedules -->
 
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { aesClient } from '$lib/api/aesClient';
-	import { eventId } from '$lib/stores/event';
 	import { favoriteTeams } from '$lib/stores/favorites';
 	import { filters } from '$lib/stores/filters';
 	import { applyFilters, groupByTime } from '$lib/utils/filterMatches';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
-	import MatchCardSkeleton from '$lib/components/ui/MatchCardSkeleton.svelte';
-	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
-	import type { Match, TeamAssignment } from '$lib/types/aes';
+	import type { PageData } from './$types';
 
-	let loading = $state(true);
-	let error = $state('');
-	let allMatches = $state<Match[]>([]);
-	let availableTeams = $state<TeamAssignment[]>([]);
+	// Get data from load function
+	let { data }: { data: PageData } = $props();
+
 	let showTeamSelector = $state(false);
+
+	// Use data from server-side load
+	let allMatches = $derived(data.allMatches);
+	let availableTeams = $derived(data.availableTeams);
 
 	// Derived reactive values
 	let favoriteMatches = $derived(
@@ -31,69 +29,6 @@
 	let filteredMatches = $derived(applyFilters(favoriteMatches, $filters));
 	let timeBlocks = $derived(groupByTime(filteredMatches));
 
-	async function loadData() {
-		if (!$eventId) {
-			error = 'Please select an event first';
-			loading = false;
-			return;
-		}
-
-		loading = true;
-		error = '';
-
-		try {
-			// Get current date
-			const today = new Date();
-			const dateStr = today.toISOString().split('T')[0];
-			if (!dateStr) {
-				throw new Error('Invalid date format');
-			}
-
-			// Load court schedule
-			const schedule = await aesClient.getCourtSchedule($eventId, dateStr, 1440);
-			allMatches = schedule.Matches;
-
-			// Extract unique teams from matches
-			const teamsMap = new Map<number, TeamAssignment>();
-			for (const match of schedule.Matches) {
-				// Add first team
-				if (match.FirstTeamId) {
-					teamsMap.set(match.FirstTeamId, {
-						TeamId: match.FirstTeamId,
-						TeamName: match.FirstTeamText,
-						TeamCode: '',
-						ClubId: 0,
-						ClubName: '',
-						DivisionId: match.Division.DivisionId,
-						DivisionName: match.Division.Name
-					});
-				}
-				// Add second team
-				if (match.SecondTeamId) {
-					teamsMap.set(match.SecondTeamId, {
-						TeamId: match.SecondTeamId,
-						TeamName: match.SecondTeamText,
-						TeamCode: '',
-						ClubId: 0,
-						ClubName: '',
-						DivisionId: match.Division.DivisionId,
-						DivisionName: match.Division.Name
-					});
-				}
-			}
-			availableTeams = Array.from(teamsMap.values()).sort((a, b) => {
-				const divCompare = a.DivisionName.localeCompare(b.DivisionName);
-				return divCompare !== 0 ? divCompare : a.TeamName.localeCompare(b.TeamName);
-			});
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load data';
-			allMatches = [];
-			availableTeams = [];
-		} finally {
-			loading = false;
-		}
-	}
-
 	function toggleFavorite(teamId: number) {
 		if ($favoriteTeams.includes(teamId)) {
 			favoriteTeams.removeTeam(teamId);
@@ -101,11 +36,6 @@
 			favoriteTeams.addTeam(teamId);
 		}
 	}
-
-	// Load data when component mounts
-	$effect(() => {
-		loadData();
-	});
 </script>
 
 <div class="max-w-screen-xl mx-auto p-4">
@@ -155,41 +85,30 @@
 		</div>
 	{/if}
 
-	<ErrorBoundary {error} retry={loadData}>
-		{#if loading}
-			<div class="space-y-4">
-				{#each Array(5) as _}
-					<MatchCardSkeleton />
-				{/each}
-			</div>
-		{:else if $favoriteTeams.length === 0}
-			<div class="text-center py-12">
-				<p class="text-gray-400 text-lg mb-4">No favorite teams selected</p>
-				<button
-					onclick={() => (showTeamSelector = true)}
-					class="px-6 py-3 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
-				>
-					Select Your Teams
+	{#if $favoriteTeams.length === 0}
+		<div class="text-center py-12">
+			<p class="text-gray-400 text-lg mb-4">No favorite teams selected</p>
+			<button
+				onclick={() => (showTeamSelector = true)}
+				class="px-6 py-3 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
+			>
+				Select Your Teams
+			</button>
+		</div>
+	{:else if timeBlocks.length === 0}
+		<div class="text-center py-12">
+			<p class="text-gray-400 text-lg">No matches found for your teams</p>
+			{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
+				<button onclick={() => filters.clear()} class="mt-4 text-court-gold hover:underline">
+					Clear filters
 				</button>
-			</div>
-		{:else if timeBlocks.length === 0}
-			<div class="text-center py-12">
-				<p class="text-gray-400 text-lg">No matches found for your teams</p>
-				{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
-					<button
-						onclick={() => filters.clear()}
-						class="mt-4 text-court-gold hover:underline"
-					>
-						Clear filters
-					</button>
-				{/if}
-			</div>
-		{:else}
-			<div class="space-y-4">
-				{#each timeBlocks as block (block.time)}
-					<TimeBlock {block} conflicts={new Set()} showCoverageToggle={false} />
-				{/each}
-			</div>
-		{/if}
-	</ErrorBoundary>
+			{/if}
+		</div>
+	{:else}
+		<div class="space-y-4">
+			{#each timeBlocks as block (block.time)}
+				<TimeBlock {block} conflicts={new Set()} showCoverageToggle={false} />
+			{/each}
+		</div>
+	{/if}
 </div>

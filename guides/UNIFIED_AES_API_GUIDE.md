@@ -2,11 +2,6 @@
 
 **Purpose**: Comprehensive guide for integrating with Advanced Event Systems (AES) API in SvelteKit applications.
 
-**Based on**:
-- Real endpoint testing with curl (documented in AES_API_REFERENCE.md)
-- Reference implementation patterns (from agent-guide-aes-api.md)
-- Comparison between courtsync and coursync projects
-
 ---
 
 ## Table of Contents
