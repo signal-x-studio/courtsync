@@ -9,6 +9,7 @@
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte';
 	import InstallPrompt from '$lib/components/pwa/InstallPrompt.svelte';
 	import OfflineIndicator from '$lib/components/ui/OfflineIndicator.svelte';
+	import NotificationScheduler from '$lib/components/notifications/NotificationScheduler.svelte';
 
 	let { children } = $props();
 </script>
@@ -34,4 +35,5 @@
 
 	<BottomNav />
 	<InstallPrompt />
+	<NotificationScheduler />
 </div>

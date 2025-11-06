@@ -455,7 +455,7 @@ Each feature must pass:
 | 2 | Sharing Functionality | ✅ Complete | 2025-11-06 |
 | 3 | PWA Features | ✅ Complete | 2025-11-06 |
 | 4 | Offline Support | ✅ Complete | 2025-11-06 |
-| 5 | Push Notifications | ⏳ Pending | - |
+| 5 | Push Notifications | ✅ Complete | 2025-11-06 |
 | 6 | Tighten RLS Policies | ⏳ Pending | - |
 | 7 | Performance Monitoring | ⏳ Pending | - |
 | 8 | Analytics Tracking | ⏳ Pending | - |
@@ -876,3 +876,111 @@ After generating proper PNG icons:
 - ✅ No console errors
 
 **Next Action:** Ready for Priority 5: Push Notifications
+
+## Priority 5: Push Notifications - COMPLETE ✅
+
+**Completed:** 2025-11-06
+
+### What Was Implemented
+
+1. **Notification Store** (`/src/lib/stores/notifications.ts`)
+   - Tracks notification preferences (enabled/disabled)
+   - Stores permission status
+   - Configurable minutes before match (default: 15)
+   - Persists to localStorage
+
+2. **Notification Utilities** (`/src/lib/utils/notifications.ts`)
+   - Feature detection for Notification API
+   - Permission request handling
+   - Show match notifications with formatted details
+   - Schedule notifications using setTimeout
+   - Auto-schedule for favorite team matches
+   - Notification click handling (opens match detail)
+
+3. **NotificationSettings Component** (`/src/lib/components/notifications/NotificationSettings.svelte`)
+   - Enable/disable notification UI
+   - Permission request button
+   - Status messages (enabled, blocked, granted)
+   - Visual feedback for current state
+   - Shows only when favorite teams exist
+
+4. **NotificationScheduler Component** (`/src/lib/components/notifications/NotificationScheduler.svelte`)
+   - Background component (no UI)
+   - Schedules notifications for upcoming matches
+   - Runs every 5 minutes to check for new matches
+   - Auto-reschedules when preferences or favorites change
+   - Cleans up timeouts on unmount
+
+5. **Integration**
+   - NotificationSettings added to My Teams page
+   - NotificationScheduler runs globally in root layout
+   - Notifications trigger 15 minutes before favorite team matches
+   - Click notification opens match detail page
+
+### Files Created
+- `/src/lib/stores/notifications.ts`
+- `/src/lib/utils/notifications.ts`
+- `/src/lib/components/notifications/NotificationSettings.svelte`
+- `/src/lib/components/notifications/NotificationScheduler.svelte`
+
+### Files Modified
+- `/src/routes/my-teams/+page.svelte`
+- `/src/routes/+layout.svelte`
+
+### How It Works
+
+1. **User Flow:**
+   - User favorites teams on "My Teams" page
+   - Notification settings card appears
+   - User clicks "Enable" button
+   - Browser requests notification permission
+   - If granted, notifications scheduled automatically
+
+2. **Notification Scheduling:**
+   - Scheduler checks all matches for today
+   - Filters matches involving favorite teams
+   - Schedules notification 15 min before each match
+   - Re-checks every 5 minutes for new matches
+
+3. **Notification Display:**
+   - Shows: "Match Starting in 15 min"
+   - Body: Team names and court
+   - Icon: App icon
+   - Vibrates on mobile
+   - Auto-closes after 10 seconds
+
+4. **Click Handling:**
+   - Clicking notification opens match detail page
+   - Opens in new tab/window
+   - Notification closes automatically
+
+### Success Criteria - ALL MET ✅
+- ✅ Notification permission request implemented
+- ✅ Preferences stored in localStorage
+- ✅ Notifications schedule for favorite team matches
+- ✅ 15-minute warning before match start
+- ✅ Click handler opens match detail
+- ✅ Settings UI on My Teams page
+- ✅ Background scheduler runs globally
+- ✅ No console errors
+
+### Browser Support
+
+| Feature | Chrome | Safari | Firefox | Edge |
+|---------|--------|--------|---------|------|
+| Notification API | ✅ | ✅ | ✅ | ✅ |
+| Click Handling | ✅ | ✅ | ✅ | ✅ |
+| Permission Request | ✅ | ✅ | ✅ | ✅ |
+
+Note: Requires user permission; works on all modern browsers.
+
+### Limitations
+
+- **Client-Side Only**: Uses setTimeout, not true push notifications
+- **Tab Must Be Open**: Notifications only work while tab is open
+- **24-Hour Window**: Only schedules matches within next 24 hours
+- **No Backend**: No server-side push (could add with Supabase Edge Functions)
+
+For true background push notifications, would need Push API + service worker + backend service.
+
+**Next Action:** Ready for Priority 6: Tighten RLS Policies
