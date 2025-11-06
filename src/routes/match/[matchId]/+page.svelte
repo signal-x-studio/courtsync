@@ -12,8 +12,10 @@
 	import { eventId } from '$lib/stores/event';
 	import { persona } from '$lib/stores/persona';
 	import { getMatchStatus } from '$lib/utils/filterMatches';
+	import { formatMatchShare } from '$lib/utils/share';
 	import { format } from 'date-fns';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
+	import ShareButton from '$lib/components/ui/ShareButton.svelte';
 	import type { Match } from '$lib/types/aes';
 
 	let matchId = $derived(Number($page.params.matchId));
@@ -151,6 +153,11 @@
 					<div class="text-2xl font-bold mb-2">{match.FirstTeamText}</div>
 					<div class="text-gray-400 text-lg mb-2">vs</div>
 					<div class="text-2xl font-bold">{match.SecondTeamText}</div>
+				</div>
+
+				<!-- Share Button -->
+				<div class="mt-4 flex justify-center">
+					<ShareButton shareData={formatMatchShare(match)} label="Share Match" />
 				</div>
 			</div>
 

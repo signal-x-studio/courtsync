@@ -8,9 +8,11 @@
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
 	import { groupByTime, detectConflicts } from '$lib/utils/filterMatches';
+	import { formatCoverageShare } from '$lib/utils/share';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
 	import MatchCardSkeleton from '$lib/components/ui/MatchCardSkeleton.svelte';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
+	import ShareButton from '$lib/components/ui/ShareButton.svelte';
 	import type { Match } from '$lib/types/aes';
 	import type { CoverageStats } from '$lib/types/app';
 
@@ -67,7 +69,14 @@
 
 <div class="max-w-screen-xl mx-auto p-4">
 	<div class="mb-6">
-		<h2 class="text-2xl font-bold text-court-gold mb-2">Coverage Plan</h2>
+		<div class="flex items-start justify-between">
+			<h2 class="text-2xl font-bold text-court-gold mb-2">Coverage Plan</h2>
+			<ShareButton
+				shareData={formatCoverageShare(stats.totalMatches, stats.conflicts, stats.divisions)}
+				variant="secondary"
+				size="sm"
+			/>
+		</div>
 		{#if $persona !== 'media'}
 			<div
 				class="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4 text-yellow-400"

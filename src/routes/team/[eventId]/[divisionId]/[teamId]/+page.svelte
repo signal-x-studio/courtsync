@@ -8,6 +8,8 @@
 	import { aesClient } from '$lib/api/aesClient';
 	import PoolStandings from '$lib/components/team/PoolStandings.svelte';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
+	import ShareButton from '$lib/components/ui/ShareButton.svelte';
+	import { formatTeamShare } from '$lib/utils/share';
 	import type { PoolTeam, Play } from '$lib/types/aes';
 
 	let eventId = $derived($page.params.eventId);
@@ -108,21 +110,36 @@
 					<div class="h-8 w-48 animate-pulse rounded bg-gray-700"></div>
 					<div class="mt-1 h-4 w-32 animate-pulse rounded bg-gray-800"></div>
 				{:else}
-					<h1 class="text-2xl font-bold text-gray-100">{teamName || 'Team Details'}</h1>
-					<div class="mt-1 flex items-center gap-2 text-sm text-gray-400">
-						{#if divisionName}
-							<span
-								class="rounded px-2 py-0.5"
-								style="background-color: {poolTeams.find((t) => t.TeamId === teamId)?.Division
-									.ColorHex || '#6B7280'}; color: #111827;"
-							>
-								{divisionName}
-							</span>
-						{/if}
-						{#if poolName}
-							<span>•</span>
-							<span>{poolName}</span>
-						{/if}
+					<div class="flex items-start justify-between">
+						<div class="flex-1">
+							<h1 class="text-2xl font-bold text-gray-100">{teamName || 'Team Details'}</h1>
+							<div class="mt-1 flex items-center gap-2 text-sm text-gray-400">
+								{#if divisionName}
+									<span
+										class="rounded px-2 py-0.5"
+										style="background-color: {poolTeams.find((t) => t.TeamId === teamId)?.Division
+											.ColorHex || '#6B7280'}; color: #111827;"
+									>
+										{divisionName}
+									</span>
+								{/if}
+								{#if poolName}
+									<span>•</span>
+									<span>{poolName}</span>
+								{/if}
+							</div>
+						</div>
+						<div class="ml-4">
+							<ShareButton
+								shareData={formatTeamShare(
+									teamName || 'Team',
+									divisionName || '',
+									currentMatches.length + futureMatches.length + pastMatches.length
+								)}
+								variant="ghost"
+								size="sm"
+							/>
+						</div>
 					</div>
 				{/if}
 			</div>
