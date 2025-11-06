@@ -7,6 +7,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte';
+	import InstallPrompt from '$lib/components/pwa/InstallPrompt.svelte';
 
 	let { children } = $props();
 </script>
@@ -29,4 +30,5 @@
 	</main>
 
 	<BottomNav />
+	<InstallPrompt />
 </div>
