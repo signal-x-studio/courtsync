@@ -12,6 +12,7 @@
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
 	import MatchCardSkeleton from '$lib/components/ui/MatchCardSkeleton.svelte';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
+	import NotificationSettings from '$lib/components/notifications/NotificationSettings.svelte';
 	import type { Match, TeamAssignment } from '$lib/types/aes';
 
 	let loading = $state(true);
@@ -152,6 +153,13 @@
 					</button>
 				{/each}
 			</div>
+		</div>
+	{/if}
+
+	<!-- Notification Settings -->
+	{#if $favoriteTeams.length > 0}
+		<div class="mb-6">
+			<NotificationSettings />
 		</div>
 	{/if}
 

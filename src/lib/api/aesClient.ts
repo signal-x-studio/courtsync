@@ -3,7 +3,8 @@
 // Purpose: Client for Advanced Event Systems (AES) API via SvelteKit proxy
 // Note: Uses local API routes to avoid CORS issues with AES API
 
-import type { EventInfo, CourtSchedule, TeamAssignment, Match } from '$lib/types/aes';
+import type { EventInfo, CourtSchedule, TeamAssignment, Match, Play, PoolSheet } from '$lib/types/aes';
+import { measureAPICall } from '$lib/utils/apiPerformance';
 
 const AES_BASE_URL = 'https://results.advancedeventsystems.com';
 
@@ -13,12 +14,14 @@ class AESClient {
 	 * Uses SvelteKit API route to avoid CORS
 	 */
 	async getEvent(eventId: string): Promise<EventInfo> {
-		const response = await fetch(`/api/aes/event/${eventId}`);
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.error || 'Failed to fetch event');
-		}
-		return response.json();
+		return measureAPICall(`/api/aes/event/${eventId}`, 'GET', async () => {
+			const response = await fetch(`/api/aes/event/${eventId}`);
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || 'Failed to fetch event');
+			}
+			return response.json();
+		});
 	}
 
 	/**
@@ -32,31 +35,37 @@ class AESClient {
 		date: string,
 		timeWindow: number = 1440
 	): Promise<CourtSchedule> {
-		const response = await fetch(
-			`/api/aes/schedule/${eventId}?date=${date}&timeWindow=${timeWindow}`
-		);
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.error || 'Failed to fetch schedule');
-		}
-		const data = await response.json();
+		return measureAPICall(
+			`/api/aes/schedule/${eventId}`,
+			'GET',
+			async () => {
+				const response = await fetch(
+					`/api/aes/schedule/${eventId}?date=${date}&timeWindow=${timeWindow}`
+				);
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to fetch schedule');
+				}
+				const data = await response.json();
 
-		// Flatten matches from all courts and add CourtName/CourtId
-		const allMatches: Match[] = [];
-		for (const court of data.CourtSchedules || []) {
-			for (const match of court.CourtMatches || []) {
-				allMatches.push({
-					...match,
-					CourtName: court.Name,
-					CourtId: court.CourtId
-				});
+				// Flatten matches from all courts and add CourtName/CourtId
+				const allMatches: Match[] = [];
+				for (const court of data.CourtSchedules || []) {
+					for (const match of court.CourtMatches || []) {
+						allMatches.push({
+							...match,
+							CourtName: court.Name,
+							CourtId: court.CourtId
+						});
+					}
+				}
+
+				return {
+					...data,
+					Matches: allMatches
+				};
 			}
-		}
-
-		return {
-			...data,
-			Matches: allMatches
-		};
+		);
 	}
 
 	/**
@@ -64,13 +73,19 @@ class AESClient {
 	 * Uses SvelteKit API route to avoid CORS
 	 */
 	async getTeamAssignments(eventId: string, clubId: number): Promise<TeamAssignment[]> {
-		const response = await fetch(`/api/aes/assignments/${eventId}?clubId=${clubId}`);
-		if (!response.ok) {
-			const error = await response.json();
-			throw new Error(error.error || 'Failed to fetch teams');
-		}
-		const data = await response.json();
-		return data.value || [];
+		return measureAPICall(
+			`/api/aes/assignments/${eventId}`,
+			'GET',
+			async () => {
+				const response = await fetch(`/api/aes/assignments/${eventId}?clubId=${clubId}`);
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.error || 'Failed to fetch teams');
+				}
+				const data = await response.json();
+				return data.value || [];
+			}
+		);
 	}
 
 	/**
@@ -82,31 +97,49 @@ class AESClient {
 		teamId: number,
 		scheduleType: 'current' | 'work' | 'future' | 'past'
 	): Promise<Match[]> {
-		const response = await fetch(
-			`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/team/${teamId}/schedule/${scheduleType}`
+		return measureAPICall(
+			`/api/event/${eventId}/division/${divisionId}/team/${teamId}/schedule/${scheduleType}`,
+			'GET',
+			async () => {
+				const response = await fetch(
+					`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/team/${teamId}/schedule/${scheduleType}`
+				);
+				if (!response.ok) throw new Error('Failed to fetch team schedule');
+				return response.json();
+			}
 		);
-		if (!response.ok) throw new Error('Failed to fetch team schedule');
-		return response.json();
 	}
 
 	/**
 	 * Get division plays (bracket/pool information)
 	 */
-	async getDivisionPlays(eventId: string, divisionId: number): Promise<any> {
-		const response = await fetch(
-			`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/plays`
+	async getDivisionPlays(eventId: string, divisionId: number): Promise<Play[]> {
+		return measureAPICall(
+			`/api/event/${eventId}/division/${divisionId}/plays`,
+			'GET',
+			async () => {
+				const response = await fetch(
+					`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/plays`
+				);
+				if (!response.ok) throw new Error('Failed to fetch division plays');
+				return response.json();
+			}
 		);
-		if (!response.ok) throw new Error('Failed to fetch division plays');
-		return response.json();
 	}
 
 	/**
 	 * Get pool sheet standings
 	 */
-	async getPoolSheet(eventId: string, playId: number): Promise<any> {
-		const response = await fetch(`${AES_BASE_URL}/api/event/${eventId}/poolsheet/${playId}`);
-		if (!response.ok) throw new Error('Failed to fetch pool sheet');
-		return response.json();
+	async getPoolSheet(eventId: string, playId: number): Promise<PoolSheet> {
+		return measureAPICall(
+			`/api/event/${eventId}/poolsheet/${playId}`,
+			'GET',
+			async () => {
+				const response = await fetch(`${AES_BASE_URL}/api/event/${eventId}/poolsheet/${playId}`);
+				if (!response.ok) throw new Error('Failed to fetch pool sheet');
+				return response.json();
+			}
+		);
 	}
 
 	/**
@@ -117,11 +150,17 @@ class AESClient {
 		divisionId: number,
 		teamId: number
 	): Promise<any[]> {
-		const response = await fetch(
-			`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/team/${teamId}/roster`
+		return measureAPICall(
+			`/api/event/${eventId}/division/${divisionId}/team/${teamId}/roster`,
+			'GET',
+			async () => {
+				const response = await fetch(
+					`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/team/${teamId}/roster`
+				);
+				if (!response.ok) throw new Error('Failed to fetch roster');
+				return response.json();
+			}
 		);
-		if (!response.ok) throw new Error('Failed to fetch roster');
-		return response.json();
 	}
 }
 
