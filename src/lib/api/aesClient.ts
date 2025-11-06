@@ -3,7 +3,7 @@
 // Purpose: Client for Advanced Event Systems (AES) API via SvelteKit proxy
 // Note: Uses local API routes to avoid CORS issues with AES API
 
-import type { EventInfo, CourtSchedule, TeamAssignment, Match } from '$lib/types/aes';
+import type { EventInfo, CourtSchedule, TeamAssignment, Match, Play, PoolSheet } from '$lib/types/aes';
 
 const AES_BASE_URL = 'https://results.advancedeventsystems.com';
 
@@ -92,7 +92,7 @@ class AESClient {
 	/**
 	 * Get division plays (bracket/pool information)
 	 */
-	async getDivisionPlays(eventId: string, divisionId: number): Promise<any> {
+	async getDivisionPlays(eventId: string, divisionId: number): Promise<Play[]> {
 		const response = await fetch(
 			`${AES_BASE_URL}/api/event/${eventId}/division/${divisionId}/plays`
 		);
@@ -103,7 +103,7 @@ class AESClient {
 	/**
 	 * Get pool sheet standings
 	 */
-	async getPoolSheet(eventId: string, playId: number): Promise<any> {
+	async getPoolSheet(eventId: string, playId: number): Promise<PoolSheet> {
 		const response = await fetch(`${AES_BASE_URL}/api/event/${eventId}/poolsheet/${playId}`);
 		if (!response.ok) throw new Error('Failed to fetch pool sheet');
 		return response.json();

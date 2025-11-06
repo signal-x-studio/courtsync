@@ -73,15 +73,37 @@ export interface TeamSchedule {
 	Past: Match[];
 }
 
-export interface PoolStandings {
-	PoolId: number;
-	PoolName: string;
-	Teams: Array<{
-		TeamId: number;
-		TeamName: string;
-		Wins: number;
-		Losses: number;
-		PointsFor: number;
-		PointsAgainst: number;
-	}>;
+export interface PoolTeam {
+	TeamId: number;
+	TeamName: string;
+	TeamCode: string;
+	TeamText: string;
+	MatchesWon: number;
+	MatchesLost: number;
+	MatchPercent: number;
+	SetsWon: number;
+	SetsLost: number;
+	SetPercent: number;
+	PointRatio: number;
+	FinishRank: number;
+	FinishRankText: string;
+	Club: {
+		ClubId: number;
+		Name: string;
+	};
+	Division: Division;
+}
+
+export interface PoolSheet {
+	Pool: {
+		Teams: PoolTeam[];
+	};
+}
+
+export interface Play {
+	Type: number; // 0 = Pool, 1 = Bracket
+	PlayId: number;
+	FullName: string;
+	ShortName: string;
+	CompleteShortName: string;
 }
