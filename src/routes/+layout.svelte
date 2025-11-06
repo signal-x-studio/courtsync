@@ -14,13 +14,19 @@
 	import NotificationScheduler from '$lib/components/notifications/NotificationScheduler.svelte';
 	import PerformanceMonitor from '$lib/components/performance/PerformanceMonitor.svelte';
 	import AnalyticsConsent from '$lib/components/analytics/AnalyticsConsent.svelte';
+	import UserMenu from '$lib/components/auth/UserMenu.svelte';
+	import AuthModal from '$lib/components/auth/AuthModal.svelte';
 	import { initWebVitals } from '$lib/utils/webVitals';
 	import { initErrorTracking, trackPageView } from '$lib/utils/analytics';
+	import { auth } from '$lib/stores/auth';
 
 	let { children } = $props();
 
-	// Initialize Web Vitals and error tracking
+	let showAuthModal = $state(false);
+
+	// Initialize auth, Web Vitals, and error tracking
 	onMount(() => {
+		auth.initialize();
 		initWebVitals();
 		initErrorTracking();
 	});
@@ -31,6 +37,14 @@
 			trackPageView($page.url.pathname, document?.title);
 		}
 	});
+
+	function handleSignInClick() {
+		showAuthModal = true;
+	}
+
+	function handleAuthClose() {
+		showAuthModal = false;
+	}
 </script>
 
 <svelte:head>
@@ -43,8 +57,9 @@
 	<OfflineIndicator />
 
 	<header class="bg-court-charcoal border-b border-gray-800 p-4">
-		<div class="max-w-screen-xl mx-auto">
+		<div class="max-w-screen-xl mx-auto flex items-center justify-between">
 			<h1 class="text-2xl font-bold text-court-gold">CourtSync</h1>
+			<UserMenu onSignInClick={handleSignInClick} />
 		</div>
 	</header>
 
@@ -57,4 +72,7 @@
 	<NotificationScheduler />
 	<PerformanceMonitor />
 	<AnalyticsConsent />
+	{#if showAuthModal}
+		<AuthModal onClose={handleAuthClose} />
+	{/if}
 </div>
