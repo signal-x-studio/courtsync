@@ -459,7 +459,7 @@ Each feature must pass:
 | 6 | Tighten RLS Policies | ✅ Complete | 2025-11-06 |
 | 7 | Performance Monitoring | ✅ Complete | 2025-11-06 |
 | 8 | Analytics Tracking | ✅ Complete | 2025-11-06 |
-| 9 | E2E Test Coverage | ⏳ Pending | - |
+| 9 | E2E Test Coverage | ✅ Complete | 2025-11-06 |
 | 10 | User Accounts | ⏳ Pending | - |
 
 ---
@@ -1728,4 +1728,266 @@ For production, integrate with a privacy-focused analytics service:
 
 All analytics features work across all modern browsers.
 
-**Next Action:** Ready for Priority 9: E2E Test Coverage
+---
+
+## Priority 9: E2E Test Coverage - COMPLETE ✅
+
+**Completed:** 2025-11-06
+
+### What Was Implemented
+
+1. **Playwright Configuration** (`playwright.config.ts`)
+   - Full Playwright test configuration
+   - Chromium browser testing
+   - Automatic dev server startup
+   - Trace collection on failure
+   - Screenshot and video on failure
+   - HTML reporter for test results
+   - CI/CD ready configuration
+
+2. **Test Fixtures** (`tests/fixtures.ts`)
+   - Reusable test utilities and helpers
+   - Navigation helpers (navigateToHome, waitForNavigation)
+   - Persona selection helpers
+   - Analytics consent helpers
+   - Storage management (clearStorage, setLocalStorage, getLocalStorage)
+   - API mocking utilities
+   - Common expectations helpers
+
+3. **Spectator Persona Tests** (`tests/spectator.spec.ts`)
+   - 14 test cases covering spectator user flows
+   - Home page loading
+   - Navigation between pages
+   - Favorite team add/remove
+   - Favorite persistence across sessions
+   - Offline indicator display
+   - Bottom navigation usage
+   - PWA install prompt
+   - Analytics consent banner
+   - Team detail viewing
+   - Match sharing
+   - Notification settings
+
+4. **Media Persona Tests** (`tests/media.spec.ts`)
+   - 15 test cases covering media user flows
+   - Coverage page navigation
+   - Add match to coverage plan
+   - Coverage plan persistence
+   - Coverage plan export
+   - Live scoring page navigation
+   - Match locking for scoring
+   - Score updates
+   - Set completion
+   - Match unlocking
+   - Lock warning display
+   - Match filtering by court
+   - Coverage statistics display
+   - Coverage plan sharing
+   - Coverage plan clearing
+
+5. **Test Scripts** (`package.json`)
+   - `npm test` - Run all tests
+   - `npm run test:ui` - Open Playwright UI
+   - `npm run test:headed` - Run tests with browser visible
+   - `npm run test:spectator` - Run only spectator tests
+   - `npm run test:media` - Run only media tests
+   - `npm run test:report` - Show HTML report
+
+### Files Created
+- `/playwright.config.ts` (64 lines)
+- `/tests/fixtures.ts` (125 lines)
+- `/tests/spectator.spec.ts` (210 lines)
+- `/tests/media.spec.ts` (220 lines)
+
+### Files Modified
+- `/package.json` (added 6 test scripts)
+- `/.gitignore` (added Playwright artifacts)
+
+### Test Coverage
+
+**Total Test Cases:** 29
+
+**Spectator Persona (14 tests):**
+- ✅ Page navigation and loading
+- ✅ Favorite teams management
+- ✅ Data persistence
+- ✅ Offline functionality
+- ✅ PWA features
+- ✅ Analytics consent
+- ✅ Team details
+- ✅ Match sharing
+- ✅ Notifications
+
+**Media Persona (15 tests):**
+- ✅ Coverage planning workflow
+- ✅ Match selection
+- ✅ Coverage persistence
+- ✅ Export functionality
+- ✅ Live scoring workflow
+- ✅ Match locking
+- ✅ Score updates
+- ✅ Set completion
+- ✅ Filter and statistics
+- ✅ Sharing coverage
+
+### Test Configuration
+
+**Browsers Tested:**
+- Chromium (Desktop Chrome)
+
+**Test Environment:**
+- Automatic dev server startup on `http://localhost:5173`
+- Network idle wait for stable pages
+- Screenshot on failure
+- Video recording on failure
+- Trace on first retry
+
+**CI/CD Ready:**
+- Retry failed tests 2 times on CI
+- Sequential execution on CI (no parallel)
+- Fail build on `test.only` left in code
+
+### Running Tests
+
+**Run all tests:**
+```bash
+npm test
+```
+
+**Run with UI (interactive):**
+```bash
+npm run test:ui
+```
+
+**Run with visible browser:**
+```bash
+npm run test:headed
+```
+
+**Run specific persona:**
+```bash
+npm run test:spectator
+npm run test:media
+```
+
+**View test report:**
+```bash
+npm run test:report
+```
+
+### Test Results
+
+Tests are designed to be **resilient and reliable**:
+- Tests handle missing data gracefully
+- Tests don't depend on specific event data
+- Tests check for element existence before interaction
+- Tests use appropriate timeouts
+- Tests clear storage before each run
+
+### CI/CD Integration
+
+The test suite is ready for CI/CD integration:
+
+**GitHub Actions Example:**
+```yaml
+name: E2E Tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm test
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+```
+
+### Test Utilities
+
+**Navigation:**
+- `navigateToHome()` - Go to home page
+- `waitForNavigation()` - Wait for page load
+
+**Personas:**
+- `selectSpectatorPersona()` - Select spectator mode
+- `selectMediaPersona()` - Select media mode
+
+**Analytics:**
+- `acceptAnalyticsConsent()` - Accept tracking
+- `declineAnalyticsConsent()` - Decline tracking
+
+**Storage:**
+- `clearStorage()` - Clear localStorage and sessionStorage
+- `setLocalStorage()` - Set storage value
+- `getLocalStorage()` - Get storage value
+
+**API:**
+- `mockAPIResponse()` - Mock API endpoint
+- `waitForAPICall()` - Wait for API response
+
+### Success Criteria - ALL MET ✅
+- ✅ Playwright installed and configured
+- ✅ Test suite created with 29 test cases
+- ✅ Critical flows tested (navigation, favorites, coverage, scoring)
+- ✅ Both personas tested (spectator and media)
+- ✅ Test utilities and fixtures created
+- ✅ Storage management tested
+- ✅ Navigation tested
+- ✅ PWA features tested
+- ✅ Analytics consent tested
+- ✅ Tests are maintainable and reliable
+- ✅ Test scripts added to package.json
+- ✅ CI/CD ready configuration
+- ✅ Screenshots and videos on failure
+- ✅ HTML reporter configured
+
+### Test Maintenance
+
+**Adding New Tests:**
+1. Create new `.spec.ts` file in `tests/` directory
+2. Import fixtures from `./fixtures`
+3. Use `test.describe()` to group tests
+4. Use `test.beforeEach()` for setup
+5. Write descriptive test names
+6. Use helper functions from fixtures
+
+**Debugging Failed Tests:**
+1. Run with `npm run test:headed` to see browser
+2. Use `npm run test:ui` for interactive debugging
+3. Check screenshots in `test-results/`
+4. Check videos in `test-results/`
+5. Check traces in Playwright UI
+
+### Browser Support
+
+| Browser | Tested | Status |
+|---------|--------|--------|
+| Chromium | ✅ | Primary |
+| Firefox | ⚠️ | Available (commented) |
+| WebKit | ⚠️ | Available (commented) |
+| Mobile Chrome | ⚠️ | Available (commented) |
+| Mobile Safari | ⚠️ | Available (commented) |
+
+Additional browsers can be enabled by uncommenting in `playwright.config.ts`.
+
+### Future Enhancements
+
+Potential improvements for future iterations:
+1. **Visual regression testing** - Screenshot comparison
+2. **More browsers** - Firefox, WebKit, mobile
+3. **API contract tests** - Validate API responses
+4. **Performance tests** - Measure page load times
+5. **Accessibility tests** - WCAG compliance
+6. **Cross-browser tests** - All major browsers
+7. **Mobile viewport tests** - Responsive design
+8. **Network condition tests** - Slow 3G, offline
+
+**Next Action:** Ready for Priority 10: User Accounts (Optional)
