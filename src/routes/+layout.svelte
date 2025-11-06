@@ -8,6 +8,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte';
 	import InstallPrompt from '$lib/components/pwa/InstallPrompt.svelte';
+	import OfflineIndicator from '$lib/components/ui/OfflineIndicator.svelte';
 
 	let { children } = $props();
 </script>
@@ -19,6 +20,8 @@
 </svelte:head>
 
 <div class="min-h-screen bg-court-dark text-white flex flex-col">
+	<OfflineIndicator />
+
 	<header class="bg-court-charcoal border-b border-gray-800 p-4">
 		<div class="max-w-screen-xl mx-auto">
 			<h1 class="text-2xl font-bold text-court-gold">CourtSync</h1>
