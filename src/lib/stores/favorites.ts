@@ -4,6 +4,7 @@
 
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
+import { trackFavoriteTeamAdd, trackFavoriteTeamRemove } from '$lib/utils/analytics';
 
 function createFavoritesStore() {
 	const stored = browser ? localStorage.getItem('favorite-teams') : null;
@@ -13,25 +14,36 @@ function createFavoritesStore() {
 
 	return {
 		subscribe,
-		addTeam: (teamId: number) =>
+		addTeam: (teamId: number, teamName?: string) =>
 			update((ids) => {
 				if (ids.includes(teamId)) return ids;
 				const updated = [...ids, teamId];
 				if (browser) localStorage.setItem('favorite-teams', JSON.stringify(updated));
+				// Track analytics
+				trackFavoriteTeamAdd(teamId, teamName || `Team ${teamId}`);
 				return updated;
 			}),
 		removeTeam: (teamId: number) =>
 			update((ids) => {
 				const updated = ids.filter((id) => id !== teamId);
 				if (browser) localStorage.setItem('favorite-teams', JSON.stringify(updated));
+				// Track analytics
+				trackFavoriteTeamRemove(teamId);
 				return updated;
 			}),
-		toggleTeam: (teamId: number) =>
+		toggleTeam: (teamId: number, teamName?: string) =>
 			update((ids) => {
-				const updated = ids.includes(teamId)
-					? ids.filter((id) => id !== teamId)
-					: [...ids, teamId];
+				const isAdding = !ids.includes(teamId);
+				const updated = isAdding
+					? [...ids, teamId]
+					: ids.filter((id) => id !== teamId);
 				if (browser) localStorage.setItem('favorite-teams', JSON.stringify(updated));
+				// Track analytics
+				if (isAdding) {
+					trackFavoriteTeamAdd(teamId, teamName || `Team ${teamId}`);
+				} else {
+					trackFavoriteTeamRemove(teamId);
+				}
 				return updated;
 			}),
 		clear: () => {

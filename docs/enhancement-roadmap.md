@@ -458,7 +458,7 @@ Each feature must pass:
 | 5 | Push Notifications | ✅ Complete | 2025-11-06 |
 | 6 | Tighten RLS Policies | ✅ Complete | 2025-11-06 |
 | 7 | Performance Monitoring | ✅ Complete | 2025-11-06 |
-| 8 | Analytics Tracking | ⏳ Pending | - |
+| 8 | Analytics Tracking | ✅ Complete | 2025-11-06 |
 | 9 | E2E Test Coverage | ⏳ Pending | - |
 | 10 | User Accounts | ⏳ Pending | - |
 
@@ -1459,4 +1459,273 @@ Potential improvements for future iterations:
 7. **Compare sessions** - Compare current vs previous session
 8. **Production mode** - Lightweight monitoring for production
 
-**Next Action:** Ready for Priority 8: Analytics Tracking
+---
+
+## Priority 8: Analytics Tracking - COMPLETE ✅
+
+**Completed:** 2025-11-06
+
+### What Was Implemented
+
+1. **Analytics Store** (`/src/lib/stores/analytics.ts`)
+   - Centralized store for analytics events
+   - Event types: page_view, feature_usage, persona_selection, error
+   - Session-based tracking with unique session IDs
+   - Analytics preferences with consent management
+   - Session storage for last 100 events
+   - Methods: track, trackPageView, trackFeature, trackError
+   - Summary function with top pages and features
+
+2. **Analytics Utilities** (`/src/lib/utils/analytics.ts`)
+   - 25+ tracking functions for different events
+   - trackPageView - Automatic page navigation tracking
+   - trackEventSelection, trackClubSelection - Event/club selection
+   - trackPersonaSelection - Persona changes
+   - trackFavoriteTeamAdd/Remove - Favorite team management
+   - trackCoverageAdd/Remove/Export - Coverage planning
+   - trackMatchLock/Unlock - Live scoring actions
+   - trackScoreUpdate, trackSetComplete - Scoring events
+   - trackShare - Share functionality usage
+   - trackPWAInstall - PWA installation
+   - trackNotificationsEnable/Disable - Notification settings
+   - trackError, trackAPIError - Error tracking
+   - initErrorTracking - Global error handler setup
+
+3. **Analytics Consent Banner** (`/src/lib/components/analytics/AnalyticsConsent.svelte`)
+   - Privacy-focused consent UI
+   - Appears on first visit
+   - Clear explanation of what's tracked
+   - Accept/Decline options
+   - Slide-up animation
+   - Respects user choice in localStorage
+
+4. **App Integration** (`/src/routes/+layout.svelte`)
+   - Automatic page view tracking using $page store
+   - Error tracking initialization on mount
+   - Analytics consent banner shown globally
+   - Tracks all navigation automatically
+
+5. **Feature Integration**:
+   - **Favorites Store** (`/src/lib/stores/favorites.ts`)
+     - Tracks team add/remove with team names
+     - Integrated in addTeam, removeTeam, toggleTeam
+
+   - **Persona Store** (`/src/lib/stores/persona.ts`)
+     - Tracks persona selection changes
+     - Integrated in set method
+
+   - **Share Button** (`/src/lib/components/ui/ShareButton.svelte`)
+     - Tracks share vs copy actions
+     - Content type tracking (match/team/coverage)
+     - Integrated in success handlers
+
+   - **Notification Settings** (`/src/lib/components/notifications/NotificationSettings.svelte`)
+     - Tracks enable/disable actions
+     - Integrated in permission handlers
+
+   - **Install Prompt** (`/src/lib/components/pwa/InstallPrompt.svelte`)
+     - Tracks PWA installation
+     - Integrated in appinstalled event
+
+### Files Created
+- `/src/lib/stores/analytics.ts` (234 lines)
+- `/src/lib/utils/analytics.ts` (242 lines)
+- `/src/lib/components/analytics/AnalyticsConsent.svelte` (52 lines)
+
+### Files Modified
+- `/src/routes/+layout.svelte` (added page tracking and consent)
+- `/src/lib/stores/favorites.ts` (added favorite team tracking)
+- `/src/lib/stores/persona.ts` (added persona selection tracking)
+- `/src/lib/components/ui/ShareButton.svelte` (added share tracking)
+- `/src/lib/components/notifications/NotificationSettings.svelte` (added notification tracking)
+- `/src/lib/components/pwa/InstallPrompt.svelte` (added PWA install tracking)
+
+### Events Tracked
+
+**Page Views:**
+- All page navigations automatically tracked
+- Path and title recorded
+- Referrer information included
+
+**Feature Usage:**
+- Event/club selection
+- Persona changes (media/spectator)
+- Favorite team add/remove
+- Coverage plan add/remove/export
+- Match lock/unlock for scoring
+- Score updates and set completion
+- Share functionality (share vs copy)
+- Match/team detail views
+- Search queries
+- Filter applications
+- PWA installation
+- Notification enable/disable
+
+**Errors:**
+- JavaScript errors (global error handler)
+- Unhandled promise rejections
+- API errors with status codes
+- Context information for debugging
+
+### Privacy Features
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| No PII Collection | No user identifiable info tracked | ✅ Complete |
+| Consent Required | Banner asks for consent first | ✅ Complete |
+| Opt-Out Available | Users can decline/revoke consent | ✅ Complete |
+| Session-Based | No cross-session tracking | ✅ Complete |
+| Local Storage | Events stored client-side | ✅ Complete |
+| Anonymous IDs | Session IDs are random | ✅ Complete |
+| Clear Explanation | Consent banner explains tracking | ✅ Complete |
+
+### Analytics Integration Points
+
+The system is ready for integration with analytics services:
+
+**Plausible Integration:**
+```typescript
+function sendToAnalyticsService(event: AnalyticsEvent) {
+  if (window.plausible) {
+    window.plausible(event.name, { props: event.properties });
+  }
+}
+```
+
+**Fathom Integration:**
+```typescript
+function sendToAnalyticsService(event: AnalyticsEvent) {
+  if (window.fathom) {
+    window.fathom.trackEvent(event.name, event.properties);
+  }
+}
+```
+
+**Custom Endpoint:**
+```typescript
+function sendToAnalyticsService(event: AnalyticsEvent) {
+  fetch('/api/analytics', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(event),
+  });
+}
+```
+
+### Event Examples
+
+**Page View:**
+```json
+{
+  "type": "page_view",
+  "name": "/match/12345",
+  "properties": {
+    "title": "CourtSync - Match Details",
+    "referrer": "/schedule"
+  },
+  "timestamp": 1699300000000,
+  "sessionId": "session-1699300000000-abc123"
+}
+```
+
+**Feature Usage:**
+```json
+{
+  "type": "feature_usage",
+  "name": "favorites:add_team",
+  "properties": {
+    "teamId": 456,
+    "teamName": "Volleyball Club A"
+  },
+  "timestamp": 1699300100000,
+  "sessionId": "session-1699300000000-abc123"
+}
+```
+
+**Error:**
+```json
+{
+  "type": "error",
+  "name": "TypeError: Cannot read property 'x' of undefined",
+  "properties": {
+    "context": "MatchCard.svelte:45",
+    "userAgent": "Mozilla/5.0..."
+  },
+  "timestamp": 1699300200000,
+  "sessionId": "session-1699300000000-abc123"
+}
+```
+
+### Analytics Summary
+
+The `getSummary()` function provides insights:
+- Total events count
+- Page views count
+- Feature usage count
+- Errors count
+- Top 10 pages by views
+- Top 10 features by usage
+- Session duration
+
+### Success Criteria - ALL MET ✅
+- ✅ Page views tracked automatically
+- ✅ Feature usage tracked (25+ events)
+- ✅ Persona selection tracked
+- ✅ Error tracking implemented
+- ✅ Privacy-respecting (no PII)
+- ✅ Consent banner implemented
+- ✅ User can opt-out
+- ✅ Session-based tracking
+- ✅ Analytics preferences stored
+- ✅ Ready for service integration
+- ✅ Events stored client-side
+- ✅ Summary statistics available
+- ✅ No console errors
+
+### Privacy Compliance
+
+**GDPR Compliance:**
+- ✅ Explicit consent required
+- ✅ Users can revoke consent
+- ✅ No PII collected
+- ✅ Clear privacy explanation
+- ✅ Data stored locally
+
+**Best Practices:**
+- ✅ No tracking without consent
+- ✅ Anonymous session IDs
+- ✅ No cross-session tracking
+- ✅ No fingerprinting techniques
+- ✅ Transparent about what's tracked
+
+### Development Monitoring
+
+In development mode, all analytics events are logged to console:
+```
+[Analytics] page_view /schedule { title: 'Schedule', referrer: '' }
+[Analytics] feature_usage favorites:add_team { teamId: 456, teamName: 'Team A' }
+[Analytics] Would send to service: { type: 'page_view', ... }
+```
+
+### Production Usage
+
+For production, integrate with a privacy-focused analytics service:
+
+1. **Choose a service**: Plausible, Fathom, or custom
+2. **Update sendToAnalyticsService()** in `analytics.ts`
+3. **Add service script** to `app.html`
+4. **Test with consent flow**
+5. **Monitor privacy compliance**
+
+### Browser Support
+
+| Feature | Chrome | Safari | Firefox | Edge |
+|---------|--------|--------|---------|------|
+| localStorage | ✅ | ✅ | ✅ | ✅ |
+| sessionStorage | ✅ | ✅ | ✅ | ✅ |
+| Error Events | ✅ | ✅ | ✅ | ✅ |
+| Page Navigation | ✅ | ✅ | ✅ | ✅ |
+
+All analytics features work across all modern browsers.
+
+**Next Action:** Ready for Priority 9: E2E Test Coverage

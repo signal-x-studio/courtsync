@@ -4,6 +4,7 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { trackPWAInstall } from '$lib/utils/analytics';
 
 	let deferredPrompt = $state<any>(null);
 	let showInstallPrompt = $state(false);
@@ -31,6 +32,8 @@
 			isInstalled = true;
 			showInstallPrompt = false;
 			deferredPrompt = null;
+			// Track analytics
+			trackPWAInstall();
 		});
 	});
 

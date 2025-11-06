@@ -5,6 +5,7 @@
 <script lang="ts">
 	import { notificationPrefs } from '$lib/stores/notifications';
 	import { requestNotificationPermission, supportsNotifications } from '$lib/utils/notifications';
+	import { trackNotificationsEnable, trackNotificationsDisable } from '$lib/utils/analytics';
 
 	let requesting = $state(false);
 	let statusMessage = $state('');
@@ -24,6 +25,7 @@
 
 			if (permission === 'granted') {
 				notificationPrefs.enable();
+				trackNotificationsEnable();
 				statusMessage = 'Notifications enabled! You\'ll be notified 15 minutes before your favorite teams\' matches.';
 			} else if (permission === 'denied') {
 				statusMessage = 'Notifications blocked. Please enable them in your browser settings.';
@@ -40,6 +42,7 @@
 
 	function handleDisableNotifications() {
 		notificationPrefs.disable();
+		trackNotificationsDisable();
 		statusMessage = 'Notifications disabled.';
 	}
 </script>

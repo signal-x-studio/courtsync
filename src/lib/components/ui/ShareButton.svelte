@@ -4,15 +4,17 @@
 
 <script lang="ts">
 	import { share, canShare } from '$lib/utils/share';
+	import { trackShare } from '$lib/utils/analytics';
 
 	interface Props {
 		shareData: { title?: string; text: string; url?: string };
 		variant?: 'primary' | 'secondary' | 'ghost';
 		size?: 'sm' | 'md' | 'lg';
 		label?: string;
+		contentType?: 'match' | 'team' | 'coverage';
 	}
 
-	let { shareData, variant = 'secondary', size = 'md', label = 'Share' }: Props = $props();
+	let { shareData, variant = 'secondary', size = 'md', label = 'Share', contentType }: Props = $props();
 
 	let status = $state<'idle' | 'sharing' | 'success' | 'error'>('idle');
 	let feedbackMessage = $state('');
@@ -52,9 +54,17 @@
 		if (result === 'shared') {
 			feedbackMessage = 'Shared!';
 			status = 'success';
+			// Track analytics
+			if (contentType) {
+				trackShare(contentType, 'share');
+			}
 		} else if (result === 'copied') {
 			feedbackMessage = 'Copied to clipboard!';
 			status = 'success';
+			// Track analytics
+			if (contentType) {
+				trackShare(contentType, 'copy');
+			}
 		} else {
 			feedbackMessage = 'Unable to share';
 			status = 'error';

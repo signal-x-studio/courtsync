@@ -5,6 +5,7 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte';
@@ -12,13 +13,23 @@
 	import OfflineIndicator from '$lib/components/ui/OfflineIndicator.svelte';
 	import NotificationScheduler from '$lib/components/notifications/NotificationScheduler.svelte';
 	import PerformanceMonitor from '$lib/components/performance/PerformanceMonitor.svelte';
+	import AnalyticsConsent from '$lib/components/analytics/AnalyticsConsent.svelte';
 	import { initWebVitals } from '$lib/utils/webVitals';
+	import { initErrorTracking, trackPageView } from '$lib/utils/analytics';
 
 	let { children } = $props();
 
-	// Initialize Web Vitals tracking
+	// Initialize Web Vitals and error tracking
 	onMount(() => {
 		initWebVitals();
+		initErrorTracking();
+	});
+
+	// Track page views on navigation
+	$effect(() => {
+		if ($page.url) {
+			trackPageView($page.url.pathname, document?.title);
+		}
 	});
 </script>
 
@@ -45,4 +56,5 @@
 	<InstallPrompt />
 	<NotificationScheduler />
 	<PerformanceMonitor />
+	<AnalyticsConsent />
 </div>
