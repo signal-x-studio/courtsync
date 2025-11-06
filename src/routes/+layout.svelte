@@ -4,14 +4,22 @@
 <!-- Note: BottomNav is included here for consistent navigation across all pages -->
 
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import BottomNav from '$lib/components/navigation/BottomNav.svelte';
 	import InstallPrompt from '$lib/components/pwa/InstallPrompt.svelte';
 	import OfflineIndicator from '$lib/components/ui/OfflineIndicator.svelte';
 	import NotificationScheduler from '$lib/components/notifications/NotificationScheduler.svelte';
+	import PerformanceMonitor from '$lib/components/performance/PerformanceMonitor.svelte';
+	import { initWebVitals } from '$lib/utils/webVitals';
 
 	let { children } = $props();
+
+	// Initialize Web Vitals tracking
+	onMount(() => {
+		initWebVitals();
+	});
 </script>
 
 <svelte:head>
@@ -36,4 +44,5 @@
 	<BottomNav />
 	<InstallPrompt />
 	<NotificationScheduler />
+	<PerformanceMonitor />
 </div>
