@@ -16,7 +16,7 @@
 
 	let { block, conflicts, showCoverageToggle = false, wave, clubTeamIds = [] }: Props = $props();
 
-	let expanded = $state(true); // Default expanded for better UX
+	let expanded = $state(false); // Default collapsed for cleaner overview
 
 	// Determine colors based on wave
 	let waveColors = $derived({
