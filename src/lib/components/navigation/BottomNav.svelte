@@ -7,7 +7,7 @@
 	import { page } from '$app/stores';
 	import { persona } from '$lib/stores/persona';
 	import { filters } from '$lib/stores/filters';
-	import { eventId } from '$lib/stores/event';
+	import { eventId, clubId } from '$lib/stores/event';
 
 	let currentPath = $derived($page.url.pathname);
 	let isMedia = $derived($persona === 'media');
@@ -24,7 +24,7 @@
 >
 	<div class="flex justify-around items-center h-16 max-w-screen-xl mx-auto">
 		<a
-			href="/club/{$eventId}"
+			href="/club/{$eventId}?clubId={$clubId}"
 			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px]"
 			class:text-court-gold={currentPath.includes('/club')}
 			class:text-gray-400={!currentPath.includes('/club')}
