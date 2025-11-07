@@ -111,12 +111,12 @@
 	</div>
 
 	<!-- Teams: Horizontal layout with vs -->
-	<div class="flex items-center gap-2 min-w-0">
+	<div class="flex items-center gap-1 min-w-0">
 		<!-- Team 1 -->
-		<div class="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
+		<div class="flex items-center gap-0.5 flex-1 min-w-0">
 			<button
 				onclick={(e) => toggleFavoriteTeam(match.FirstTeamId, e)}
-				class="p-2 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
+				class="p-1.5 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
 				class:text-court-gold={isTeam1Favorite}
 				class:text-gray-600={!isTeam1Favorite}
 				aria-label={isTeam1Favorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -126,7 +126,7 @@
 			</button>
 			<button
 				onclick={(e) => navigateToTeam(match.FirstTeamId, e)}
-				class="font-semibold truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded px-1"
+				class="font-semibold truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded px-1 min-w-0"
 				class:text-base={team1IsClub}
 				class:text-court-gold={team1IsClub}
 				class:text-sm={!team1IsClub}
@@ -138,13 +138,13 @@
 		</div>
 
 		<!-- VS separator -->
-		<span class="text-xs text-gray-500 font-medium shrink-0 px-1">vs</span>
+		<span class="text-xs text-gray-500 font-medium shrink-0 px-0.5">vs</span>
 
 		<!-- Team 2 -->
-		<div class="flex items-center gap-1 flex-1 min-w-0 justify-end overflow-hidden">
+		<div class="flex items-center gap-0.5 flex-1 min-w-0 justify-end">
 			<button
 				onclick={(e) => navigateToTeam(match.SecondTeamId, e)}
-				class="font-semibold truncate text-right hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded px-1"
+				class="font-semibold truncate text-right hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded px-1 min-w-0"
 				class:text-base={team2IsClub}
 				class:text-court-gold={team2IsClub}
 				class:text-sm={!team2IsClub}
@@ -155,7 +155,7 @@
 			</button>
 			<button
 				onclick={(e) => toggleFavoriteTeam(match.SecondTeamId, e)}
-				class="p-2 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
+				class="p-1.5 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
 				class:text-court-gold={isTeam2Favorite}
 				class:text-gray-600={!isTeam2Favorite}
 				aria-label={isTeam2Favorite ? 'Remove from favorites' : 'Add to favorites'}
