@@ -82,33 +82,34 @@
 	}
 </script>
 
-<div class="max-w-screen-xl mx-auto p-4">
+<div class="max-w-screen-xl mx-auto p-4 overflow-x-hidden">
 	<div class="mb-6">
-		<div class="flex justify-between items-start gap-4">
-			<div>
-				<h2 class="text-2xl font-bold text-court-gold mb-2">All Matches</h2>
-				<p class="text-gray-400">
-					Showing {filteredMatches.length} of {allMatches.length} matches
-					{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
-						(filtered)
-					{/if}
-					{#if data.cached && data.cacheAge !== null}
-						<span class="text-xs text-gray-500">• cached {data.cacheAge}s ago</span>
-					{/if}
-				</p>
-			</div>
+		<div class="flex flex-col gap-4">
+			<div class="flex justify-between items-start gap-2">
+				<div class="min-w-0 flex-1">
+					<h2 class="text-2xl font-bold text-court-gold mb-2">All Matches</h2>
+					<p class="text-gray-300 text-sm">
+						Showing {filteredMatches.length} of {allMatches.length} matches
+						{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
+							(filtered)
+						{/if}
+						{#if data.cached && data.cacheAge !== null}
+							<span class="text-xs text-gray-400">• cached {data.cacheAge}s ago</span>
+						{/if}
+					</p>
+				</div>
 
-			<div class="flex gap-2">
+			<div class="flex gap-2 flex-shrink-0">
 				<!-- Refresh Button -->
 				<button
 					onclick={handleRefresh}
 					disabled={isRefreshing}
-					class="p-2 rounded-lg bg-court-charcoal hover:bg-gray-800 transition-colors disabled:opacity-50"
+					class="p-3 rounded-lg bg-court-charcoal hover:bg-gray-800 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark"
 					aria-label="Refresh match data"
 					title="Refresh match data"
 				>
 					<svg
-						class="w-5 h-5 text-gray-400"
+						class="w-5 h-5 text-gray-300"
 						class:animate-spin={isRefreshing}
 						fill="none"
 						stroke="currentColor"
@@ -128,13 +129,14 @@
 				<div class="flex gap-1 bg-court-charcoal rounded-lg p-1" role="group" aria-label="Wave filter">
 				<button
 					onclick={() => (waveFilter = 'all')}
-					class="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+					class="p-3 rounded-md text-sm font-medium transition-colors flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
 					class:bg-court-gold={waveFilter === 'all'}
 					class:text-court-dark={waveFilter === 'all'}
-					class:text-gray-400={waveFilter !== 'all'}
+					class:text-gray-300={waveFilter !== 'all'}
 					class:hover:text-white={waveFilter !== 'all'}
 					aria-pressed={waveFilter === 'all'}
 					aria-label="Show all waves"
+					title="All"
 				>
 					<svg
 						class="w-4 h-4"
@@ -150,17 +152,17 @@
 							d="M4 6h16M4 12h16M4 18h16"
 						/>
 					</svg>
-					<span>All</span>
 				</button>
 				<button
 					onclick={() => (waveFilter = 'am')}
-					class="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+					class="p-3 rounded-md text-sm font-medium transition-colors flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
 					class:bg-amber-500={waveFilter === 'am'}
 					class:text-court-dark={waveFilter === 'am'}
-					class:text-gray-400={waveFilter !== 'am'}
+					class:text-gray-300={waveFilter !== 'am'}
 					class:hover:text-white={waveFilter !== 'am'}
 					aria-pressed={waveFilter === 'am'}
 					aria-label="Show AM wave only"
+					title="AM"
 				>
 					<svg
 						class="w-4 h-4"
@@ -176,17 +178,17 @@
 							d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
 						/>
 					</svg>
-					<span>AM</span>
 				</button>
 				<button
 					onclick={() => (waveFilter = 'pm')}
-					class="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+					class="p-3 rounded-md text-sm font-medium transition-colors flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
 					class:bg-indigo-500={waveFilter === 'pm'}
 					class:text-white={waveFilter === 'pm'}
-					class:text-gray-400={waveFilter !== 'pm'}
+					class:text-gray-300={waveFilter !== 'pm'}
 					class:hover:text-white={waveFilter !== 'pm'}
 					aria-pressed={waveFilter === 'pm'}
 					aria-label="Show PM wave only"
+					title="PM"
 				>
 					<svg
 						class="w-4 h-4"
@@ -202,18 +204,18 @@
 							d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
 						/>
 					</svg>
-					<span>PM</span>
 				</button>
 				</div>
 			</div>
 		</div>
+	</div>
 	</div>
 
 	{#if isNavigating}
 		<MatchListSkeleton count={6} />
 	{:else if visibleTimeBlocks.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-400 text-lg">No matches found</p>
+			<p class="text-gray-300 text-lg">No matches found</p>
 			{#if waveFilter !== 'all'}
 				<button
 					onclick={() => (waveFilter = 'all')}
@@ -230,7 +232,7 @@
 	{:else}
 		<div class="space-y-4">
 			{#each visibleTimeBlocks as block (block.time)}
-				<TimeBlock {block} {conflicts} showCoverageToggle={$persona === 'media'} wave={getTimeWave(block.time)} />
+				<TimeBlock {block} {conflicts} showCoverageToggle={$persona === 'media'} wave={getTimeWave(block.time)} clubTeamIds={data.clubTeamIds || []} />
 			{/each}
 		</div>
 	{/if}

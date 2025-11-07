@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 			// This is a simplified implementation - you may need to iterate through plays
 			if (plays && plays.Plays && plays.Plays.length > 0) {
 				const playId = plays.Plays[0].PlayId;
-				poolSheet = await fetchPoolSheet(eventId, playId);
+				poolSheet = await fetchPoolSheet(eventId, playId, fetch);
 			}
 		} catch (err) {
 			console.warn('Could not load pool standings:', err);
@@ -54,6 +54,7 @@ export const load: PageServerLoad = async ({ params, fetch }) => {
 		return {
 			eventId,
 			divisionId,
+			divisionName: division.Name,
 			teamId,
 			schedules: {
 				current,

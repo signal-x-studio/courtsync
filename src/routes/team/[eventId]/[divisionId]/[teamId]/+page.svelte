@@ -40,11 +40,14 @@
 	<div class="mb-6">
 		<button
 			onclick={() => window.history.back()}
-			class="text-court-gold hover:underline mb-4 flex items-center gap-2"
+			class="text-court-gold hover:underline mb-4 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark rounded px-2 py-1 -ml-2"
+			aria-label="Go back to previous page"
 		>
-			← Back
+			<span class="text-lg">←</span>
+			<span class="font-medium">Back</span>
 		</button>
 		<h2 class="text-2xl font-bold text-court-gold mb-2">{teamName}</h2>
+		<p class="text-gray-400 text-sm">{data.divisionName}</p>
 	</div>
 
 	<!-- Tabs -->

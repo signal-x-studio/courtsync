@@ -17,7 +17,8 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 			allMatches: [],
 			eventId,
 			cached: false,
-			cacheAge: null
+			cacheAge: null,
+			clubTeamIds: []
 		};
 	}
 
@@ -26,11 +27,16 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 		const cachedMatches = matchCache.get(eventId, clubId);
 		if (cachedMatches) {
 			console.log('Using cached match data');
+			// Need to re-fetch teams to get clubTeamIds (teams not cached)
+			const teams = await fetchTeamAssignments(eventId, clubId, fetch);
+			const clubTeamIds = teams.map(t => t.TeamId);
+
 			return {
 				allMatches: cachedMatches,
 				eventId,
 				cached: true,
-				cacheAge: matchCache.getAge()
+				cacheAge: matchCache.getAge(),
+				clubTeamIds
 			};
 		}
 	}
@@ -77,11 +83,15 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 		// Save to cache
 		matchCache.save(allMatches, eventId, clubId);
 
+		// Extract club team IDs for visual distinction in match cards
+		const clubTeamIds = teams.map(t => t.TeamId);
+
 		return {
 			allMatches,
 			eventId,
 			cached: false,
-			cacheAge: null
+			cacheAge: null,
+			clubTeamIds
 		};
 	} catch (err) {
 		console.error('Failed to load team schedules:', err);
@@ -90,13 +100,28 @@ export const load: PageLoad = async ({ params, url, fetch }) => {
 		const cachedMatches = matchCache.get(eventId, clubId);
 		if (cachedMatches) {
 			console.log('API failed, using stale cache');
-			return {
-				allMatches: cachedMatches,
-				eventId,
-				cached: true,
-				cacheAge: matchCache.getAge(),
-				error: 'Failed to fetch fresh data, showing cached data'
-			};
+			// Try to get team IDs even though API failed
+			try {
+				const teams = await fetchTeamAssignments(eventId, clubId, fetch);
+				const clubTeamIds = teams.map(t => t.TeamId);
+				return {
+					allMatches: cachedMatches,
+					eventId,
+					cached: true,
+					cacheAge: matchCache.getAge(),
+					error: 'Failed to fetch fresh data, showing cached data',
+					clubTeamIds
+				};
+			} catch {
+				return {
+					allMatches: cachedMatches,
+					eventId,
+					cached: true,
+					cacheAge: matchCache.getAge(),
+					error: 'Failed to fetch fresh data, showing cached data',
+					clubTeamIds: []
+				};
+			}
 		}
 
 		throw err;

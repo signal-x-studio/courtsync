@@ -4,15 +4,13 @@
 
 import type { PageServerLoad } from './$types';
 import { fetchTeamSchedule, fetchEventInfo } from '$lib/services/aes';
-import { eventId } from '$lib/stores/event';
-import { get } from 'svelte/store';
 import type { Match } from '$lib/types/aes';
 
 export const load: PageServerLoad = async ({ params, url, fetch }) => {
 	const matchId = Number(params.matchId);
-	const currentEventId = get(eventId);
 
-	// Get team context from URL params (passed from match card)
+	// Get context from URL params (passed from match card)
+	const currentEventId = url.searchParams.get('eventId');
 	const divisionId = Number(url.searchParams.get('divisionId'));
 	const teamId = Number(url.searchParams.get('teamId'));
 

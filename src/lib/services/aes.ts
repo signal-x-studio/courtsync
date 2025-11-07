@@ -387,15 +387,17 @@ export const fetchDivisionPlaydays = async (
  * Note: Uses proxy route to avoid CORS and handle 404s properly
  * @param eventId - Base64-encoded event ID
  * @param playId - Play ID (can be negative, e.g., -54617)
+ * @param fetchFn - Fetch function to use (defaults to globalThis.fetch)
  * @returns Poolsheet with standings and matches
  */
 export const fetchPoolSheet = async (
 	eventId: string,
-	playId: number
+	playId: number,
+	fetchFn: typeof fetch = globalThis.fetch
 ): Promise<PoolsheetResponse> => {
 	// Use server-side endpoint to avoid CORS issues
 	const url = `/api/poolsheet/${eventId}/${playId}`;
-	const response = await fetch(url);
+	const response = await fetchFn(url);
 
 	if (!response.ok) {
 		// For 404s, throw a specific error that can be caught upstream

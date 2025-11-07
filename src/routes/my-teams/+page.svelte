@@ -6,6 +6,7 @@
 	import { navigating } from '$app/stores';
 	import { favoriteTeams } from '$lib/stores/favorites';
 	import { filters } from '$lib/stores/filters';
+	import { eventId } from '$lib/stores/event';
 	import { applyFilters, groupByTime } from '$lib/utils/filterMatches';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
 	import MatchListSkeleton from '$lib/components/ui/MatchListSkeleton.svelte';
@@ -34,12 +35,21 @@
 	let filteredMatches = $derived(applyFilters(favoriteMatches, $filters));
 	let timeBlocks = $derived(groupByTime(filteredMatches));
 
+	// Get favorite teams with their division info
+	let favoriteTeamDetails = $derived(
+		availableTeams.filter((team) => team.TeamId && $favoriteTeams.includes(team.TeamId))
+	);
+
 	function toggleFavorite(teamId: number) {
 		if ($favoriteTeams.includes(teamId)) {
 			favoriteTeams.removeTeam(teamId);
 		} else {
 			favoriteTeams.addTeam(teamId);
 		}
+	}
+
+	function navigateToTeam(teamId: number, divisionId: number) {
+		window.location.href = `/team/${$eventId}/${divisionId}/${teamId}`;
 	}
 </script>
 
@@ -59,6 +69,34 @@
 			{showTeamSelector ? 'Hide' : 'Manage'} Teams
 		</button>
 	</div>
+
+	{#if $favoriteTeams.length > 0}
+		<div class="mb-6 bg-court-charcoal border border-gray-700 rounded-lg p-4">
+			<h3 class="text-lg font-semibold mb-3">Your Teams</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+				{#each favoriteTeamDetails as team (team.TeamId)}
+					<div
+						class="flex items-center justify-between p-3 rounded border border-court-gold bg-court-gold bg-opacity-5"
+					>
+						<div class="flex items-center gap-2 flex-1 min-w-0">
+							<span class="text-lg text-court-gold">★</span>
+							<div class="min-w-0">
+								<div class="font-medium truncate">{team.TeamName}</div>
+								<div class="text-sm text-gray-400">{team.DivisionName}</div>
+							</div>
+						</div>
+						<button
+							onclick={() => team.TeamId && team.DivisionId && navigateToTeam(team.TeamId, team.DivisionId)}
+							class="px-3 py-1.5 bg-court-gold text-court-dark text-sm font-semibold rounded hover:bg-yellow-500 transition-colors shrink-0 ml-2"
+							aria-label="View {team.TeamName} full schedule and details"
+						>
+							View Team
+						</button>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
 
 	{#if showTeamSelector}
 		<div class="mb-6 bg-court-charcoal border border-gray-700 rounded-lg p-4">

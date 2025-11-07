@@ -4,20 +4,18 @@
 
 import type { PageServerLoad } from './$types';
 import { fetchTeamAssignments, fetchTeamSchedule } from '$lib/services/aes';
-import { eventId, clubId } from '$lib/stores/event';
-import { get } from 'svelte/store';
 import type { Match } from '$lib/types/aes';
 
-export const load: PageServerLoad = async ({ fetch }) => {
-	// Get event ID and club ID from stores
-	const currentEventId = get(eventId);
-	const currentClubId = get(clubId);
+export const load: PageServerLoad = async ({ url, fetch }) => {
+	// Get event ID and club ID from URL params
+	const currentEventId = url.searchParams.get('eventId');
+	const currentClubId = Number(url.searchParams.get('clubId'));
 
 	if (!currentEventId || !currentClubId) {
 		return {
 			allMatches: [],
 			availableTeams: [],
-			eventId: currentEventId
+			eventId: currentEventId || ''
 		};
 	}
 

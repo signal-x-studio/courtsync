@@ -18,14 +18,20 @@
 	<meta name="description" content="Real-time volleyball tournament schedules and coverage" />
 </svelte:head>
 
-<div class="min-h-screen bg-court-dark text-white flex flex-col">
-	<header class="bg-court-charcoal border-b border-gray-800 p-4">
+<div class="h-screen bg-court-dark text-white flex flex-col overflow-hidden">
+	<header class="bg-court-charcoal border-b border-gray-800 p-4 flex-shrink-0">
 		<div class="max-w-screen-xl mx-auto">
-			<h1 class="text-2xl font-bold text-court-gold">CourtSync</h1>
+			<a
+				href="/"
+				class="text-2xl font-bold text-court-gold hover:text-court-gold-light transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded inline-block"
+				aria-label="Return to home page"
+			>
+				<h1>CourtSync</h1>
+			</a>
 		</div>
 	</header>
 
-	<main class="flex-1 pb-20 md:pb-4">
+	<main class="flex-1 overflow-y-auto pb-20 md:pb-4">
 		{@render children()}
 	</main>
 

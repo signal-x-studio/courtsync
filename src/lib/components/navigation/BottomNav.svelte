@@ -25,7 +25,7 @@
 	<div class="flex justify-around items-center h-16 max-w-screen-xl mx-auto">
 		<a
 			href="/club/{$eventId}?clubId={$clubId}"
-			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px]"
+			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-inset"
 			class:text-court-gold={currentPath.includes('/club')}
 			class:text-gray-400={!currentPath.includes('/club')}
 			aria-label="All Matches"
@@ -36,8 +36,8 @@
 		</a>
 
 		<a
-			href="/my-teams"
-			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px]"
+			href="/my-teams?eventId={$eventId}&clubId={$clubId}"
+			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-inset"
 			class:text-court-gold={currentPath.includes('/my-teams')}
 			class:text-gray-400={!currentPath.includes('/my-teams')}
 			aria-label="My Teams"
@@ -49,8 +49,8 @@
 
 		{#if isMedia}
 			<a
-				href="/coverage"
-				class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px]"
+				href="/coverage?eventId={$eventId}&clubId={$clubId}"
+				class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-inset"
 				class:text-court-gold={currentPath.includes('/coverage')}
 				class:text-gray-400={!currentPath.includes('/coverage')}
 				aria-label="Coverage Plan"
@@ -81,7 +81,7 @@
 
 		<a
 			href="/settings"
-			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px]"
+			class="flex flex-col items-center gap-1 px-4 py-2 transition-colors min-w-[60px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-inset"
 			class:text-court-gold={currentPath.includes('/settings')}
 			class:text-gray-400={!currentPath.includes('/settings')}
 			aria-label="Settings"

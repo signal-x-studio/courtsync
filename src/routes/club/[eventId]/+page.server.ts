@@ -60,9 +60,13 @@ export const load: PageServerLoad = async ({ fetch, params, url }) => {
 
 		console.log(`Built schedule with ${allMatches.length} unique matches`);
 
+		// Extract club team IDs for visual distinction in match cards
+		const clubTeamIds = teams.map(t => t.TeamId);
+
 		return {
 			allMatches,
-			eventId
+			eventId,
+			clubTeamIds
 		};
 	} catch (err) {
 		console.error('Failed to load team schedules:', err);
