@@ -1,14 +1,13 @@
 // Reference: https://github.com/GoogleChrome/web-vitals
 // Purpose: Track Web Vitals performance metrics
-// Note: Monitors CLS, FID, FCP, LCP, TTFB, INP for real user monitoring
+// Note: Monitors CLS, FCP, LCP, TTFB, INP for real user monitoring
 
-import { onCLS, onFCP, onFID, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
+import { onCLS, onFCP, onINP, onLCP, onTTFB, type Metric } from 'web-vitals';
 import { performanceStore, type WebVitalsMetric } from '$lib/stores/performance';
 
 // Rating thresholds based on Web Vitals recommendations
 const THRESHOLDS = {
 	CLS: { good: 0.1, poor: 0.25 },
-	FID: { good: 100, poor: 300 },
 	FCP: { good: 1800, poor: 3000 },
 	LCP: { good: 2500, poor: 4000 },
 	TTFB: { good: 800, poor: 1800 },
@@ -99,7 +98,6 @@ export function initWebVitals() {
 
 	// Track all Core Web Vitals
 	onCLS(handleMetric, { reportAllChanges: true });
-	onFID(handleMetric);
 	onFCP(handleMetric);
 	onLCP(handleMetric, { reportAllChanges: true });
 	onTTFB(handleMetric);
@@ -122,11 +120,6 @@ export function getRecommendations(metrics: WebVitalsMetric[]): string[] {
 				case 'CLS':
 					recommendations.push(
 						'Layout Shift: Consider adding size attributes to images/videos, avoid inserting content above existing content'
-					);
-					break;
-				case 'FID':
-					recommendations.push(
-						'Input Delay: Break up long JavaScript tasks, use web workers for heavy computation'
 					);
 					break;
 				case 'FCP':
@@ -163,7 +156,6 @@ export function formatMetricValue(name: string, value: number): string {
 	switch (name) {
 		case 'CLS':
 			return value.toFixed(3);
-		case 'FID':
 		case 'FCP':
 		case 'LCP':
 		case 'TTFB':
