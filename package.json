@@ -20,6 +20,8 @@
 		"test:e2e:debug": "playwright test --debug",
 		"test:visual": "playwright test e2e/visual",
 		"test:visual:update": "playwright test e2e/visual --update-snapshots",
+		"test:spectator": "playwright test tests/spectator.spec.ts",
+		"test:media": "playwright test tests/media.spec.ts",
 		"test:all": "npm run test && npm run test:e2e",
 		"test:report": "playwright show-report"
 	},
@@ -44,6 +46,7 @@
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.78.0",
-		"date-fns": "^4.1.0"
+		"date-fns": "^4.1.0",
+		"web-vitals": "^5.1.0"
 	}
 }

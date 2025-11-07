@@ -8,6 +8,7 @@
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { favoriteTeams } from '$lib/stores/favorites';
 	import { persona } from '$lib/stores/persona';
+	import { eventId } from '$lib/stores/event';
 	import { getMatchStatus } from '$lib/utils/filterMatches';
 	import { toast } from '$lib/stores/toast';
 	import { format } from 'date-fns';
@@ -102,6 +103,42 @@
 				{isInCoverage ? '✓ Coverage' : '+ Coverage'}
 			</button>
 		{/if}
+	</div>
+
+	<div class="space-y-1">
+		<div class="flex items-center gap-2">
+			{#if isTeam1Favorite}
+				<span class="text-court-gold" aria-label="Favorited team">★</span>
+			{/if}
+			{#if match.FirstTeamId && $eventId}
+				<a
+					href="/team/{$eventId}/{match.Division.DivisionId}/{match.FirstTeamId}"
+					class="font-semibold hover:text-court-gold transition-colors"
+					onclick={(e) => e.stopPropagation()}
+				>
+					{match.FirstTeamText}
+				</a>
+			{:else}
+				<span class="font-semibold">{match.FirstTeamText}</span>
+			{/if}
+		</div>
+		<div class="text-gray-400 text-sm">vs</div>
+		<div class="flex items-center gap-2">
+			{#if isTeam2Favorite}
+				<span class="text-court-gold" aria-label="Favorited team">★</span>
+			{/if}
+			{#if match.SecondTeamId && $eventId}
+				<a
+					href="/team/{$eventId}/{match.Division.DivisionId}/{match.SecondTeamId}"
+					class="font-semibold hover:text-court-gold transition-colors"
+					onclick={(e) => e.stopPropagation()}
+				>
+					{match.SecondTeamText}
+				</a>
+			{:else}
+				<span class="font-semibold">{match.SecondTeamText}</span>
+			{/if}
+		</div>
 	</div>
 
 	<a

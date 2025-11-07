@@ -9,8 +9,9 @@ import { defineConfig, devices } from '@playwright/test';
  * - Component interactions
  * - Real-time features
  * - Visual regression
+ *
+ * See https://playwright.dev/docs/test-configuration.
  */
-
 export default defineConfig({
 	testDir: './e2e',
 	fullyParallel: true,
@@ -29,6 +30,7 @@ export default defineConfig({
 		video: 'retain-on-failure'
 	},
 
+	/* Configure projects for major browsers */
 	projects: [
 		{
 			name: 'chromium',
@@ -48,6 +50,7 @@ export default defineConfig({
 		}
 	],
 
+	/* Run your local dev server before starting the tests */
 	webServer: {
 		command: 'npm run dev',
 		url: 'http://localhost:5173',
