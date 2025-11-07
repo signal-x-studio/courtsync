@@ -5,6 +5,8 @@
 
 <script lang="ts">
 	import { navigating } from '$app/stores';
+	import { goto, invalidateAll } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { filters } from '$lib/stores/filters';
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
@@ -22,6 +24,24 @@
 
 	// Show loading state during navigation
 	let isNavigating = $derived($navigating !== null);
+
+	// Refresh state
+	let isRefreshing = $state(false);
+
+	async function handleRefresh() {
+		isRefreshing = true;
+		try {
+			// Add refresh parameter to force cache bypass
+			const url = new URL($page.url);
+			url.searchParams.set('refresh', 'true');
+			await goto(url.toString(), { invalidateAll: true });
+			// Remove refresh param after navigation
+			url.searchParams.delete('refresh');
+			window.history.replaceState({}, '', url.toString());
+		} finally {
+			isRefreshing = false;
+		}
+	}
 
 	// Wave filter state (all, am, pm)
 	let waveFilter = $state<'all' | 'am' | 'pm'>('all');
@@ -64,7 +84,7 @@
 
 <div class="max-w-screen-xl mx-auto p-4">
 	<div class="mb-6">
-		<div class="flex justify-between items-start">
+		<div class="flex justify-between items-start gap-4">
 			<div>
 				<h2 class="text-2xl font-bold text-court-gold mb-2">All Matches</h2>
 				<p class="text-gray-400">
@@ -72,11 +92,40 @@
 					{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
 						(filtered)
 					{/if}
+					{#if data.cached && data.cacheAge !== null}
+						<span class="text-xs text-gray-500">• cached {data.cacheAge}s ago</span>
+					{/if}
 				</p>
 			</div>
 
-			<!-- Wave Filter -->
-			<div class="flex gap-1 bg-court-charcoal rounded-lg p-1" role="group" aria-label="Wave filter">
+			<div class="flex gap-2">
+				<!-- Refresh Button -->
+				<button
+					onclick={handleRefresh}
+					disabled={isRefreshing}
+					class="p-2 rounded-lg bg-court-charcoal hover:bg-gray-800 transition-colors disabled:opacity-50"
+					aria-label="Refresh match data"
+					title="Refresh match data"
+				>
+					<svg
+						class="w-5 h-5 text-gray-400"
+						class:animate-spin={isRefreshing}
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						aria-hidden="true"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+						/>
+					</svg>
+				</button>
+
+				<!-- Wave Filter -->
+				<div class="flex gap-1 bg-court-charcoal rounded-lg p-1" role="group" aria-label="Wave filter">
 				<button
 					onclick={() => (waveFilter = 'all')}
 					class="px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
@@ -155,6 +204,7 @@
 					</svg>
 					<span>PM</span>
 				</button>
+				</div>
 			</div>
 		</div>
 	</div>
