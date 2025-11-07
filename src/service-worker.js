@@ -21,6 +21,9 @@ self.addEventListener('install', (event) => {
 	}
 
 	event.waitUntil(addFilesToCache());
+
+	// Force the waiting service worker to become the active service worker
+	self.skipWaiting();
 });
 
 // Activate event - clean up old caches
@@ -32,6 +35,9 @@ self.addEventListener('activate', (event) => {
 	}
 
 	event.waitUntil(deleteOldCaches());
+
+	// Take control of all clients immediately
+	return self.clients.claim();
 });
 
 // Fetch event - intelligent caching strategy
