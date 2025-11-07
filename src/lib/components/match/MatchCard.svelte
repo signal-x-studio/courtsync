@@ -73,26 +73,31 @@
 	}
 </script>
 
-<div
+<a
+	href="/match/{match.MatchId}?divisionId={match.Division.DivisionId}&teamId={match.FirstTeamId || match.SecondTeamId || 0}"
 	data-testid="match-card"
-	class="match-card bg-court-charcoal rounded-lg p-4 border-2 transition-colors"
+	class="match-card block bg-court-charcoal rounded-lg p-4 border-2 transition-colors hover:border-court-gold"
 	class:border-red-500={isConflict}
 	class:border-court-gold={isInCoverage && !isConflict}
 	class:border-gray-700={!isConflict && !isInCoverage}
+	aria-label="View match details for {match.FirstTeamText} vs {match.SecondTeamText}"
 >
-	<div class="flex justify-between items-start mb-2">
-		<div class="text-sm text-gray-400">
-			{formatTime(match.ScheduledStartDateTime)}
+	<div class="flex justify-between items-start mb-3">
+		<div class="flex items-center gap-2">
 			{#if match.CourtName}
-				• {match.CourtName}
+				<span class="text-base font-semibold text-white">{match.CourtName}</span>
 			{/if}
 			{#if status === 'live'}
-				<span class="ml-2 text-red-400 font-semibold">🔴 LIVE</span>
+				<span class="text-red-400 font-semibold text-sm">🔴 LIVE</span>
 			{/if}
 		</div>
 		{#if showCoverageToggle && $persona === 'media'}
 			<button
-				onclick={toggleCoverage}
+				onclick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					toggleCoverage();
+				}}
 				class="text-xs px-2 py-1 rounded transition-colors"
 				class:bg-court-gold={isInCoverage}
 				class:text-court-dark={isInCoverage}
@@ -105,48 +110,8 @@
 		{/if}
 	</div>
 
-	<div class="space-y-1">
-		<div class="flex items-center gap-2">
-			{#if isTeam1Favorite}
-				<span class="text-court-gold" aria-label="Favorited team">★</span>
-			{/if}
-			{#if match.FirstTeamId && $eventId}
-				<a
-					href="/team/{$eventId}/{match.Division.DivisionId}/{match.FirstTeamId}"
-					class="font-semibold hover:text-court-gold transition-colors"
-					onclick={(e) => e.stopPropagation()}
-				>
-					{match.FirstTeamText}
-				</a>
-			{:else}
-				<span class="font-semibold">{match.FirstTeamText}</span>
-			{/if}
-		</div>
-		<div class="text-gray-400 text-sm">vs</div>
-		<div class="flex items-center gap-2">
-			{#if isTeam2Favorite}
-				<span class="text-court-gold" aria-label="Favorited team">★</span>
-			{/if}
-			{#if match.SecondTeamId && $eventId}
-				<a
-					href="/team/{$eventId}/{match.Division.DivisionId}/{match.SecondTeamId}"
-					class="font-semibold hover:text-court-gold transition-colors"
-					onclick={(e) => e.stopPropagation()}
-				>
-					{match.SecondTeamText}
-				</a>
-			{:else}
-				<span class="font-semibold">{match.SecondTeamText}</span>
-			{/if}
-		</div>
-	</div>
-
-	<a
-		href="/match/{match.MatchId}?divisionId={match.Division.DivisionId}&teamId={match.FirstTeamId || match.SecondTeamId || 0}"
-		class="block hover:opacity-80 transition-opacity"
-		aria-label="View match details for {match.FirstTeamText} vs {match.SecondTeamText}"
-	>
-		<div class="space-y-1">
+	<div class="space-y-2">
+		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<button
 					onclick={(e) => toggleFavoriteTeam(match.FirstTeamId, e)}
@@ -158,9 +123,13 @@
 				>
 					{isTeam1Favorite ? '★' : '☆'}
 				</button>
-				<span class="font-semibold">{match.FirstTeamText}</span>
+				<span class="font-semibold text-lg">{match.FirstTeamText}</span>
 			</div>
-			<div class="text-gray-400 text-sm">vs</div>
+		</div>
+
+		<div class="text-gray-400 text-sm pl-7">vs</div>
+
+		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<button
 					onclick={(e) => toggleFavoriteTeam(match.SecondTeamId, e)}
@@ -172,16 +141,16 @@
 				>
 					{isTeam2Favorite ? '★' : '☆'}
 				</button>
-				<span class="font-semibold">{match.SecondTeamText}</span>
+				<span class="font-semibold text-lg">{match.SecondTeamText}</span>
 			</div>
 		</div>
+	</div>
 
-		<div class="mt-2 text-xs text-gray-500">
-			{match.Division.Name}
-		</div>
-	</a>
+	<div class="mt-3 text-xs text-gray-500">
+		{match.Division.Name}
+	</div>
 
 	{#if isConflict}
 		<div class="mt-2 text-xs text-red-400">⚠️ Conflict with another match</div>
 	{/if}
-</div>
+</a>
