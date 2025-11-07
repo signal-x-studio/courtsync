@@ -15,7 +15,7 @@
 	let scheduleType = $state<'current' | 'work' | 'future' | 'past'>('current');
 
 	// Get team name from first match if available
-	let teamName = $derived(() => {
+	let teamName = $derived.by(() => {
 		const allMatches = [
 			...data.schedules.current,
 			...data.schedules.work,
