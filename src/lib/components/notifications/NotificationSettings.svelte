@@ -80,13 +80,11 @@
 
 	{#if statusMessage}
 		<div
-			class="mt-3 rounded border px-3 py-2 text-sm"
-			class:border-green-600={$notificationPrefs.enabled}
-			class:bg-green-900/20={$notificationPrefs.enabled}
-			class:text-green-400={$notificationPrefs.enabled}
-			class:border-yellow-600={!$notificationPrefs.enabled}
-			class:bg-yellow-900/20={!$notificationPrefs.enabled}
-			class:text-yellow-400={!$notificationPrefs.enabled}
+			class={`mt-3 rounded border px-3 py-2 text-sm ${
+				$notificationPrefs.enabled
+					? 'border-green-600 bg-green-900/20 text-green-400'
+					: 'border-yellow-600 bg-yellow-900/20 text-yellow-400'
+			}`}
 			role="status"
 		>
 			{statusMessage}

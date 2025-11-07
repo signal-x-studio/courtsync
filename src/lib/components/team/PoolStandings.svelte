@@ -46,9 +46,9 @@
 			<tbody>
 				{#each sortedTeams as team}
 					<tr
-						class="border-b border-gray-800 transition-colors hover:bg-court-charcoal/30"
-						class:bg-court-gold/10={team.TeamId === highlightTeamId}
-						class:border-court-gold/30={team.TeamId === highlightTeamId}
+						class={`border-b border-gray-800 transition-colors hover:bg-court-charcoal/30 ${
+					team.TeamId === highlightTeamId ? 'bg-court-gold/10 border-court-gold/30' : ''
+				}`}
 					>
 						<td class="py-3 pr-4">
 							<span
