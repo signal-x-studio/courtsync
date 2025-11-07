@@ -4,7 +4,7 @@
 
 import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
-import { supabase } from '$lib/supabaseClient';
+import { supabase } from '$lib/supabase/client';
 import { auth } from './auth';
 
 interface CoverageMatch {
