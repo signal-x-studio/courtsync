@@ -10,22 +10,33 @@
 		block: TimeBlock;
 		conflicts: Set<number>;
 		showCoverageToggle?: boolean;
+		wave?: 'am' | 'pm';
 	}
 
-	let { block, conflicts, showCoverageToggle = false }: Props = $props();
+	let { block, conflicts, showCoverageToggle = false, wave }: Props = $props();
 
 	let expanded = $state(true); // Default expanded for better UX
+
+	// Determine colors based on wave
+	let waveColors = $derived({
+		border: wave === 'am' ? 'border-l-amber-500' : wave === 'pm' ? 'border-l-indigo-500' : 'border-l-court-gold',
+		text: wave === 'am' ? 'text-amber-400' : wave === 'pm' ? 'text-indigo-400' : 'text-court-gold',
+		icon: wave === 'am' ? '☀️' : wave === 'pm' ? '🌙' : ''
+	});
 </script>
 
-<div class="time-block mb-4">
+<div class="time-block mb-4 border-l-4 {waveColors.border}">
 	<button
 		onclick={() => (expanded = !expanded)}
-		class="w-full flex justify-between items-center bg-court-charcoal p-4 rounded-t-lg hover:bg-gray-800 transition-colors"
+		class="w-full flex justify-between items-center bg-court-charcoal p-4 rounded-tr-lg hover:bg-gray-800 transition-colors"
 		aria-expanded={expanded}
 		aria-label="{expanded ? 'Collapse' : 'Expand'} matches at {block.time}"
 	>
 		<div class="flex items-center gap-4">
-			<span class="text-lg font-semibold text-court-gold">{block.time}</span>
+			{#if waveColors.icon}
+				<span class="text-lg" aria-hidden="true">{waveColors.icon}</span>
+			{/if}
+			<span class="text-lg font-semibold {waveColors.text}">{block.time}</span>
 			<span class="text-sm text-gray-400">
 				{block.matches.length}
 				{block.matches.length === 1 ? 'match' : 'matches'}
@@ -41,7 +52,7 @@
 	</button>
 
 	{#if expanded}
-		<div class="grid gap-3 p-4 bg-court-dark rounded-b-lg">
+		<div class="grid gap-3 p-4 bg-court-dark rounded-br-lg">
 			{#each block.matches as match (match.MatchId)}
 				<MatchCard {match} isConflict={conflicts.has(match.MatchId)} {showCoverageToggle} />
 			{/each}
