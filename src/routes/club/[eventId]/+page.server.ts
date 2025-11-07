@@ -23,32 +23,38 @@ export const load: PageServerLoad = async ({ fetch, params, url }) => {
 
 		console.log(`Found ${teams.length} teams for club ${clubId}`);
 
-		// Step 2: Get current schedule for each team
+		// Step 2: Get all schedules for each team (current, past, future, work)
 		const allMatches: Match[] = [];
 		const matchIds = new Set<number>(); // Track unique match IDs
+		const scheduleTypes = ['current', 'past', 'future', 'work'] as const;
 
 		for (const team of teams) {
-			try {
-				// Get current matches for this team
-				const teamSchedule = await fetchTeamSchedule(
-					eventId,
-					team.TeamDivision,
-					team.TeamId,
-					'current',
-					fetch
-				);
+			// Fetch all schedule types for this team
+			for (const scheduleType of scheduleTypes) {
+				try {
+					const teamSchedule = await fetchTeamSchedule(
+						eventId,
+						team.TeamDivision,
+						team.TeamId,
+						scheduleType,
+						fetch
+					);
 
-				// Add matches to our collection (avoiding duplicates)
-				if (Array.isArray(teamSchedule)) {
-					for (const match of teamSchedule) {
-						if (!matchIds.has(match.MatchId)) {
-							matchIds.add(match.MatchId);
-							allMatches.push(match);
+					// Add matches to our collection (avoiding duplicates)
+					if (Array.isArray(teamSchedule)) {
+						for (const match of teamSchedule) {
+							if (!matchIds.has(match.MatchId)) {
+								matchIds.add(match.MatchId);
+								allMatches.push(match);
+							}
 						}
 					}
+				} catch (err) {
+					console.warn(
+						`Failed to get ${scheduleType} schedule for team ${team.TeamId}:`,
+						err
+					);
 				}
-			} catch (err) {
-				console.warn(`Failed to get schedule for team ${team.TeamId}:`, err);
 			}
 		}
 

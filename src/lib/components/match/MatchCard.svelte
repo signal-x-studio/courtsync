@@ -9,6 +9,7 @@
 	import { favoriteTeams } from '$lib/stores/favorites';
 	import { persona } from '$lib/stores/persona';
 	import { getMatchStatus } from '$lib/utils/filterMatches';
+	import { toast } from '$lib/stores/toast';
 	import { format } from 'date-fns';
 
 	interface Props {
@@ -32,8 +33,10 @@
 	function toggleCoverage() {
 		if (isInCoverage) {
 			coveragePlan.removeMatch(match.MatchId);
+			toast.info('Removed from coverage plan');
 		} else {
 			coveragePlan.addMatch(match.MatchId);
+			toast.success('Added to coverage plan');
 		}
 	}
 
@@ -49,9 +52,28 @@
 			return 'Invalid Time';
 		}
 	}
+
+	function toggleFavoriteTeam(teamId: number | null, event: MouseEvent) {
+		event.preventDefault(); // Prevent navigation to match detail
+		event.stopPropagation();
+		if (!teamId) return;
+
+		const isFavorite = $favoriteTeams.includes(teamId);
+		favoriteTeams.toggleTeam(teamId);
+
+		// Find team name for the toast
+		const teamName = teamId === match.FirstTeamId ? match.FirstTeamText : match.SecondTeamText;
+
+		if (isFavorite) {
+			toast.info(`Removed ${teamName} from favorites`);
+		} else {
+			toast.success(`Added ${teamName} to favorites`);
+		}
+	}
 </script>
 
 <div
+	data-testid="match-card"
 	class="match-card bg-court-charcoal rounded-lg p-4 border-2 transition-colors"
 	class:border-red-500={isConflict}
 	class:border-court-gold={isInCoverage && !isConflict}
@@ -89,16 +111,30 @@
 	>
 		<div class="space-y-1">
 			<div class="flex items-center gap-2">
-				{#if isTeam1Favorite}
-					<span class="text-court-gold" aria-label="Favorited team">★</span>
-				{/if}
+				<button
+					onclick={(e) => toggleFavoriteTeam(match.FirstTeamId, e)}
+					class="text-lg hover:scale-110 transition-transform"
+					class:text-court-gold={isTeam1Favorite}
+					class:text-gray-600={!isTeam1Favorite}
+					aria-label={isTeam1Favorite ? 'Remove from favorites' : 'Add to favorites'}
+					title={isTeam1Favorite ? 'Remove from favorites' : 'Add to favorites'}
+				>
+					{isTeam1Favorite ? '★' : '☆'}
+				</button>
 				<span class="font-semibold">{match.FirstTeamText}</span>
 			</div>
 			<div class="text-gray-400 text-sm">vs</div>
 			<div class="flex items-center gap-2">
-				{#if isTeam2Favorite}
-					<span class="text-court-gold" aria-label="Favorited team">★</span>
-				{/if}
+				<button
+					onclick={(e) => toggleFavoriteTeam(match.SecondTeamId, e)}
+					class="text-lg hover:scale-110 transition-transform"
+					class:text-court-gold={isTeam2Favorite}
+					class:text-gray-600={!isTeam2Favorite}
+					aria-label={isTeam2Favorite ? 'Remove from favorites' : 'Add to favorites'}
+					title={isTeam2Favorite ? 'Remove from favorites' : 'Add to favorites'}
+				>
+					{isTeam2Favorite ? '★' : '☆'}
+				</button>
 				<span class="font-semibold">{match.SecondTeamText}</span>
 			</div>
 		</div>

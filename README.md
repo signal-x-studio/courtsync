@@ -1,38 +1,109 @@
-# sv
+# CourtSync
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Volleyball tournament scheduling and live scoring app built with SvelteKit 5.
 
-## Creating a project
+## Tech Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **SvelteKit 2.0** + **Svelte 5** (Runes)
+- **Supabase** (real-time database)
+- **Tailwind CSS v4**
+- **TypeScript** (strict mode)
+- **Vercel** (deployment)
 
-```sh
-# create a new project in the current directory
-npx sv create
+## Features
 
-# create a new project in my-app
-npx sv create my-app
+- 📋 Event and club-based match filtering
+- ⭐ Favorite teams tracking
+- 📷 Media coverage planning
+- 🔴 Real-time live scoring
+- 🔒 Match locking prevents concurrent scoring
+- 📱 Mobile-first responsive design
+- 🌙 Dark mode by default
+
+## Setup
+
+### 1. Install dependencies
+```bash
+npm install
 ```
 
-## Developing
+### 2. Configure environment variables
+```bash
+cp .env.example .env
+# Fill in Supabase credentials
+```
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### 3. Setup Supabase
+See [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) for detailed instructions:
+- Create project at supabase.com
+- Run `supabase/schema.sql` in SQL editor
+- Enable Realtime for tables
+- Add credentials to `.env`
 
-```sh
+### 4. Run development server
+```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+Open [http://localhost:5173](http://localhost:5173)
 
-To create a production version of your app:
+## Development
 
-```sh
+```bash
+# Type checking
+npm run check
+
+# Linting
+npm run lint
+
+# Testing
+npm run test
+
+# E2E tests
+npm run test:e2e
+
+# Build for production
 npm run build
+
+# Preview production build
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Deployment
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+### Deploy to Vercel
+
+1. Push to GitHub
+2. Import project in Vercel dashboard
+3. Add environment variables:
+   - `PUBLIC_SUPABASE_URL`
+   - `PUBLIC_SUPABASE_ANON_KEY`
+4. Deploy
+
+Or use Vercel CLI:
+```bash
+vercel --prod
+```
+
+## Project Structure
+
+```
+src/
+├── routes/           # SvelteKit routes (pages)
+├── lib/
+│   ├── components/   # Svelte components
+│   ├── stores/       # Svelte stores (state)
+│   ├── api/          # API clients
+│   ├── supabase/     # Supabase integration
+│   ├── utils/        # Utility functions
+│   └── types/        # TypeScript types
+└── app.css          # Global styles
+```
+
+## Architecture
+
+See [docs/sveltekit-architecture.md](./docs/sveltekit-architecture.md) for detailed architecture documentation.
+
+## License
+
+MIT

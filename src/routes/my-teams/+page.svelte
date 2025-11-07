@@ -3,10 +3,12 @@
 <!-- Note: Allows users to add/remove favorite teams and see their schedules -->
 
 <script lang="ts">
+	import { navigating } from '$app/stores';
 	import { favoriteTeams } from '$lib/stores/favorites';
 	import { filters } from '$lib/stores/filters';
 	import { applyFilters, groupByTime } from '$lib/utils/filterMatches';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
+	import MatchListSkeleton from '$lib/components/ui/MatchListSkeleton.svelte';
 	import type { PageData } from './$types';
 
 	// Get data from load function
@@ -17,6 +19,9 @@
 	// Use data from server-side load
 	let allMatches = $derived(data.allMatches);
 	let availableTeams = $derived(data.availableTeams);
+
+	// Show loading state during navigation
+	let isNavigating = $derived($navigating !== null);
 
 	// Derived reactive values
 	let favoriteMatches = $derived(
@@ -85,7 +90,9 @@
 		</div>
 	{/if}
 
-	{#if $favoriteTeams.length === 0}
+	{#if isNavigating}
+		<MatchListSkeleton count={6} />
+	{:else if $favoriteTeams.length === 0}
 		<div class="text-center py-12">
 			<p class="text-gray-400 text-lg mb-4">No favorite teams selected</p>
 			<button

@@ -4,11 +4,13 @@
 <!-- Note: Uses URL params for eventId and clubId, integrates filters and coverage -->
 
 <script lang="ts">
+	import { navigating } from '$app/stores';
 	import { filters } from '$lib/stores/filters';
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
 	import { applyFilters, groupByTime, detectConflicts } from '$lib/utils/filterMatches';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
+	import MatchListSkeleton from '$lib/components/ui/MatchListSkeleton.svelte';
 	import type { Match } from '$lib/types/aes';
 	import type { PageData } from './$types';
 
@@ -17,6 +19,9 @@
 
 	// Use matches from server-side load
 	let allMatches = $derived(data.allMatches);
+
+	// Show loading state during navigation
+	let isNavigating = $derived($navigating !== null);
 
 	// Derived reactive values
 	let filteredMatches = $derived(applyFilters(allMatches, $filters));
@@ -43,7 +48,9 @@
 		</p>
 	</div>
 
-	{#if timeBlocks.length === 0}
+	{#if isNavigating}
+		<MatchListSkeleton count={6} />
+	{:else if timeBlocks.length === 0}
 		<div class="text-center py-12">
 			<p class="text-gray-400 text-lg">No matches found</p>
 			{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}

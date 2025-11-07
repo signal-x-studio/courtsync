@@ -3,11 +3,13 @@
 <!-- Note: Shows coverage statistics, timeline view, and conflict warnings -->
 
 <script lang="ts">
+	import { navigating } from '$app/stores';
 	import type { PageData } from './$types';
 	import { coveragePlan } from '$lib/stores/coverage';
 	import { persona } from '$lib/stores/persona';
 	import { groupByTime, detectConflicts } from '$lib/utils/filterMatches';
 	import TimeBlock from '$lib/components/match/TimeBlock.svelte';
+	import MatchListSkeleton from '$lib/components/ui/MatchListSkeleton.svelte';
 	import type { CoverageStats } from '$lib/types/app';
 
 	// Get data from server-side load
@@ -15,6 +17,9 @@
 
 	// Use matches from server-side load
 	let allMatches = $derived(data.allMatches);
+
+	// Show loading state during navigation
+	let isNavigating = $derived($navigating !== null);
 
 	// Derived reactive values
 	let coverageMatches = $derived(
@@ -82,7 +87,9 @@
 			{/if}
 
 			<!-- Coverage Timeline -->
-			{#if timeBlocks.length === 0}
+			{#if isNavigating}
+			<MatchListSkeleton count={6} />
+		{:else if timeBlocks.length === 0}
 				<div class="text-center py-12">
 					<p class="text-gray-400 text-lg mb-4">No matches in your coverage plan</p>
 					<a

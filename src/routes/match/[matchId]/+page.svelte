@@ -11,6 +11,8 @@
 	import { eventId } from '$lib/stores/event';
 	import { persona } from '$lib/stores/persona';
 	import { getMatchStatus } from '$lib/utils/filterMatches';
+	import { isSetComplete, getSetWinner, getMatchWinner } from '$lib/utils/volleyballRules';
+	import { toast } from '$lib/stores/toast';
 	import { format } from 'date-fns';
 	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
 
@@ -19,48 +21,51 @@
 
 	let matchId = $derived(data.matchId);
 	let match = $derived(data.match);
-	let score = $derived(liveScore(matchId));
+
+	// Create reactive store that updates when matchId changes
+	let scoreStore = $derived(liveScore(matchId));
+	let score = $derived($scoreStore);
 
 	let error = $state(data.error || '');
-	let isLocked = $state(false);
-	let canEdit = $state(false);
 	let currentSet = $state(1);
 
 	let status = $derived(match ? getMatchStatus(match) : 'upcoming');
 
-	// Check lock status on mount
-	$effect(() => {
-		if (match) {
-			getMatchScore(matchId).then((matchScore) => {
-				isLocked = matchScore?.locked_by !== null;
-				canEdit =
-					($persona === 'media' || $persona === 'spectator') &&
-					(!isLocked || matchScore?.locked_by === $clientId);
-			});
-		}
-	});
+	// Derive lock status from real-time score store
+	let isLocked = $derived(score?.locked_by !== null && score?.locked_by !== undefined);
+	let canEdit = $derived(
+		($persona === 'media' || $persona === 'spectator') &&
+			(!isLocked || score?.locked_by === $clientId)
+	);
+	let matchWinner = $derived(score?.sets ? getMatchWinner(score.sets) : null);
 
 	async function handleLock() {
 		if (!$eventId) {
-			error = 'Event ID is required';
+			const message = 'Event ID is required';
+			error = message;
+			toast.error(message);
 			return;
 		}
 		try {
 			await lockMatch(matchId, $clientId, $eventId);
-			isLocked = true;
-			canEdit = true;
+			toast.success('Match locked for scoring');
+			// isLocked and canEdit will update automatically via real-time subscription
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to lock match';
+			const message = err instanceof Error ? err.message : 'Failed to lock match';
+			error = message;
+			toast.error(message);
 		}
 	}
 
 	async function handleUnlock() {
 		try {
-			await unlockMatch(matchId);
-			isLocked = false;
-			canEdit = false;
+			await unlockMatch(matchId, $clientId);
+			toast.info('Match unlocked');
+			// isLocked and canEdit will update automatically via real-time subscription
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to unlock match';
+			const message = err instanceof Error ? err.message : 'Failed to unlock match';
+			error = message;
+			toast.error(message);
 		}
 	}
 
@@ -69,8 +74,11 @@
 
 		try {
 			await updateScore(matchId, setNumber, team, delta, $clientId);
+			// Success - score updates automatically via real-time subscription
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to update score';
+			const message = err instanceof Error ? err.message : 'Failed to update score';
+			error = message;
+			toast.error(message);
 		}
 	}
 
@@ -98,7 +106,7 @@
 					></div>
 					<h3 class="text-lg text-gray-400">{match.Division.Name}</h3>
 					{#if status === 'live'}
-						<span class="text-red-400 font-semibold">🔴 LIVE</span>
+						<span data-testid="live-indicator" class="text-red-400 font-semibold">🔴 LIVE</span>
 					{/if}
 				</div>
 				<p class="text-gray-400">{formatTime(match.ScheduledStartDateTime)}</p>
@@ -151,7 +159,7 @@
 								<div class="text-center">
 									<div class="text-sm text-gray-400 mb-2">{match.FirstTeamText}</div>
 									<div class="text-4xl font-bold mb-3">
-										{$score?.sets[currentSet - 1]?.team1Score || 0}
+										{score?.sets[currentSet - 1]?.team1Score || 0}
 									</div>
 									<div class="flex gap-2 justify-center">
 										<button
@@ -173,7 +181,7 @@
 								<div class="text-center">
 									<div class="text-sm text-gray-400 mb-2">{match.SecondTeamText}</div>
 									<div class="text-4xl font-bold mb-3">
-										{$score?.sets[currentSet - 1]?.team2Score || 0}
+										{score?.sets[currentSet - 1]?.team2Score || 0}
 									</div>
 									<div class="flex gap-2 justify-center">
 										<button
@@ -208,36 +216,53 @@
 				</div>
 			{/if}
 
-			<!-- Score Display (All Users) -->
-			{#if $score && $score.sets.length > 0}
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-6">
-					<h3 class="text-xl font-bold mb-4">Score</h3>
-					<div class="space-y-3">
-						{#each $score.sets as set, idx}
-							<div
-								class="flex justify-between items-center p-3 bg-court-dark rounded"
-							>
+		<!-- Score Display (All Users) -->
+		{#if score && score.sets.length > 0}
+			<div data-testid="score-display" class="bg-court-charcoal border border-gray-700 rounded-lg p-6">
+				<div class="flex justify-between items-center mb-4">
+					<h3 class="text-xl font-bold">Score</h3>
+					{#if matchWinner}
+						<div class="px-4 py-2 bg-court-gold text-court-dark font-bold rounded-lg">
+							{matchWinner === 1 ? match?.FirstTeamText : match?.SecondTeamText} Wins!
+						</div>
+					{/if}
+				</div>
+				<div class="space-y-3">
+					{#each score.sets as set, idx}
+						{@const setComplete = isSetComplete(idx, set)}
+						{@const setWinner = getSetWinner(idx, set)}
+						<div
+							class="flex justify-between items-center p-3 bg-court-dark rounded transition-all"
+							class:border-2={setComplete}
+							class:border-green-500={setComplete}
+						>
+							<div class="flex items-center gap-2">
 								<div class="text-gray-400">Set {idx + 1}</div>
-								<div class="flex gap-6">
-									<div
-										class="font-bold"
-										class:text-court-gold={set.team1Score > set.team2Score}
-									>
-										{set.team1Score}
-									</div>
-									<div class="text-gray-600">-</div>
-									<div
-										class="font-bold"
-										class:text-court-gold={set.team2Score > set.team1Score}
-									>
-										{set.team2Score}
-									</div>
+								{#if setComplete}
+									<span class="text-xs text-green-400" title="Set complete">✓</span>
+								{/if}
+							</div>
+							<div class="flex gap-6">
+								<div
+									class="font-bold text-lg"
+									class:text-court-gold={setWinner === 1}
+								>
+									{set.team1Score}
+								</div>
+								<div class="text-gray-600">-</div>
+								<div
+									class="font-bold text-lg"
+									class:text-court-gold={setWinner === 2}
+								>
+									{set.team2Score}
 								</div>
 							</div>
-						{/each}
-					</div>
+						</div>
+					{/each}
 				</div>
-			{/if}
+			</div>
+		{/if}
+
 		{:else}
 			<div class="text-center py-12">
 				<p class="text-gray-400 text-lg">Match not found</p>

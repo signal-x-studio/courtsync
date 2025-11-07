@@ -1,0 +1,229 @@
+<!-- Reference: https://svelte.dev/docs/kit/routing -->
+<!-- Reference: https://svelte.dev/docs/svelte/$effect -->
+<!-- Purpose: Match detail page with live scoring and real-time updates -->
+<!-- Note: Handles match locking, score updates, and live subscription -->
+
+<script lang="ts">
+	import type { PageData } from './$types';
+	import { lockMatch, unlockMatch, updateScore, getMatchScore } from '$lib/supabase/actions';
+	import { liveScore } from '$lib/stores/liveScore';
+	import { clientId } from '$lib/stores/clientId';
+	import { eventId } from '$lib/stores/event';
+	import { persona } from '$lib/stores/persona';
+	import { getMatchStatus } from '$lib/utils/filterMatches';
+	import { isSetComplete, getSetWinner, getMatchWinner } from '$lib/utils/volleyballRules';
+	import { format } from 'date-fns';
+	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
+
+	// Get data from server-side load
+	let { data }: { data: PageData } = $props();
+
+	let matchId = $derived(data.matchId);
+	let match = $derived(data.match);
+
+	// Create reactive store that updates when matchId changes
+	let scoreStore = $derived(liveScore(matchId));
+	let score = $derived($scoreStore);
+
+	let error = $state(data.error || '');
+	let currentSet = $state(1);
+
+	let status = $derived(match ? getMatchStatus(match) : 'upcoming');
+
+	// Derive lock status from real-time score store
+	let isLocked = $derived(score?.locked_by !== null && score?.locked_by !== undefined);
+	let canEdit = $derived(
+		($persona === 'media' || $persona === 'spectator') &&
+			(!isLocked || score?.locked_by === $clientId)
+	);
+	let matchWinner = $derived(score?.sets ? getMatchWinner(score.sets) : null);
+
+	async function handleLock() {
+		if (!$eventId) {
+			error = 'Event ID is required';
+			return;
+		}
+		try {
+			await lockMatch(matchId, $clientId, $eventId);
+			// isLocked and canEdit will update automatically via real-time subscription
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to lock match';
+		}
+	}
+
+	async function handleUnlock() {
+		try {
+			await unlockMatch(matchId, $clientId);
+			// isLocked and canEdit will update automatically via real-time subscription
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to unlock match';
+		}
+	}
+
+	async function handleScoreUpdate(setNumber: number, team: 1 | 2, delta: number) {
+		if (!canEdit) return;
+
+		try {
+			await updateScore(matchId, setNumber, team, delta, $clientId);
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to update score';
+		}
+	}
+
+	function formatTime(timestamp: number): string {
+		return format(timestamp, 'EEEE, MMMM d • h:mm a');
+	}
+</script>
+
+<div class="max-w-4xl mx-auto p-4">
+	<ErrorBoundary {error}>
+		{#if match}
+			<!-- Match Header -->
+			<div class="mb-6">
+				<button
+					onclick={() => window.history.back()}
+					class="text-court-gold hover:underline mb-4 flex items-center gap-2"
+				>
+					← Back
+				</button>
+				<div class="flex items-center gap-3 mb-2">
+					<div
+						class="w-4 h-4 rounded-full"
+						style="background-color: {match.Division.ColorHex}"
+						aria-hidden="true"
+					></div>
+					<h3 class="text-lg text-gray-400">{match.Division.Name}</h3>
+					{#if status === 'live'}
+						<span data-testid="live-indicator" class="text-red-400 font-semibold">🔴 LIVE</span>
+					{/if}
+				</div>
+				<p class="text-gray-400">{formatTime(match.ScheduledStartDateTime)}</p>
+				{#if match.CourtName}
+					<p class="text-gray-400">Court: {match.CourtName}</p>
+				{/if}
+			</div>
+
+			<!-- Match Teams -->
+			<div class="bg-court-charcoal border border-gray-700 rounded-lg p-6 mb-6">
+				<div class="text-center">
+					<div class="text-2xl font-bold mb-2">{match.FirstTeamText}</div>
+					<div class="text-gray-400 text-lg mb-2">vs</div>
+					<div class="text-2xl font-bold">{match.SecondTeamText}</div>
+				</div>
+			</div>
+
+			<!-- Live Scoring (Media/Officials only) -->
+			{#if $persona === 'media'}
+				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-6 mb-6">
+					<h3 class="text-xl font-bold mb-4">Live Scoring</h3>
+
+					{#if !isLocked}
+						<button
+							onclick={handleLock}
+							class="w-full px-4 py-3 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
+						>
+							Lock Match for Scoring
+						</button>
+					{:else if canEdit}
+						<div class="space-y-4">
+							<!-- Set Selector -->
+							<div class="flex gap-2 mb-4">
+								{#each [1, 2, 3, 4, 5] as setNum}
+									<button
+										onclick={() => (currentSet = setNum)}
+										class="flex-1 px-3 py-2 rounded transition-colors"
+										class:bg-court-gold={currentSet === setNum}
+										class:text-court-dark={currentSet === setNum}
+										class:bg-gray-700={currentSet !== setNum}
+									>
+										Set {setNum}
+									</button>
+								{/each}
+							</div>
+
+							<!-- Score Display -->
+							<div class="grid grid-cols-2 gap-4">
+								<!-- Team 1 -->
+								<div class="text-center">
+									<div class="text-sm text-gray-400 mb-2">{match.FirstTeamText}</div>
+									<div class="text-4xl font-bold mb-3">
+										{score?.sets[currentSet - 1]?.team1Score || 0}
+									</div>
+									<div class="flex gap-2 justify-center">
+										<button
+											onclick={() => handleScoreUpdate(currentSet - 1, 1, -1)}
+											class="px-4 py-2 bg-red-900 text-red-400 rounded hover:bg-red-800 transition-colors"
+										>
+											-1
+										</button>
+										<button
+											onclick={() => handleScoreUpdate(currentSet - 1, 1, 1)}
+											class="px-4 py-2 bg-green-900 text-green-400 rounded hover:bg-green-800 transition-colors"
+										>
+											+1
+										</button>
+									</div>
+								</div>
+
+								<!-- Team 2 -->
+								<div class="text-center">
+									<div class="text-sm text-gray-400 mb-2">{match.SecondTeamText}</div>
+									<div class="text-4xl font-bold mb-3">
+										{score?.sets[currentSet - 1]?.team2Score || 0}
+									</div>
+									<div class="flex gap-2 justify-center">
+										<button
+											onclick={() => handleScoreUpdate(currentSet - 1, 2, -1)}
+											class="px-4 py-2 bg-red-900 text-red-400 rounded hover:bg-red-800 transition-colors"
+										>
+											-1
+										</button>
+										<button
+											onclick={() => handleScoreUpdate(currentSet - 1, 2, 1)}
+											class="px-4 py-2 bg-green-900 text-green-400 rounded hover:bg-green-800 transition-colors"
+										>
+											+1
+										</button>
+									</div>
+								</div>
+							</div>
+
+							<!-- Unlock Button -->
+							<button
+								onclick={handleUnlock}
+								class="w-full px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors mt-4"
+							>
+								Unlock Match
+							</button>
+						</div>
+					{:else}
+						<div class="text-center text-gray-400">
+							This match is currently being scored by another user.
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+								>
+									{set.team1Score}
+								</div>
+								<div class="text-gray-600">-</div>
+								<div
+									class="font-bold text-lg"
+									class:text-court-gold={setWinner === 2}
+								>
+									{set.team2Score}
+								</div>
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
+		{:else}
+			<div class="text-center py-12">
+				<p class="text-gray-400 text-lg">Match not found</p>
+			</div>
+		{/if}
+	</ErrorBoundary>
+</div>
