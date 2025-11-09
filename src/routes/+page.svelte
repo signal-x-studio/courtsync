@@ -65,8 +65,8 @@
 
 <div class="max-w-2xl mx-auto p-4">
 	<div class="mb-8">
-		<h2 class="text-3xl font-bold text-court-gold mb-2">Welcome to CourtSync</h2>
-		<p class="text-gray-400">Enter your event ID to get started</p>
+		<h2 class="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">Welcome to CourtSync</h2>
+		<p class="text-muted">Enter your event ID to get started</p>
 	</div>
 
 	<ErrorBoundary {error} retry={() => (error = '')}>
@@ -80,13 +80,13 @@
 						type="text"
 						bind:value={eventId}
 						placeholder="e.g., 2024-nationals"
-						class="flex-1 px-4 py-2 bg-court-charcoal border border-gray-700 rounded-lg focus:outline-none focus:border-court-gold"
+						class="input flex-1"
 						disabled={loading}
 					/>
 					<button
 						onclick={loadEvent}
 						disabled={loading || !eventId.trim()}
-						class="px-6 py-2 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						class="btn btn-primary"
 					>
 						{loading ? 'Loading...' : 'Load Event'}
 					</button>
@@ -94,10 +94,10 @@
 			</div>
 
 			{#if eventInfo}
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
-					<h3 class="text-xl font-semibold text-court-gold mb-2">{eventInfo.Name}</h3>
+				<div class="card">
+					<h3 class="text-xl font-semibold text-primary-600 dark:text-primary-400 mb-2">{eventInfo.Name}</h3>
 					{#if eventInfo.Location}
-						<p class="text-gray-400 text-sm">{eventInfo.Location}</p>
+						<p class="text-muted text-sm">{eventInfo.Location}</p>
 					{/if}
 				</div>
 			{/if}
@@ -110,7 +110,7 @@
 					<select
 						id="club-select"
 						bind:value={selectedClubId}
-						class="w-full px-4 py-2 bg-court-charcoal border border-gray-700 rounded-lg focus:outline-none focus:border-court-gold"
+						class="select"
 					>
 						<option value={null}>Choose a club...</option>
 						{#each clubs as club (club.ClubId)}
@@ -122,7 +122,7 @@
 				<button
 					onclick={selectClub}
 					disabled={!selectedClubId}
-					class="w-full px-6 py-3 bg-court-gold text-court-dark font-bold rounded-lg hover:bg-court-gold-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					class="btn btn-primary w-full btn-lg"
 				>
 					Continue to Schedule
 				</button>

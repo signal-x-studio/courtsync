@@ -94,7 +94,7 @@
 			<div class="mb-6">
 				<button
 					onclick={() => window.history.back()}
-					class="text-court-gold hover:underline mb-4 flex items-center gap-2"
+					class="text-primary-600 dark:text-primary-400 hover:underline mb-4 flex items-center gap-2"
 				>
 					← Back
 				</button>
@@ -104,35 +104,35 @@
 						style="background-color: {match.Division.ColorHex}"
 						aria-hidden="true"
 					></div>
-					<h3 class="text-lg text-gray-400">{match.Division.Name}</h3>
+					<h3 class="text-lg text-muted">{match.Division.Name}</h3>
 					{#if status === 'live'}
-						<span data-testid="live-indicator" class="text-red-400 font-semibold">🔴 LIVE</span>
+						<span data-testid="live-indicator" class="text-error-500 font-semibold">🔴 LIVE</span>
 					{/if}
 				</div>
-				<p class="text-gray-400">{formatTime(match.ScheduledStartDateTime)}</p>
+				<p class="text-muted">{formatTime(match.ScheduledStartDateTime)}</p>
 				{#if match.CourtName}
-					<p class="text-gray-400">Court: {match.CourtName}</p>
+					<p class="text-muted">Court: {match.CourtName}</p>
 				{/if}
 			</div>
 
 			<!-- Match Teams -->
-			<div class="bg-court-charcoal border border-gray-700 rounded-lg p-6 mb-6">
+			<div class="bg-(--subtle) border border-default rounded-lg p-6 mb-6">
 				<div class="text-center">
 					<div class="text-2xl font-bold mb-2">{match.FirstTeamText}</div>
-					<div class="text-gray-400 text-lg mb-2">vs</div>
+					<div class="text-muted text-lg mb-2">vs</div>
 					<div class="text-2xl font-bold">{match.SecondTeamText}</div>
 				</div>
 			</div>
 
 			<!-- Live Scoring (Media/Officials only) -->
 			{#if $persona === 'media'}
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-6 mb-6">
+				<div class="bg-(--subtle) border border-default rounded-lg p-6 mb-6">
 					<h3 class="text-xl font-bold mb-4">Live Scoring</h3>
 
 					{#if !isLocked}
 						<button
 							onclick={handleLock}
-							class="w-full px-4 py-3 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
+							class="w-full px-4 py-3 bg-court-gold text-(--fg) font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
 						>
 							Lock Match for Scoring
 						</button>
@@ -144,9 +144,9 @@
 									<button
 										onclick={() => (currentSet = setNum)}
 										class="flex-1 px-3 py-2 rounded transition-colors"
-										class:bg-court-gold={currentSet === setNum}
-										class:text-court-dark={currentSet === setNum}
-										class:bg-gray-700={currentSet !== setNum}
+										class:bg-primary-500={currentSet === setNum}
+										class:text-(--fg)={currentSet === setNum}
+										class:bg-(--subtle)={currentSet !== setNum}
 									>
 										Set {setNum}
 									</button>
@@ -157,20 +157,20 @@
 							<div class="grid grid-cols-2 gap-4">
 								<!-- Team 1 -->
 								<div class="text-center">
-									<div class="text-sm text-gray-400 mb-2">{match.FirstTeamText}</div>
+									<div class="text-sm text-muted mb-2">{match.FirstTeamText}</div>
 									<div class="text-4xl font-bold mb-3">
 										{score?.sets[currentSet - 1]?.team1Score || 0}
 									</div>
 									<div class="flex gap-2 justify-center">
 										<button
 											onclick={() => handleScoreUpdate(currentSet - 1, 1, -1)}
-											class="px-4 py-2 bg-red-900 text-red-400 rounded hover:bg-red-800 transition-colors"
+											class="px-4 py-2 bg-red-900 text-error-500 rounded hover:bg-red-800 transition-colors"
 										>
 											-1
 										</button>
 										<button
 											onclick={() => handleScoreUpdate(currentSet - 1, 1, 1)}
-											class="px-4 py-2 bg-green-900 text-green-400 rounded hover:bg-green-800 transition-colors"
+											class="px-4 py-2 bg-green-900 text-success-500 rounded hover:bg-green-800 transition-colors"
 										>
 											+1
 										</button>
@@ -179,20 +179,20 @@
 
 								<!-- Team 2 -->
 								<div class="text-center">
-									<div class="text-sm text-gray-400 mb-2">{match.SecondTeamText}</div>
+									<div class="text-sm text-muted mb-2">{match.SecondTeamText}</div>
 									<div class="text-4xl font-bold mb-3">
 										{score?.sets[currentSet - 1]?.team2Score || 0}
 									</div>
 									<div class="flex gap-2 justify-center">
 										<button
 											onclick={() => handleScoreUpdate(currentSet - 1, 2, -1)}
-											class="px-4 py-2 bg-red-900 text-red-400 rounded hover:bg-red-800 transition-colors"
+											class="px-4 py-2 bg-red-900 text-error-500 rounded hover:bg-red-800 transition-colors"
 										>
 											-1
 										</button>
 										<button
 											onclick={() => handleScoreUpdate(currentSet - 1, 2, 1)}
-											class="px-4 py-2 bg-green-900 text-green-400 rounded hover:bg-green-800 transition-colors"
+											class="px-4 py-2 bg-green-900 text-success-500 rounded hover:bg-green-800 transition-colors"
 										>
 											+1
 										</button>
@@ -203,13 +203,13 @@
 							<!-- Unlock Button -->
 							<button
 								onclick={handleUnlock}
-								class="w-full px-4 py-2 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors mt-4"
+								class="w-full px-4 py-2 bg-(--subtle) text-(--fg) rounded hover:bg-gray-600 transition-colors mt-4"
 							>
 								Unlock Match
 							</button>
 						</div>
 					{:else}
-						<div class="text-center text-gray-400">
+						<div class="text-center text-muted">
 							This match is currently being scored by another user.
 						</div>
 					{/if}
@@ -218,11 +218,11 @@
 
 		<!-- Score Display (All Users) -->
 		{#if score && score.sets.length > 0}
-			<div data-testid="score-display" class="bg-court-charcoal border border-gray-700 rounded-lg p-6">
+			<div data-testid="score-display" class="bg-(--subtle) border border-default rounded-lg p-6">
 				<div class="flex justify-between items-center mb-4">
 					<h3 class="text-xl font-bold">Score</h3>
 					{#if matchWinner}
-						<div class="px-4 py-2 bg-court-gold text-court-dark font-bold rounded-lg">
+						<div class="px-4 py-2 bg-court-gold text-(--fg) font-bold rounded-lg">
 							{matchWinner === 1 ? match?.FirstTeamText : match?.SecondTeamText} Wins!
 						</div>
 					{/if}
@@ -232,27 +232,27 @@
 						{@const setComplete = isSetComplete(idx, set)}
 						{@const setWinner = getSetWinner(idx, set)}
 						<div
-							class="flex justify-between items-center p-3 bg-court-dark rounded transition-all"
+							class="flex justify-between items-center p-3 bg-(--bg) rounded transition-all"
 							class:border-2={setComplete}
 							class:border-green-500={setComplete}
 						>
 							<div class="flex items-center gap-2">
-								<div class="text-gray-400">Set {idx + 1}</div>
+								<div class="text-muted">Set {idx + 1}</div>
 								{#if setComplete}
-									<span class="text-xs text-green-400" title="Set complete">✓</span>
+									<span class="text-xs text-success-500" title="Set complete">✓</span>
 								{/if}
 							</div>
 							<div class="flex gap-6">
 								<div
 									class="font-bold text-lg"
-									class:text-court-gold={setWinner === 1}
+									class:text-primary-600={setWinner === 1}
 								>
 									{set.team1Score}
 								</div>
-								<div class="text-gray-600">-</div>
+								<div class="text-muted">-</div>
 								<div
 									class="font-bold text-lg"
-									class:text-court-gold={setWinner === 2}
+									class:text-primary-600={setWinner === 2}
 								>
 									{set.team2Score}
 								</div>
@@ -265,7 +265,7 @@
 
 		{:else}
 			<div class="text-center py-12">
-				<p class="text-gray-400 text-lg">Match not found</p>
+				<p class="text-muted text-lg">Match not found</p>
 			</div>
 		{/if}
 	</ErrorBoundary>

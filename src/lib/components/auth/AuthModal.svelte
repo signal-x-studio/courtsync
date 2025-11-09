@@ -102,16 +102,16 @@
 		}}
 	>
 		<div
-			class="w-full max-w-md rounded-lg border border-court-gold/30 bg-court-charcoal p-6 shadow-xl"
+			class="w-full max-w-md rounded-lg border border-court-gold/30 bg-(--subtle) p-6 shadow-xl"
 		>
 			<!-- Header -->
 			<div class="mb-6 flex items-center justify-between">
-				<h2 class="text-2xl font-bold text-court-gold">
+				<h2 class="text-2xl font-bold text-primary-600 dark:text-primary-400">
 					{mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
 				</h2>
 				<button
 					onclick={onClose}
-					class="text-gray-400 transition-colors hover:text-gray-300"
+					class="text-muted transition-colors hover:text-(--fg)"
 					aria-label="Close"
 				>
 					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@
 				<div class="space-y-4">
 					<!-- Email -->
 					<div>
-						<label for="email" class="mb-1 block text-sm font-medium text-gray-300">
+						<label for="email" class="mb-1 block text-sm font-medium text-(--fg)">
 							Email
 						</label>
 						<input
@@ -138,7 +138,7 @@
 							type="email"
 							bind:value={email}
 							placeholder="you@example.com"
-							class="w-full rounded-lg border border-gray-600 bg-court-dark px-4 py-2 text-white placeholder-gray-500 focus:border-court-gold focus:outline-none"
+							class="w-full rounded-lg border border-default bg-(--bg) px-4 py-2 text-white placeholder-gray-500 focus:border-court-gold focus:outline-none"
 							required
 						/>
 					</div>
@@ -146,7 +146,7 @@
 					<!-- Password -->
 					{#if mode !== 'reset'}
 						<div>
-							<label for="password" class="mb-1 block text-sm font-medium text-gray-300">
+							<label for="password" class="mb-1 block text-sm font-medium text-(--fg)">
 								Password
 							</label>
 							<input
@@ -154,7 +154,7 @@
 								type="password"
 								bind:value={password}
 								placeholder="••••••••"
-								class="w-full rounded-lg border border-gray-600 bg-court-dark px-4 py-2 text-white placeholder-gray-500 focus:border-court-gold focus:outline-none"
+								class="w-full rounded-lg border border-default bg-(--bg) px-4 py-2 text-white placeholder-gray-500 focus:border-court-gold focus:outline-none"
 								required
 							/>
 						</div>
@@ -163,7 +163,7 @@
 					<!-- Confirm Password (Sign Up only) -->
 					{#if mode === 'signup'}
 						<div>
-							<label for="confirm-password" class="mb-1 block text-sm font-medium text-gray-300">
+							<label for="confirm-password" class="mb-1 block text-sm font-medium text-(--fg)">
 								Confirm Password
 							</label>
 							<input
@@ -171,7 +171,7 @@
 								type="password"
 								bind:value={confirmPassword}
 								placeholder="••••••••"
-								class="w-full rounded-lg border border-gray-600 bg-court-dark px-4 py-2 text-white placeholder-gray-500 focus:border-court-gold focus:outline-none"
+								class="w-full rounded-lg border border-default bg-(--bg) px-4 py-2 text-white placeholder-gray-500 focus:border-court-gold focus:outline-none"
 								required
 							/>
 						</div>
@@ -179,14 +179,14 @@
 
 					<!-- Error Message -->
 					{#if error}
-						<div class="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+						<div class="rounded border border-error-500/30 bg-error-500/10 px-3 py-2 text-sm text-error-500">
 							{error}
 						</div>
 					{/if}
 
 					<!-- Success Message -->
 					{#if successMessage}
-						<div class="rounded border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm text-green-400">
+						<div class="rounded border border-green-500/30 bg-success-500/10 px-3 py-2 text-sm text-success-500">
 							{successMessage}
 						</div>
 					{/if}
@@ -195,7 +195,7 @@
 					<button
 						type="submit"
 						disabled={loading}
-						class="w-full rounded-lg bg-court-gold px-4 py-2 font-semibold text-court-dark transition-colors hover:bg-court-gold/90 disabled:opacity-50"
+						class="w-full rounded-lg bg-court-gold px-4 py-2 font-semibold text-(--fg) transition-colors hover:bg-court-gold/90 disabled:opacity-50"
 					>
 						{loading ? 'Loading...' : mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Create Account' : 'Send Reset Email'}
 					</button>
@@ -206,7 +206,7 @@
 							type="button"
 							onclick={handleGoogleSignIn}
 							disabled={loading}
-							class="w-full rounded-lg border border-gray-600 px-4 py-2 font-medium text-gray-300 transition-colors hover:bg-gray-800 disabled:opacity-50"
+							class="w-full rounded-lg border border-default px-4 py-2 font-medium text-(--fg) transition-colors hover:bg-(--subtle) disabled:opacity-50"
 						>
 							<span class="flex items-center justify-center gap-2">
 								<svg class="h-5 w-5" viewBox="0 0 24 24">
@@ -235,20 +235,20 @@
 			</form>
 
 			<!-- Mode Switcher -->
-			<div class="mt-6 text-center text-sm text-gray-400">
+			<div class="mt-6 text-center text-sm text-muted">
 				{#if mode === 'signin'}
 					<p>
 						Don't have an account?
 						<button
 							onclick={() => switchMode('signup')}
-							class="text-court-gold hover:underline"
+							class="text-primary-600 dark:text-primary-400 hover:underline"
 						>
 							Sign up
 						</button>
 					</p>
 					<button
 						onclick={() => switchMode('reset')}
-						class="mt-2 text-court-gold hover:underline"
+						class="mt-2 text-primary-600 dark:text-primary-400 hover:underline"
 					>
 						Forgot password?
 					</button>
@@ -257,7 +257,7 @@
 						Already have an account?
 						<button
 							onclick={() => switchMode('signin')}
-							class="text-court-gold hover:underline"
+							class="text-primary-600 dark:text-primary-400 hover:underline"
 						>
 							Sign in
 						</button>
@@ -265,7 +265,7 @@
 				{:else}
 					<button
 						onclick={() => switchMode('signin')}
-						class="text-court-gold hover:underline"
+						class="text-primary-600 dark:text-primary-400 hover:underline"
 					>
 						Back to sign in
 					</button>
@@ -273,7 +273,7 @@
 			</div>
 
 			<!-- Anonymous Mode Note -->
-			<div class="mt-4 rounded border border-gray-700 bg-gray-800/50 p-3 text-xs text-gray-400">
+			<div class="mt-4 rounded border border-default bg-(--subtle)/50 p-3 text-xs text-muted">
 				<strong>Note:</strong> Creating an account is optional. You can continue using CourtSync
 				without an account, but your favorites and coverage plans will only be stored on this device.
 			</div>

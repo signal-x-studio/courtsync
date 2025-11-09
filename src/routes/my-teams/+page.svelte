@@ -56,22 +56,22 @@
 <div class="max-w-screen-xl mx-auto p-4">
 	<div class="mb-6 flex justify-between items-start">
 		<div>
-			<h2 class="text-2xl font-bold text-court-gold mb-2">My Teams</h2>
-			<p class="text-gray-400">
+			<h2 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-2">My Teams</h2>
+			<p class="text-muted">
 				{$favoriteTeams.length} favorite team{$favoriteTeams.length !== 1 ? 's' : ''}
 				• {filteredMatches.length} match{filteredMatches.length !== 1 ? 'es' : ''}
 			</p>
 		</div>
 		<button
 			onclick={() => (showTeamSelector = !showTeamSelector)}
-			class="px-4 py-2 bg-court-charcoal border border-gray-700 rounded-lg hover:border-court-gold transition-colors"
+			class="px-4 py-2 bg-(--subtle) border border-default rounded-lg hover:border-court-gold transition-colors"
 		>
 			{showTeamSelector ? 'Hide' : 'Manage'} Teams
 		</button>
 	</div>
 
 	{#if $favoriteTeams.length > 0}
-		<div class="mb-6 bg-court-charcoal border border-gray-700 rounded-lg p-4">
+		<div class="mb-6 bg-(--subtle) border border-default rounded-lg p-4">
 			<h3 class="text-lg font-semibold mb-3">Your Teams</h3>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
 				{#each favoriteTeamDetails as team (team.TeamId)}
@@ -79,15 +79,15 @@
 						class="flex items-center justify-between p-3 rounded border border-court-gold bg-court-gold bg-opacity-5"
 					>
 						<div class="flex items-center gap-2 flex-1 min-w-0">
-							<span class="text-lg text-court-gold">★</span>
+							<span class="text-lg text-primary-600 dark:text-primary-400">★</span>
 							<div class="min-w-0">
 								<div class="font-medium truncate">{team.TeamName}</div>
-								<div class="text-sm text-gray-400">{team.DivisionName}</div>
+								<div class="text-sm text-muted">{team.DivisionName}</div>
 							</div>
 						</div>
 						<button
 							onclick={() => team.TeamId && team.DivisionId && navigateToTeam(team.TeamId, team.DivisionId)}
-							class="px-3 py-1.5 bg-court-gold text-court-dark text-sm font-semibold rounded hover:bg-yellow-500 transition-colors shrink-0 ml-2"
+							class="px-3 py-1.5 bg-court-gold text-(--fg) text-sm font-semibold rounded hover:bg-yellow-500 transition-colors shrink-0 ml-2"
 							aria-label="View {team.TeamName} full schedule and details"
 						>
 							View Team
@@ -99,7 +99,7 @@
 	{/if}
 
 	{#if showTeamSelector}
-		<div class="mb-6 bg-court-charcoal border border-gray-700 rounded-lg p-4">
+		<div class="mb-6 bg-(--subtle) border border-default rounded-lg p-4">
 			<h3 class="text-lg font-semibold mb-3">Select Your Teams</h3>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-96 overflow-y-auto">
 				{#each availableTeams as team (team.TeamId)}
@@ -108,18 +108,18 @@
 						class="text-left px-3 py-2 rounded border transition-colors {team.TeamId &&
 						$favoriteTeams.includes(team.TeamId)
 							? 'border-court-gold bg-court-gold bg-opacity-10'
-							: 'border-gray-700'}"
+							: 'border-default'}"
 					>
 						<div class="flex items-center gap-2">
 							<span
 								class="text-lg"
-								class:text-court-gold={team.TeamId && $favoriteTeams.includes(team.TeamId)}
+								class:text-primary-600={team.TeamId && $favoriteTeams.includes(team.TeamId)}
 							>
 								{team.TeamId && $favoriteTeams.includes(team.TeamId) ? '★' : '☆'}
 							</span>
 							<div>
 								<div class="font-medium">{team.TeamName}</div>
-								<div class="text-sm text-gray-400">{team.DivisionName}</div>
+								<div class="text-sm text-muted">{team.DivisionName}</div>
 							</div>
 						</div>
 					</button>
@@ -132,19 +132,19 @@
 		<MatchListSkeleton count={6} />
 	{:else if $favoriteTeams.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-400 text-lg mb-4">No favorite teams selected</p>
+			<p class="text-muted text-lg mb-4">No favorite teams selected</p>
 			<button
 				onclick={() => (showTeamSelector = true)}
-				class="px-6 py-3 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
+				class="px-6 py-3 bg-court-gold text-(--fg) font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
 			>
 				Select Your Teams
 			</button>
 		</div>
 	{:else if timeBlocks.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-400 text-lg">No matches found for your teams</p>
+			<p class="text-muted text-lg">No matches found for your teams</p>
 			{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
-				<button onclick={() => filters.clear()} class="mt-4 text-court-gold hover:underline">
+				<button onclick={() => filters.clear()} class="mt-4 text-primary-600 dark:text-primary-400 hover:underline">
 					Clear filters
 				</button>
 			{/if}

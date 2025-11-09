@@ -23,9 +23,9 @@
 		const baseClasses = 'inline-flex items-center gap-2 font-medium transition-all rounded-lg';
 
 		const variantClasses = {
-			primary: 'bg-court-gold text-court-dark hover:bg-court-gold/90',
-			secondary: 'bg-gray-700 text-gray-100 hover:bg-gray-600',
-			ghost: 'text-gray-400 hover:text-gray-300 hover:bg-gray-800'
+			primary: 'bg-court-gold text-(--fg) hover:bg-court-gold/90',
+			secondary: 'bg-(--subtle) text-gray-100 hover:bg-gray-600',
+			ghost: 'text-muted hover:text-(--fg) hover:bg-(--subtle)'
 		};
 
 		const sizeClasses = {

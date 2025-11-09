@@ -119,7 +119,7 @@
 					{#if $persona === 'media'}
 						<a
 							href="/"
-							class="text-sm text-gray-400 hover:text-court-gold transition-colors mb-2 inline-flex items-center gap-1"
+							class="text-sm text-muted hover:text-primary-600 dark:text-primary-400 transition-colors mb-2 inline-flex items-center gap-1"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -127,14 +127,14 @@
 							Switch Club
 						</a>
 					{/if}
-					<h2 class="text-2xl font-bold text-court-gold mb-2">All Matches</h2>
-					<p class="text-gray-300 text-sm">
+					<h2 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-2">All Matches</h2>
+					<p class="text-(--fg) text-sm">
 						Showing {filteredMatches.length} of {allMatches.length} matches
 						{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
 							(filtered)
 						{/if}
 						{#if data.cached && data.cacheAge !== null}
-							<span class="text-xs text-gray-400">• cached {data.cacheAge}s ago</span>
+							<span class="text-xs text-muted">• cached {data.cacheAge}s ago</span>
 						{/if}
 					</p>
 				</div>
@@ -144,12 +144,12 @@
 				<button
 					onclick={handleRefresh}
 					disabled={isRefreshing}
-					class="p-3 rounded-lg bg-court-charcoal hover:bg-gray-800 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark"
+					class="p-3 rounded-lg bg-(--subtle) hover:bg-(--subtle) transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-(--bg)"
 					aria-label="Refresh match data"
 					title="Refresh match data"
 				>
 					<svg
-						class="w-5 h-5 text-gray-300"
+						class="w-5 h-5 text-(--fg)"
 						class:animate-spin={isRefreshing}
 						fill="none"
 						stroke="currentColor"
@@ -168,12 +168,11 @@
 				<!-- Sort by Team -->
 				<button
 					onclick={() => (sortBy = sortBy === 'team' ? 'time' : 'team')}
-					class="p-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark"
-					class:bg-court-gold={sortBy === 'team'}
-					class:text-court-dark={sortBy === 'team'}
-					class:bg-court-charcoal={sortBy !== 'team'}
-					class:text-gray-300={sortBy !== 'team'}
-					class:hover:bg-gray-800={sortBy !== 'team'}
+					class="p-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-(--bg)"
+					class:bg-primary-500={sortBy === 'team'}
+					class:text-white={sortBy === 'team'}
+					class:bg-(--subtle)={sortBy !== 'team'}
+					class:hover:bg-(--subtle)={sortBy !== 'team'}
 					aria-label={sortBy === 'team' ? 'Sort by time' : 'Sort by team name'}
 					title={sortBy === 'team' ? 'Sorted by team (click for time)' : 'Sort by team'}
 				>
@@ -185,12 +184,11 @@
 				<!-- Sort by Court -->
 				<button
 					onclick={() => (sortBy = sortBy === 'court' ? 'time' : 'court')}
-					class="p-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark"
-					class:bg-court-gold={sortBy === 'court'}
-					class:text-court-dark={sortBy === 'court'}
-					class:bg-court-charcoal={sortBy !== 'court'}
-					class:text-gray-300={sortBy !== 'court'}
-					class:hover:bg-gray-800={sortBy !== 'court'}
+					class="p-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-(--bg)"
+					class:bg-primary-500={sortBy === 'court'}
+					class:text-white={sortBy === 'court'}
+					class:bg-(--subtle)={sortBy !== 'court'}
+					class:hover:bg-(--subtle)={sortBy !== 'court'}
 					aria-label={sortBy === 'court' ? 'Sort by time' : 'Sort by court'}
 					title={sortBy === 'court' ? 'Sorted by court (click for time)' : 'Sort by court'}
 				>
@@ -206,12 +204,11 @@
 						else if (waveFilter === 'am') waveFilter = 'pm';
 						else waveFilter = 'all';
 					}}
-					class="p-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark"
+					class="p-3 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-(--bg)"
 					class:bg-amber-500={waveFilter === 'am'}
 					class:bg-indigo-500={waveFilter === 'pm'}
-					class:bg-court-gold={waveFilter === 'all'}
-					class:text-court-dark={waveFilter === 'all' || waveFilter === 'am'}
-					class:text-white={waveFilter === 'pm'}
+					class:bg-primary-500={waveFilter === 'all'}
+					class:text-white={waveFilter === 'all' || waveFilter === 'am'}
 					aria-label="Toggle wave filter: {waveFilter === 'all' ? 'All waves' : waveFilter === 'am' ? 'AM only' : 'PM only'}"
 					title={waveFilter === 'all' ? 'All waves (click for AM)' : waveFilter === 'am' ? 'AM only (click for PM)' : 'PM only (click for All)'}
 				>
@@ -238,16 +235,16 @@
 		<MatchListSkeleton count={6} />
 	{:else if visibleTimeBlocks.length === 0}
 		<div class="text-center py-12">
-			<p class="text-gray-300 text-lg">No matches found</p>
+			<p class="text-(--fg) text-lg">No matches found</p>
 			{#if waveFilter !== 'all'}
 				<button
 					onclick={() => (waveFilter = 'all')}
-					class="mt-4 text-court-gold hover:underline"
+					class="mt-4 text-primary-600 dark:text-primary-400 hover:underline"
 				>
 					Show all waves
 				</button>
 			{:else if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0}
-				<button onclick={() => filters.clear()} class="mt-4 text-court-gold hover:underline">
+				<button onclick={() => filters.clear()} class="mt-4 text-primary-600 dark:text-primary-400 hover:underline">
 					Clear filters
 				</button>
 			{/if}

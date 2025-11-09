@@ -70,12 +70,12 @@
 		aria-labelledby="install-title"
 		aria-describedby="install-description"
 	>
-		<div class="rounded-lg border border-court-gold bg-court-charcoal p-4 shadow-xl">
+		<div class="rounded-lg border border-court-gold bg-(--subtle) p-4 shadow-xl">
 			<div class="mb-3 flex items-start justify-between">
 				<div class="flex items-center gap-3">
 					<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-court-gold">
 						<svg
-							class="h-7 w-7 text-court-dark"
+							class="h-7 w-7 text-(--fg)"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -91,14 +91,14 @@
 					</div>
 					<div>
 						<h3 id="install-title" class="font-semibold text-gray-100">Install CourtSync</h3>
-						<p id="install-description" class="text-sm text-gray-400">
+						<p id="install-description" class="text-sm text-muted">
 							Quick access from your home screen
 						</p>
 					</div>
 				</div>
 				<button
 					onclick={dismissPrompt}
-					class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-gray-200"
+					class="rounded p-1 text-muted transition-colors hover:bg-(--subtle) hover:text-gray-200"
 					aria-label="Dismiss install prompt"
 				>
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,13 +115,13 @@
 			<div class="flex gap-2">
 				<button
 					onclick={handleInstall}
-					class="flex-1 rounded-lg bg-court-gold px-4 py-2 font-medium text-court-dark transition-colors hover:bg-court-gold/90"
+					class="flex-1 rounded-lg bg-court-gold px-4 py-2 font-medium text-(--fg) transition-colors hover:bg-court-gold/90"
 				>
 					Install
 				</button>
 				<button
 					onclick={dismissPrompt}
-					class="rounded-lg bg-gray-700 px-4 py-2 font-medium text-gray-300 transition-colors hover:bg-gray-600"
+					class="rounded-lg bg-(--subtle) px-4 py-2 font-medium text-(--fg) transition-colors hover:bg-gray-600"
 				>
 					Not Now
 				</button>

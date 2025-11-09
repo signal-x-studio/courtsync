@@ -38,7 +38,7 @@
 
 <div class="max-w-screen-xl mx-auto p-4">
 	<div class="mb-6">
-		<h2 class="text-2xl font-bold text-court-gold mb-2">Coverage Plan</h2>
+		<h2 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-2">Coverage Plan</h2>
 		{#if $persona !== 'media'}
 			<div
 				class="bg-yellow-900/20 border border-yellow-600 rounded-lg p-4 text-yellow-400"
@@ -51,33 +51,33 @@
 
 	<!-- Coverage Stats -->
 			<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
-					<div class="text-2xl font-bold text-court-gold">{stats.totalMatches}</div>
-					<div class="text-sm text-gray-400">Matches</div>
+				<div class="bg-(--subtle) border border-default rounded-lg p-4">
+					<div class="text-2xl font-bold text-primary-600 dark:text-primary-400">{stats.totalMatches}</div>
+					<div class="text-sm text-muted">Matches</div>
 				</div>
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
+				<div class="bg-(--subtle) border border-default rounded-lg p-4">
 					<div
 						class="text-2xl font-bold"
-						class:text-red-400={stats.conflicts > 0}
-						class:text-green-400={stats.conflicts === 0}
+						class:text-error-500={stats.conflicts > 0}
+						class:text-success-500={stats.conflicts === 0}
 					>
 						{stats.conflicts}
 					</div>
-					<div class="text-sm text-gray-400">Conflicts</div>
+					<div class="text-sm text-muted">Conflicts</div>
 				</div>
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
-					<div class="text-2xl font-bold text-court-gold">{stats.divisions}</div>
-					<div class="text-sm text-gray-400">Divisions</div>
+				<div class="bg-(--subtle) border border-default rounded-lg p-4">
+					<div class="text-2xl font-bold text-primary-600 dark:text-primary-400">{stats.divisions}</div>
+					<div class="text-sm text-muted">Divisions</div>
 				</div>
-				<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
-					<div class="text-2xl font-bold text-court-gold">{stats.courts}</div>
-					<div class="text-sm text-gray-400">Courts</div>
+				<div class="bg-(--subtle) border border-default rounded-lg p-4">
+					<div class="text-2xl font-bold text-primary-600 dark:text-primary-400">{stats.courts}</div>
+					<div class="text-sm text-muted">Courts</div>
 				</div>
 			</div>
 
 			{#if stats.conflicts > 0}
 				<div
-					class="bg-red-900/20 border border-red-500 rounded-lg p-4 mb-6 text-red-400"
+					class="bg-red-900/20 border border-error-500 rounded-lg p-4 mb-6 text-error-500"
 					role="alert"
 				>
 					⚠️ You have {stats.conflicts} scheduling conflict{stats.conflicts !== 1
@@ -91,10 +91,10 @@
 			<MatchListSkeleton count={6} />
 		{:else if timeBlocks.length === 0}
 				<div class="text-center py-12">
-					<p class="text-gray-400 text-lg mb-4">No matches in your coverage plan</p>
+					<p class="text-muted text-lg mb-4">No matches in your coverage plan</p>
 					<a
 						href="/club"
-						class="inline-block px-6 py-3 bg-court-gold text-court-dark font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
+						class="inline-block px-6 py-3 bg-court-gold text-(--fg) font-semibold rounded-lg hover:bg-court-gold-dark transition-colors"
 					>
 						Browse All Matches
 					</a>
@@ -112,7 +112,7 @@
 
 			<!-- Clear Coverage Button -->
 			{#if coverageMatches.length > 0}
-				<div class="mt-6 pt-6 border-t border-gray-800">
+				<div class="mt-6 pt-6 border-t border-default">
 					<button
 						onclick={() => {
 							if (
@@ -123,7 +123,7 @@
 								coveragePlan.clear();
 							}
 						}}
-						class="px-4 py-2 bg-red-900 text-red-400 border border-red-700 rounded-lg hover:bg-red-800 transition-colors"
+						class="px-4 py-2 bg-red-900 text-error-500 border border-red-700 rounded-lg hover:bg-red-800 transition-colors"
 					>
 						Clear All Coverage
 					</button>

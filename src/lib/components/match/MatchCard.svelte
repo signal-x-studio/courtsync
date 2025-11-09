@@ -75,20 +75,19 @@
 <a
 	href="/match/{match.MatchId}?eventId={$eventId}&divisionId={match.Division.DivisionId}&teamId={match.FirstTeamId || match.SecondTeamId || 0}"
 	data-testid="match-card"
-	class="match-card block bg-court-charcoal rounded-lg p-3 border-2 transition-all hover:border-court-gold hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark"
-	class:border-red-500={isConflict}
-	class:border-court-gold={isInCoverage && !isConflict}
-	class:border-gray-700={!isConflict && !isInCoverage}
+	class="match-card block card-interactive min-w-0 max-w-full overflow-hidden"
+	class:border-error-500={isConflict}
+	class:border-primary-500={isInCoverage && !isConflict}
 	aria-label="View match details for {match.FirstTeamText} vs {match.SecondTeamText} at {match.CourtName}"
 >
 	<!-- Header: Court + Status + Actions -->
 	<div class="flex items-center justify-between mb-2">
 		<div class="flex items-center gap-2">
 			{#if match.CourtName}
-				<span class="text-lg font-bold text-white">{match.CourtName}</span>
+				<span class="text-lg font-bold">{match.CourtName}</span>
 			{/if}
 			{#if status === 'live'}
-				<span class="text-red-400 font-semibold text-xs">🔴 LIVE</span>
+				<span class="badge badge-error">🔴 LIVE</span>
 			{/if}
 		</div>
 		{#if showCoverageToggle && $persona === 'media'}
@@ -98,11 +97,9 @@
 					e.stopPropagation();
 					toggleCoverage();
 				}}
-				class="text-xs px-2 py-1 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
-				class:bg-court-gold={isInCoverage}
-				class:text-court-dark={isInCoverage}
-				class:bg-gray-700={!isInCoverage}
-				class:text-gray-300={!isInCoverage}
+				class="btn btn-sm"
+				class:btn-primary={isInCoverage}
+				class:btn-outline={!isInCoverage}
 				aria-label={isInCoverage ? 'Remove from coverage plan' : 'Add to coverage plan'}
 			>
 				{isInCoverage ? '✓ Coverage' : '+ Coverage'}
@@ -116,9 +113,9 @@
 		<div class="flex items-center gap-0.5 flex-1 min-w-0">
 			<button
 				onclick={(e) => toggleFavoriteTeam(match.FirstTeamId, e)}
-				class="p-1.5 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
-				class:text-court-gold={isTeam1Favorite}
-				class:text-gray-600={!isTeam1Favorite}
+				class="p-1.5 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ring-offset-(--bg)"
+				class:text-accent-500={isTeam1Favorite}
+				class:text-muted={!isTeam1Favorite}
 				aria-label={isTeam1Favorite ? 'Remove from favorites' : 'Add to favorites'}
 				title={isTeam1Favorite ? 'Remove from favorites' : 'Add to favorites'}
 			>
@@ -126,11 +123,11 @@
 			</button>
 			<button
 				onclick={(e) => navigateToTeam(match.FirstTeamId, e)}
-				class="font-semibold truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded px-1 min-w-0"
+				class="font-semibold truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ring-offset-(--bg) rounded px-1 min-w-0"
 				class:text-base={team1IsClub}
-				class:text-court-gold={team1IsClub}
+				class:text-primary-600={team1IsClub}
+				class:dark:text-primary-400={team1IsClub}
 				class:text-sm={!team1IsClub}
-				class:text-gray-300={!team1IsClub}
 				aria-label="View {match.FirstTeamText} team details"
 			>
 				{match.FirstTeamText}
@@ -138,26 +135,26 @@
 		</div>
 
 		<!-- VS separator -->
-		<span class="text-xs text-gray-500 font-medium shrink-0 px-0.5">vs</span>
+		<span class="text-xs text-muted font-medium shrink-0 px-0.5">vs</span>
 
 		<!-- Team 2 -->
 		<div class="flex items-center gap-0.5 flex-1 min-w-0 justify-end">
 			<button
 				onclick={(e) => navigateToTeam(match.SecondTeamId, e)}
-				class="font-semibold truncate text-right hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal rounded px-1 min-w-0"
+				class="font-semibold truncate text-right hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ring-offset-(--bg) rounded px-1 min-w-0"
 				class:text-base={team2IsClub}
-				class:text-court-gold={team2IsClub}
+				class:text-primary-600={team2IsClub}
+				class:dark:text-primary-400={team2IsClub}
 				class:text-sm={!team2IsClub}
-				class:text-gray-300={!team2IsClub}
 				aria-label="View {match.SecondTeamText} team details"
 			>
 				{match.SecondTeamText}
 			</button>
 			<button
 				onclick={(e) => toggleFavoriteTeam(match.SecondTeamId, e)}
-				class="p-1.5 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-charcoal"
-				class:text-court-gold={isTeam2Favorite}
-				class:text-gray-600={!isTeam2Favorite}
+				class="p-1.5 text-base hover:scale-110 transition-transform shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ring-offset-(--bg)"
+				class:text-accent-500={isTeam2Favorite}
+				class:text-muted={!isTeam2Favorite}
 				aria-label={isTeam2Favorite ? 'Remove from favorites' : 'Add to favorites'}
 				title={isTeam2Favorite ? 'Remove from favorites' : 'Add to favorites'}
 			>
@@ -167,11 +164,11 @@
 	</div>
 
 	<!-- Footer: Division (subtle) -->
-	<div class="mt-2 text-xs text-gray-500">
+	<div class="mt-2 text-xs text-muted">
 		{match.Division.Name}
 	</div>
 
 	{#if isConflict}
-		<div class="mt-2 text-xs text-red-400">⚠️ Conflict with another match</div>
+		<div class="mt-2 badge badge-error">⚠️ Conflict with another match</div>
 	{/if}
 </a>

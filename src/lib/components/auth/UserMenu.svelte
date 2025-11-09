@@ -36,7 +36,7 @@
 		<!-- User Avatar Button -->
 		<button
 			onclick={() => (showMenu = !showMenu)}
-			class="flex h-10 w-10 items-center justify-center rounded-full bg-court-gold text-court-dark font-semibold transition-transform hover:scale-110"
+			class="flex h-10 w-10 items-center justify-center rounded-full bg-court-gold text-(--fg) font-semibold transition-transform hover:scale-110"
 			aria-label="User menu"
 		>
 			{userInitials()}
@@ -45,26 +45,26 @@
 		<!-- Dropdown Menu -->
 		{#if showMenu}
 			<div
-				class="absolute right-0 top-12 z-50 w-64 rounded-lg border border-court-gold/30 bg-court-charcoal shadow-xl"
+				class="absolute right-0 top-12 z-50 w-64 rounded-lg border border-court-gold/30 bg-(--subtle) shadow-xl"
 			>
 				<!-- User Info -->
-				<div class="border-b border-gray-700 px-4 py-3">
-					<p class="text-sm font-medium text-gray-300">Signed in as</p>
-					<p class="truncate text-sm text-court-gold">{authState.user.email}</p>
+				<div class="border-b border-default px-4 py-3">
+					<p class="text-sm font-medium text-(--fg)">Signed in as</p>
+					<p class="truncate text-sm text-primary-600 dark:text-primary-400">{authState.user.email}</p>
 				</div>
 
 				<!-- Menu Items -->
 				<div class="py-2">
 					<button
 						onclick={handleSignOut}
-						class="w-full px-4 py-2 text-left text-sm text-gray-300 transition-colors hover:bg-gray-800"
+						class="w-full px-4 py-2 text-left text-sm text-(--fg) transition-colors hover:bg-(--subtle)"
 					>
 						Sign Out
 					</button>
 				</div>
 
 				<!-- Sync Info -->
-				<div class="border-t border-gray-700 px-4 py-2 text-xs text-gray-500">
+				<div class="border-t border-default px-4 py-2 text-xs text-muted">
 					Your favorites and coverage plans are syncing across devices
 				</div>
 			</div>
@@ -73,7 +73,7 @@
 		<!-- Sign In Button -->
 		<button
 			onclick={onSignInClick}
-			class="rounded-lg bg-court-gold px-4 py-2 text-sm font-semibold text-court-dark transition-colors hover:bg-court-gold/90"
+			class="rounded-lg bg-court-gold px-4 py-2 text-sm font-semibold text-(--fg) transition-colors hover:bg-court-gold/90"
 		>
 			Sign In
 		</button>

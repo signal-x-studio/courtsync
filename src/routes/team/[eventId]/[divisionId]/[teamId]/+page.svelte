@@ -40,25 +40,25 @@
 	<div class="mb-6">
 		<button
 			onclick={() => window.history.back()}
-			class="text-court-gold hover:underline mb-4 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-court-gold focus-visible:ring-offset-2 focus-visible:ring-offset-court-dark rounded px-2 py-1 -ml-2"
+			class="text-primary-600 dark:text-primary-400 hover:underline mb-4 flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-(--bg) rounded px-2 py-1 -ml-2"
 			aria-label="Go back to previous page"
 		>
 			<span class="text-lg">←</span>
 			<span class="font-medium">Back</span>
 		</button>
-		<h2 class="text-2xl font-bold text-court-gold mb-2">{teamName}</h2>
-		<p class="text-gray-400 text-sm">{data.divisionName}</p>
+		<h2 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-2">{teamName}</h2>
+		<p class="text-muted text-sm">{data.divisionName}</p>
 	</div>
 
 	<!-- Tabs -->
-	<div class="flex gap-2 mb-6 border-b border-gray-800">
+	<div class="flex gap-2 mb-6 border-b border-default">
 		<button
 			onclick={() => (activeTab = 'schedule')}
 			class="px-4 py-2 font-medium transition-colors"
-			class:text-court-gold={activeTab === 'schedule'}
+			class:text-primary-600={activeTab === 'schedule'}
 			class:border-b-2={activeTab === 'schedule'}
 			class:border-court-gold={activeTab === 'schedule'}
-			class:text-gray-400={activeTab !== 'schedule'}
+			class:text-muted={activeTab !== 'schedule'}
 		>
 			Schedule
 		</button>
@@ -66,10 +66,10 @@
 			<button
 				onclick={() => (activeTab = 'pool')}
 				class="px-4 py-2 font-medium transition-colors"
-				class:text-court-gold={activeTab === 'pool'}
+				class:text-primary-600={activeTab === 'pool'}
 				class:border-b-2={activeTab === 'pool'}
 				class:border-court-gold={activeTab === 'pool'}
-				class:text-gray-400={activeTab !== 'pool'}
+				class:text-muted={activeTab !== 'pool'}
 			>
 				Pool Standings
 			</button>
@@ -78,10 +78,10 @@
 			<button
 				onclick={() => (activeTab = 'roster')}
 				class="px-4 py-2 font-medium transition-colors"
-				class:text-court-gold={activeTab === 'roster'}
+				class:text-primary-600={activeTab === 'roster'}
 				class:border-b-2={activeTab === 'roster'}
 				class:border-court-gold={activeTab === 'roster'}
-				class:text-gray-400={activeTab !== 'roster'}
+				class:text-muted={activeTab !== 'roster'}
 			>
 				Roster
 			</button>
@@ -95,44 +95,44 @@
 			<button
 				onclick={() => (scheduleType = 'current')}
 				class="px-4 py-2 rounded transition-colors"
-				class:bg-court-gold={scheduleType === 'current'}
-				class:text-court-dark={scheduleType === 'current'}
-				class:bg-court-charcoal={scheduleType !== 'current'}
+				class:bg-primary-500={scheduleType === 'current'}
+				class:text-(--fg)={scheduleType === 'current'}
+				class:bg-(--subtle)={scheduleType !== 'current'}
 				class:border={scheduleType !== 'current'}
-				class:border-gray-700={scheduleType !== 'current'}
+				class:border-default={scheduleType !== 'current'}
 			>
 				Current ({data.schedules.current.length})
 			</button>
 			<button
 				onclick={() => (scheduleType = 'work')}
 				class="px-4 py-2 rounded transition-colors"
-				class:bg-court-gold={scheduleType === 'work'}
-				class:text-court-dark={scheduleType === 'work'}
-				class:bg-court-charcoal={scheduleType !== 'work'}
+				class:bg-primary-500={scheduleType === 'work'}
+				class:text-(--fg)={scheduleType === 'work'}
+				class:bg-(--subtle)={scheduleType !== 'work'}
 				class:border={scheduleType !== 'work'}
-				class:border-gray-700={scheduleType !== 'work'}
+				class:border-default={scheduleType !== 'work'}
 			>
 				Work Assignments ({data.schedules.work.length})
 			</button>
 			<button
 				onclick={() => (scheduleType = 'future')}
 				class="px-4 py-2 rounded transition-colors"
-				class:bg-court-gold={scheduleType === 'future'}
-				class:text-court-dark={scheduleType === 'future'}
-				class:bg-court-charcoal={scheduleType !== 'future'}
+				class:bg-primary-500={scheduleType === 'future'}
+				class:text-(--fg)={scheduleType === 'future'}
+				class:bg-(--subtle)={scheduleType !== 'future'}
 				class:border={scheduleType !== 'future'}
-				class:border-gray-700={scheduleType !== 'future'}
+				class:border-default={scheduleType !== 'future'}
 			>
 				Future ({data.schedules.future.length})
 			</button>
 			<button
 				onclick={() => (scheduleType = 'past')}
 				class="px-4 py-2 rounded transition-colors"
-				class:bg-court-gold={scheduleType === 'past'}
-				class:text-court-dark={scheduleType === 'past'}
-				class:bg-court-charcoal={scheduleType !== 'past'}
+				class:bg-primary-500={scheduleType === 'past'}
+				class:text-(--fg)={scheduleType === 'past'}
+				class:bg-(--subtle)={scheduleType !== 'past'}
 				class:border={scheduleType !== 'past'}
-				class:border-gray-700={scheduleType !== 'past'}
+				class:border-default={scheduleType !== 'past'}
 			>
 				Past ({data.schedules.past.length})
 			</button>
@@ -141,7 +141,7 @@
 		<!-- Matches -->
 		{#if timeBlocks.length === 0}
 			<div class="text-center py-12">
-				<p class="text-gray-400">No {scheduleType} matches</p>
+				<p class="text-muted">No {scheduleType} matches</p>
 			</div>
 		{:else}
 			<div class="space-y-4">
@@ -154,9 +154,9 @@
 
 	<!-- Pool Standings Tab -->
 	{#if activeTab === 'pool' && data.poolSheet}
-		<div class="bg-court-charcoal border border-gray-700 rounded-lg overflow-hidden">
+		<div class="bg-(--subtle) border border-default rounded-lg overflow-hidden">
 			<table class="w-full">
-				<thead class="bg-court-dark">
+				<thead class="bg-(--bg)">
 					<tr>
 						<th class="px-4 py-3 text-left text-sm font-medium">Rank</th>
 						<th class="px-4 py-3 text-left text-sm font-medium">Team</th>
@@ -169,8 +169,8 @@
 				<tbody>
 					{#each data.poolSheet.Pool.Teams as team (team.TeamId)}
 						<tr
-							class="border-t border-gray-800"
-							class:bg-court-gold={team.TeamId === data.teamId}
+							class="border-t border-default"
+							class:bg-primary-500={team.TeamId === data.teamId}
 							class:bg-opacity-10={team.TeamId === data.teamId}
 						>
 							<td class="px-4 py-3">{team.FinishRank || '-'}</td>
@@ -188,12 +188,12 @@
 
 	<!-- Roster Tab -->
 	{#if activeTab === 'roster'}
-		<div class="bg-court-charcoal border border-gray-700 rounded-lg p-6">
+		<div class="bg-(--subtle) border border-default rounded-lg p-6">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				{#each data.roster as player}
-					<div class="flex justify-between items-center p-3 bg-court-dark rounded">
+					<div class="flex justify-between items-center p-3 bg-(--bg) rounded">
 						<span class="font-medium">{player.FullName}</span>
-						<span class="text-gray-400 text-sm">{player.RoleOrJersey}</span>
+						<span class="text-muted text-sm">{player.RoleOrJersey}</span>
 					</div>
 				{/each}
 			</div>

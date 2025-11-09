@@ -11,7 +11,7 @@
 			case 'success':
 				return 'bg-green-900/90 border-green-500 text-green-100';
 			case 'error':
-				return 'bg-red-900/90 border-red-500 text-red-100';
+				return 'bg-red-900/90 border-error-500 text-red-100';
 			case 'info':
 			default:
 				return 'bg-blue-900/90 border-blue-500 text-blue-100';

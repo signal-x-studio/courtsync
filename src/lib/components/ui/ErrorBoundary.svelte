@@ -15,8 +15,8 @@
 </script>
 
 {#if error}
-	<div class="bg-red-900/20 border border-red-500 rounded-lg p-6 text-center" role="alert">
-		<p class="text-red-400 mb-4">{error}</p>
+	<div class="bg-red-900/20 border border-error-500 rounded-lg p-6 text-center" role="alert">
+		<p class="text-error-500 mb-4">{error}</p>
 		{#if retry}
 			<button
 				onclick={retry}

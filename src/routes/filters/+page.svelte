@@ -50,8 +50,8 @@
 <div class="max-w-screen-xl mx-auto p-4">
 	<div class="mb-6 flex justify-between items-start">
 		<div>
-			<h2 class="text-2xl font-bold text-court-gold mb-2">Filters</h2>
-			<p class="text-gray-400">
+			<h2 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-2">Filters</h2>
+			<p class="text-muted">
 				{$filters.divisionIds.length} division{$filters.divisionIds.length !== 1 ? 's' : ''}
 				• {$filters.teamIds.length} team{$filters.teamIds.length !== 1 ? 's' : ''}
 			</p>
@@ -59,7 +59,7 @@
 		{#if $filters.divisionIds.length > 0 || $filters.teamIds.length > 0 || $filters.showOnlyUncovered}
 			<button
 				onclick={() => filters.clear()}
-				class="px-4 py-2 bg-red-900 text-red-400 border border-red-700 rounded-lg hover:bg-red-800 transition-colors"
+				class="px-4 py-2 bg-red-900 text-error-500 border border-red-700 rounded-lg hover:bg-red-800 transition-colors"
 			>
 				Clear All
 			</button>
@@ -69,14 +69,14 @@
 	<div class="space-y-6">
 		<!-- Media-only: Show only uncovered matches -->
 		{#if $persona === 'media'}
-			<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
+			<div class="bg-(--subtle) border border-default rounded-lg p-4">
 				<h3 class="text-lg font-semibold mb-3">Coverage Filters</h3>
 				<label class="flex items-center gap-3 cursor-pointer">
 					<input
 						type="checkbox"
 						checked={$filters.showOnlyUncovered}
 						onchange={(e) => filters.setShowOnlyUncovered(e.currentTarget.checked)}
-						class="w-5 h-5 rounded border-gray-700 bg-court-dark text-court-gold focus:ring-court-gold focus:ring-offset-court-dark"
+						class="w-5 h-5 rounded border-default bg-(--bg) text-primary-600 dark:text-primary-400 focus:ring-court-gold focus:ring-offset-(--bg)"
 					/>
 					<span>Show only uncovered matches</span>
 				</label>
@@ -84,7 +84,7 @@
 		{/if}
 
 		<!-- Division Filters -->
-		<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
+		<div class="bg-(--subtle) border border-default rounded-lg p-4">
 			<h3 class="text-lg font-semibold mb-3">Divisions</h3>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-2">
 				{#each divisions as division (division.DivisionId)}
@@ -94,7 +94,7 @@
 							division.DivisionId
 						)
 							? 'border-court-gold bg-court-gold bg-opacity-10'
-							: 'border-gray-700'}"
+							: 'border-default'}"
 					>
 						<div
 							class="w-4 h-4 rounded-full"
@@ -103,7 +103,7 @@
 						></div>
 						<span>{division.Name}</span>
 						{#if $filters.divisionIds.includes(division.DivisionId)}
-							<span class="ml-auto text-court-gold">✓</span>
+							<span class="ml-auto text-primary-600 dark:text-primary-400">✓</span>
 						{/if}
 					</button>
 				{/each}
@@ -111,14 +111,14 @@
 		</div>
 
 		<!-- Team Filters -->
-		<div class="bg-court-charcoal border border-gray-700 rounded-lg p-4">
+		<div class="bg-(--subtle) border border-default rounded-lg p-4">
 			<h3 class="text-lg font-semibold mb-3">Teams</h3>
 			<div class="space-y-4">
 				{#each divisions as division (division.DivisionId)}
 					{@const divisionTeams = teamsByDivision[division.DivisionId] || []}
 					{#if divisionTeams.length > 0}
 						<div>
-							<h4 class="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+							<h4 class="text-sm font-medium text-muted mb-2 flex items-center gap-2">
 								<div
 									class="w-3 h-3 rounded-full"
 									style="background-color: {division.ColorHex}"
@@ -133,11 +133,11 @@
 										class="text-left px-3 py-2 rounded border transition-colors text-sm {team.TeamId &&
 										$filters.teamIds.includes(team.TeamId)
 											? 'border-court-gold bg-court-gold bg-opacity-10'
-											: 'border-gray-700'}"
+											: 'border-default'}"
 									>
 										{team.TeamName}
 										{#if team.TeamId && $filters.teamIds.includes(team.TeamId)}
-											<span class="ml-2 text-court-gold">✓</span>
+											<span class="ml-2 text-primary-600 dark:text-primary-400">✓</span>
 										{/if}
 									</button>
 								{/each}

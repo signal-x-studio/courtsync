@@ -47,22 +47,22 @@
 	}
 </script>
 
-<div class="rounded-lg border border-gray-700 bg-court-charcoal p-4">
+<div class="rounded-lg border border-default bg-(--subtle) p-4">
 	<div class="mb-3 flex items-start justify-between">
 		<div class="flex-1">
 			<h3 class="font-semibold text-gray-100">Match Notifications</h3>
-			<p class="mt-1 text-sm text-gray-400">
+			<p class="mt-1 text-sm text-muted">
 				Get notified 15 minutes before your favorite teams' matches start
 			</p>
 		</div>
 
 		<div class="ml-4">
 			{#if !supportsNotifications()}
-				<span class="text-xs text-gray-500">Not supported</span>
+				<span class="text-xs text-muted">Not supported</span>
 			{:else if $notificationPrefs.enabled && $notificationPrefs.permission === 'granted'}
 				<button
 					onclick={handleDisableNotifications}
-					class="rounded-lg bg-gray-700 px-4 py-2 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-600"
+					class="rounded-lg bg-(--subtle) px-4 py-2 text-sm font-medium text-(--fg) transition-colors hover:bg-gray-600"
 				>
 					Disable
 				</button>
@@ -70,7 +70,7 @@
 				<button
 					onclick={handleEnableNotifications}
 					disabled={requesting}
-					class="rounded-lg bg-court-gold px-4 py-2 text-sm font-medium text-court-dark transition-colors hover:bg-court-gold/90 disabled:opacity-50"
+					class="rounded-lg bg-court-gold px-4 py-2 text-sm font-medium text-(--fg) transition-colors hover:bg-court-gold/90 disabled:opacity-50"
 				>
 					{requesting ? 'Requesting...' : 'Enable'}
 				</button>
@@ -83,7 +83,7 @@
 			class="mt-3 rounded border px-3 py-2 text-sm"
 			class:border-green-600={$notificationPrefs.enabled}
 			class:bg-green-900/20={$notificationPrefs.enabled}
-			class:text-green-400={$notificationPrefs.enabled}
+			class:text-success-500={$notificationPrefs.enabled}
 			class:border-yellow-600={!$notificationPrefs.enabled}
 			class:bg-yellow-900/20={!$notificationPrefs.enabled}
 			class:text-yellow-400={!$notificationPrefs.enabled}
@@ -94,9 +94,9 @@
 	{/if}
 
 	{#if $notificationPrefs.enabled && $notificationPrefs.permission === 'granted'}
-		<div class="mt-3 rounded bg-court-dark p-3 text-sm text-gray-400">
+		<div class="mt-3 rounded bg-(--bg) p-3 text-sm text-muted">
 			<div class="flex items-center gap-2">
-				<svg class="h-4 w-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+				<svg class="h-4 w-4 text-success-500" fill="currentColor" viewBox="0 0 20 20">
 					<path
 						fill-rule="evenodd"
 						d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
